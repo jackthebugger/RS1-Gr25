@@ -1,3 +1,6 @@
+import os
+
+from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
 from launch.actions import (
     DeclareLaunchArgument,
@@ -277,6 +280,36 @@ def generate_launch_description():
     )
     ld.add_action(world_launch_arg)
 
+    gui_launch_arg = DeclareLaunchArgument(
+        'gui',
+        default_value='True',
+        description='Launch the Gazebo GUI. Set false for headless (server-only), useful on WSL.',
+    )
+    ld.add_action(gui_launch_arg)
+
+    # Ensure package models (grass_plane, forest_*, etc.) resolve via model://
+    # even when gazebo_ros export hooks are not applied (e.g. bare ign gazebo).
+    pkg_share = get_package_share_directory('41068_ignition_bringup')
+    models_path = os.path.join(pkg_share, 'models')
+    resource_path_parts = [models_path]
+    for env_name in ('IGN_GAZEBO_RESOURCE_PATH', 'GZ_SIM_RESOURCE_PATH'):
+        existing = os.environ.get(env_name, '')
+        if existing:
+            resource_path_parts.extend(p for p in existing.split(os.pathsep) if p)
+    # Preserve order, drop duplicates.
+    seen = set()
+    resource_path = os.pathsep.join(
+        p for p in resource_path_parts if not (p in seen or seen.add(p))
+    )
+    ld.add_action(SetEnvironmentVariable(
+        name='IGN_GAZEBO_RESOURCE_PATH',
+        value=resource_path,
+    ))
+    ld.add_action(SetEnvironmentVariable(
+        name='GZ_SIM_RESOURCE_PATH',
+        value=resource_path,
+    ))
+
     # Load common Gazebo server systems from a shared config file. This keeps
     # required systems such as Sensors out of individual robot and world files,
     # so custom student worlds do not need to copy plugin blocks.
@@ -292,6 +325,20 @@ def generate_launch_description():
         name='GZ_SIM_SERVER_CONFIG_PATH',
         value=server_config_file,
     ))
+
+    # WSL / software-GL mitigations for Ignition rendering (sensors need a
+    # render engine even when the Gazebo GUI is off).
+    ld.add_action(SetEnvironmentVariable(name='LIBGL_ALWAYS_SOFTWARE', value='1'))
+    ld.add_action(SetEnvironmentVariable(name='MESA_GL_VERSION_OVERRIDE', value='3.3'))
+    ld.add_action(SetEnvironmentVariable(name='MESA_GLSL_VERSION_OVERRIDE', value='330'))
+    ld.add_action(SetEnvironmentVariable(name='QT_QPA_PLATFORM', value='xcb'))
+
+    # -r runs immediately. When gui:=false: -s (no GUI) + --headless-rendering
+    # so camera/lidar sensors still render without a window (needed on WSL).
+    ign_gui_flag = PythonExpression([
+        "'' if '", LaunchConfiguration('gui'), "'.lower() in ", _TRUE_STRINGS,
+        " else ' -s --headless-rendering'",
+    ])
 
     # Start Gazebo once.
     ld.add_action(IncludeLaunchDescription(
@@ -309,8 +356,10 @@ def generate_launch_description():
                     'worlds',
                     [LaunchConfiguration('world'), '.sdf'],
                 ]),
-                ' -r',
-            ]
+                ' -r --render-engine-server ogre',
+                ign_gui_flag,
+            ],
+            'on_exit_shutdown': 'true',
         }.items(),
     ))
 
