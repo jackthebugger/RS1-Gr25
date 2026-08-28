@@ -38,7 +38,7 @@
                         <normal>
                             model://custom_ground_plane/materials/normalmap.png
                         </normal>
-                        <size>10</size>
+                        <size>75</size>
                     </texture>
                 </heightmap>
             </geometry>
