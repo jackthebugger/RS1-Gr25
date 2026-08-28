@@ -44,25 +44,191 @@
     <include>
       <uri>
         model://custom_ground_plane
+        <!--model://flat_custom_ground_plane -->
       </uri>
-      <name>custom_ground_plane</name>
+      <name>custom_map</name>
       <pose>0 0 0 0 0 0</pose>
     </include>
     
-    <!-- Forest wall -->
+    <!-- Fires -->
     <include>
       <uri>
         model://fire
       </uri>
       <name>fire1a</name>
-      <pose>12.5 0 1.4 1.570796 0 -1.570796</pose>
+      <pose>-20 15 1.4 1.570796 0 -1.570796</pose>
     </include>
     <include>
       <uri>
         model://fire
       </uri>
       <name>fire1b</name>
-      <pose>12.5 0 1.4 1.570796 0 0</pose>
+      <pose>-20 15 1.4 1.570796 0 0</pose>
+    </include>
+
+    <include>
+      <uri>
+        model://fire
+      </uri>
+      <name>fire2a</name>
+      <pose>-16 13 1.4 1.570796 0 -1.570796</pose>
+    </include>
+    <include>
+      <uri>
+        model://fire
+      </uri>
+      <name>fire2b</name>
+      <pose>-16 13 1.4 1.570796 0 0</pose>
+    </include>
+
+    <include>
+      <uri>
+        model://fire
+      </uri>
+      <name>fire3a</name>
+      <pose>-16 9 1.4 1.570796 0 -1.570796</pose>
+    </include>
+    <include>
+      <uri>
+        model://fire
+      </uri>
+      <name>fire3b</name>
+      <pose>-16 9 1.4 1.570796 0 0</pose>
+    </include>
+
+    <include>
+      <uri>
+        model://fire
+      </uri>
+      <name>fire4a</name>
+      <pose>-14 5 1.4 1.570796 0 -1.570796</pose>
+    </include>
+    <include>
+      <uri>
+        model://fire
+      </uri>
+      <name>fire4b</name>
+      <pose>-14 5 1.4 1.570796 0 0</pose>
+    </include>
+
+    <include>
+      <uri>
+        model://fire
+      </uri>
+      <name>fire5a</name>
+      <pose>-10 1 1.4 1.570796 0 -1.570796</pose>
+    </include>
+    <include>
+      <uri>
+        model://fire
+      </uri>
+      <name>fire5b</name>
+      <pose>-10 1 1.4 1.570796 0 0</pose>
+    </include>
+
+    <include>
+      <uri>
+        model://fire
+      </uri>
+      <name>fire6a</name>
+      <pose>-16 -5 1.4 1.570796 0 -1.570796</pose>
+    </include>
+    <include>
+      <uri>
+        model://fire
+      </uri>
+      <name>fire6b</name>
+      <pose>-16 -5 1.4 1.570796 0 0</pose>
+    </include>
+
+    <include>
+      <uri>
+        model://fire
+      </uri>
+      <name>fire7a</name>
+      <pose>-17 -9 1.4 1.570796 0 -1.570796</pose>
+    </include>
+    <include>
+      <uri>
+        model://fire
+      </uri>
+      <name>fire7b</name>
+      <pose>-17 -9 1.4 1.570796 0 0</pose>
+    </include>
+
+    <include>
+      <uri>
+        model://fire
+      </uri>
+      <name>fire8a</name>
+      <pose>-18 -11 1.4 1.570796 0 -1.570796</pose>
+    </include>
+    <include>
+      <uri>
+        model://fire
+      </uri>
+      <name>fire8b</name>
+      <pose>-18 -11 1.4 1.570796 0 0</pose>
+    </include>
+
+    <include>
+      <uri>
+        model://fire
+      </uri>
+      <name>fire9a</name>
+      <pose>-18 -15 1.4 1.570796 0 -1.570796</pose>
+    </include>
+    <include>
+      <uri>
+        model://fire
+      </uri>
+      <name>fire9b</name>
+      <pose>-18 -15 1.4 1.570796 0 0</pose>
+    </include>
+
+    <include>
+      <uri>
+        model://fire
+      </uri>
+      <name>fire10a</name>
+      <pose>-13 3 1.4 1.570796 0 -1.570796</pose>
+    </include>
+    <include>
+      <uri>
+        model://fire
+      </uri>
+      <name>fire10b</name>
+      <pose>-13 3 1.4 1.570796 0 0</pose>
+    </include>
+
+    <include>
+      <uri>
+        model://fire
+      </uri>
+      <name>fire11a</name>
+      <pose>-18 14 1.4 1.570796 0 -1.570796</pose>
+    </include>
+    <include>
+      <uri>
+        model://fire
+      </uri>
+      <name>fire11b</name>
+      <pose>-18 14 1.4 1.570796 0 0</pose>
+    </include>
+
+    <include>
+      <uri>
+        model://fire
+      </uri>
+      <name>fire12a</name>
+      <pose>-15 7 1.4 1.570796 0 -1.570796</pose>
+    </include>
+    <include>
+      <uri>
+        model://fire
+      </uri>
+      <name>fire12b</name>
+      <pose>-15 7 1.4 1.570796 0 0</pose>
     </include>
 
     <!-- Oak trees -->
