@@ -1,5 +1,6 @@
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument
+from launch.conditions import IfCondition
 from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import Node
 
@@ -9,6 +10,7 @@ def generate_launch_description():
 
     robot = LaunchConfiguration('robot')
     use_sim_time = LaunchConfiguration('use_sim_time')
+    show_gui = LaunchConfiguration('show_gui')
 
     ld.add_action(DeclareLaunchArgument(
         'robot',
@@ -20,6 +22,11 @@ def generate_launch_description():
         'use_sim_time',
         default_value='True',
         description='Flag to enable use_sim_time',
+    ))
+    ld.add_action(DeclareLaunchArgument(
+        'show_gui',
+        default_value='True',
+        description='Whether to launch the status GUI panel for the chosen robot.',
     ))
 
     # This launch file intentionally does not start Gazebo, robots, SLAM,
@@ -39,6 +46,22 @@ def generate_launch_description():
             ('/tf', 'tf'),
             ('/tf_static', 'tf_static'),
         ],
+    ))
+
+    ld.add_action(Node(
+        package='41068_ignition_bringup',
+        executable='robot_status_gui.py',
+        namespace=robot,
+        name='robot_status_gui',
+        output='screen',
+        parameters=[{
+            'use_sim_time': use_sim_time,
+            'robot_name': robot,
+            'odom_topic': 'odom',
+            'scan_topic': 'scan',
+            'obstacle_threshold': 1.0,
+        }],
+        condition=IfCondition(show_gui),
     ))
 
     return ld
