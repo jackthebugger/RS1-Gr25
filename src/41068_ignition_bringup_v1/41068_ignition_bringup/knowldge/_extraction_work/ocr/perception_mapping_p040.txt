@@ -1,0 +1,6 @@
+Simultaneous Localisation and Mapping (SLAM) x
+If we have a map: <&7
+We can localise!
+NOT THAT SIMPLE!
+If we can localise:
+% We can make a map!

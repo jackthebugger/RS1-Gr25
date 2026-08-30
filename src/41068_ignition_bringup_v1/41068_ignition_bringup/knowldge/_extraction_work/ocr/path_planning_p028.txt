@@ -1,0 +1,16 @@
++
+Graph Data Structure +
+e
+e Adjacency list
+© Each vertex has a linked list of edges
+© Edge stores destination and label
+© Better when adjacency matrix is sparse
+pL Tet
+WY | bah
+2 = aT
+Y-@ 67
+OD. = oe
+bea hora
+‘| A | @ |
+(4) GY 3 | L237 |
+' [am

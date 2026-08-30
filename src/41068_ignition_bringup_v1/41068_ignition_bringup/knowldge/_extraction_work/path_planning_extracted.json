@@ -1,0 +1,2935 @@
+{
+  "source_file": "path_planning.pdf",
+  "metadata": {
+    "format": "PDF 1.7",
+    "title": "Title Heading",
+    "author": "Graeme Best",
+    "subject": "",
+    "keywords": "",
+    "creator": "Microsoft® PowerPoint® for Microsoft 365",
+    "producer": "Microsoft® PowerPoint® for Microsoft 365",
+    "creationDate": "D:20260827150149+10'00'",
+    "modDate": "D:20260827150149+10'00'",
+    "trapped": "",
+    "encryption": null
+  },
+  "page_count": 69,
+  "extraction_date": "2026-08-28T15:36:50.550641",
+  "slides": [
+    {
+      "page": 1,
+      "title": "Path Planning",
+      "body_lines": [
+        "Graeme Best",
+        "Faculty of Engineering and Information Technology",
+        "University of Technology Sydney"
+      ],
+      "all_text_native": "Path Planning\nGraeme Best\n41068 Robotics Studio 1\nFaculty of Engineering and Information Technology\nUniversity of Technology Sydney",
+      "ocr_text": "e e@ e e\ng ae —_\n{ Me ~ - My x : y> conf-3\nee Sa G.. \\\\\na , w\\ ®\nPath Planning of sw \\\\\\ Ne\nSee i\nGraeme Best ee wp 8 Loo\n41068 Robotics Studio 1 mn. ee\nSe or e\nFaculty of Engineering and Information Technology eae Pee)\nUniversity of Technology Sydney cons hae ae e\nBehe ea pps\nae oe oa “ae ; @\nanee e e e",
+      "slide_type": "text",
+      "embedded_images": [
+        {
+          "file": "path_planning_p001_img01.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p001_img01.png",
+          "width": 163,
+          "height": 155,
+          "colorspace": 3
+        },
+        {
+          "file": "path_planning_p001_img02.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p001_img02.png",
+          "width": 884,
+          "height": 1163,
+          "colorspace": 3
+        },
+        {
+          "file": "path_planning_p001_img03.jpeg",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p001_img03.jpeg",
+          "width": 758,
+          "height": 736,
+          "colorspace": 3
+        },
+        {
+          "file": "path_planning_p001_img04.jpeg",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p001_img04.jpeg",
+          "width": 656,
+          "height": 769,
+          "colorspace": 3
+        },
+        {
+          "file": "path_planning_p001_img05.jpeg",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p001_img05.jpeg",
+          "width": 605,
+          "height": 652,
+          "colorspace": 3
+        }
+      ],
+      "image_count": 5,
+      "page_render": "path_planning_p001.png"
+    },
+    {
+      "page": 2,
+      "title": "",
+      "body_lines": [
+        "2"
+      ],
+      "all_text_native": "2\n41068 Robotics Studio 1",
+      "ocr_text": "wei ae NE 7 Ee tom Jv Fg ae ee PS ae\n=e = o. oe a En ae a ae\neh “= A : iy ‘| 5 Bo ACES ce ee A\nhel ae M4 : = “d p=! , ? ee Se\n—— Via —_ | e ee ; te oe ea ee N\nE X CR ey Rte Sat\nh \\ ep ee TM\ni i.’ YS es\nieee — Lee ceases Meee\nees ed Sa lL i as cae\npea Pee einee e ak _ aos N cel = . aor\nees Ce Oe sig cs — - a ~—a sn ve 6 a4 > ¥\na. ete Son : ’\ne ie 4 See \" , ia\n, So ; : a al)\npow as 9 Set\nim. s : a KAS\nee Og ws\nPa a a ‘ : Ba\nhee TG) pee er SN am + AR\nmis ~*~ hs rea ss Y\na LL Sky 5 tle EB et ’\n2",
+      "slide_type": "visual_heavy",
+      "embedded_images": [
+        {
+          "file": "path_planning_p002_img01.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p002_img01.png",
+          "width": 114,
+          "height": 53,
+          "colorspace": 3
+        },
+        {
+          "file": "path_planning_p002_img02.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p002_img02.png",
+          "width": 89,
+          "height": 154,
+          "colorspace": 3
+        },
+        {
+          "file": "path_planning_p002_img03.jpeg",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p002_img03.jpeg",
+          "width": 491,
+          "height": 265,
+          "colorspace": 3
+        },
+        {
+          "file": "path_planning_p002_img04.jpeg",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p002_img04.jpeg",
+          "width": 523,
+          "height": 370,
+          "colorspace": 3
+        },
+        {
+          "file": "path_planning_p002_img05.jpeg",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p002_img05.jpeg",
+          "width": 566,
+          "height": 377,
+          "colorspace": 3
+        },
+        {
+          "file": "path_planning_p002_img06.jpeg",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p002_img06.jpeg",
+          "width": 469,
+          "height": 352,
+          "colorspace": 3
+        },
+        {
+          "file": "path_planning_p002_img07.jpeg",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p002_img07.jpeg",
+          "width": 504,
+          "height": 336,
+          "colorspace": 3
+        },
+        {
+          "file": "path_planning_p002_img08.jpeg",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p002_img08.jpeg",
+          "width": 696,
+          "height": 522,
+          "colorspace": 3
+        },
+        {
+          "file": "path_planning_p002_img09.jpeg",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p002_img09.jpeg",
+          "width": 503,
+          "height": 279,
+          "colorspace": 3
+        },
+        {
+          "file": "path_planning_p002_img10.jpeg",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p002_img10.jpeg",
+          "width": 523,
+          "height": 349,
+          "colorspace": 3
+        },
+        {
+          "file": "path_planning_p002_img11.jpeg",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p002_img11.jpeg",
+          "width": 596,
+          "height": 335,
+          "colorspace": 3
+        },
+        {
+          "file": "path_planning_p002_img12.jpeg",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p002_img12.jpeg",
+          "width": 533,
+          "height": 299,
+          "colorspace": 3
+        },
+        {
+          "file": "path_planning_p002_img13.jpeg",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p002_img13.jpeg",
+          "width": 600,
+          "height": 540,
+          "colorspace": 3
+        }
+      ],
+      "image_count": 13,
+      "page_render": "path_planning_p002.png"
+    },
+    {
+      "page": 3,
+      "title": "𝑎𝑐𝑡𝑖𝑜𝑛=  𝑓(𝑠𝑡𝑎𝑡𝑒)",
+      "body_lines": [
+        "Robot Decision Making",
+        "e.g. “move over there”",
+        "e.g. location, map",
+        "“planner”",
+        "3"
+      ],
+      "all_text_native": "Robot Decision Making\n𝑎𝑐𝑡𝑖𝑜𝑛=  𝑓(𝑠𝑡𝑎𝑡𝑒)\ne.g. “move over there”\ne.g. location, map\n“planner”\n3\n41068 Robotics Studio 1",
+      "ocr_text": "Robot Decision Making x\naction = f (state)\ne.g. “move over there” | e.g. location, map\n“planner”",
+      "slide_type": "mixed",
+      "embedded_images": [
+        {
+          "file": "path_planning_p003_img01.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p003_img01.png",
+          "width": 114,
+          "height": 53,
+          "colorspace": 3
+        },
+        {
+          "file": "path_planning_p003_img02.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p003_img02.png",
+          "width": 89,
+          "height": 154,
+          "colorspace": 3
+        }
+      ],
+      "image_count": 2,
+      "page_render": "path_planning_p003.png"
+    },
+    {
+      "page": 4,
+      "title": "Example Decision Making Hierarchy",
+      "body_lines": [
+        "4"
+      ],
+      "all_text_native": "Example Decision Making Hierarchy\n4\n41068 Robotics Studio 1",
+      "ocr_text": "Example Decision Making Hierarchy\nSLAM |. Map Processor Behavior Executive\nontput 4 2 y stuck ie\n| ae ee Quan\nother |S: e ay Ral / | \\ =,\nrobots’ | § . Fei.. a 6-@= wets Fite\nmaps a\nmaps i conditions\n| ———_—_\n| I i\ncommunicate Global Planner Local Planner Controller\nto other ae aloe\nrobots o \\ trajectory commands\nLe>™ Zr pat oy . ;\nOARS 7\nea\n4",
+      "slide_type": "visual_heavy",
+      "embedded_images": [
+        {
+          "file": "path_planning_p004_img01.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p004_img01.png",
+          "width": 114,
+          "height": 53,
+          "colorspace": 3
+        },
+        {
+          "file": "path_planning_p004_img02.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p004_img02.png",
+          "width": 89,
+          "height": 154,
+          "colorspace": 3
+        },
+        {
+          "file": "path_planning_p004_img03.jpeg",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p004_img03.jpeg",
+          "width": 1654,
+          "height": 766,
+          "colorspace": 3
+        }
+      ],
+      "image_count": 3,
+      "page_render": "path_planning_p004.png"
+    },
+    {
+      "page": 5,
+      "title": "Example Decision Making Hierarchy",
+      "body_lines": [
+        "Previous",
+        "Where do I",
+        "seminar",
+        "go next?",
+        "5"
+      ],
+      "all_text_native": "Example Decision Making Hierarchy\nPrevious\nWhere do I\nseminar\ngo next?\n5\n41068 Robotics Studio 1",
+      "ocr_text": "Example Decision Making Hierarchy\nSLAM Map Processor Behavior Executive Previous Where do |\noutput | BP dad seminar go next?\n3 g _ i\nir Pasa ee i =\nother |S: ce i ox T\\ ——\nrobots’ S 3 be a é-@= fae w= Pome]\nmaps =\nmaps | | conditions\n| ———_—_\n= i\n- |\ncommunicate Global Planner Local Planner Controller\nto other ¥ motor\nrobots SS ' Z trajectory commands\nPy Mn $\nBN SP Tran 103 oe\nPONS * 44 3\nhey A Se\n5",
+      "slide_type": "mixed",
+      "embedded_images": [
+        {
+          "file": "path_planning_p005_img01.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p005_img01.png",
+          "width": 114,
+          "height": 53,
+          "colorspace": 3
+        },
+        {
+          "file": "path_planning_p005_img02.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p005_img02.png",
+          "width": 89,
+          "height": 154,
+          "colorspace": 3
+        },
+        {
+          "file": "path_planning_p005_img03.jpeg",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p005_img03.jpeg",
+          "width": 1654,
+          "height": 766,
+          "colorspace": 3
+        }
+      ],
+      "image_count": 3,
+      "page_render": "path_planning_p005.png"
+    },
+    {
+      "page": 6,
+      "title": "Example Decision Making Hierarchy",
+      "body_lines": [
+        "Previous",
+        "Where do I",
+        "seminar",
+        "go next?",
+        "How do I",
+        "Current",
+        "get there?",
+        "seminar",
+        "6"
+      ],
+      "all_text_native": "Example Decision Making Hierarchy\nPrevious\nWhere do I\nseminar\ngo next?\nHow do I\nCurrent\nget there?\nseminar\n6\n41068 Robotics Studio 1",
+      "ocr_text": "Example Decision Making Hierarchy\nsLam |_ Map Processor Behavior Executive Previous Where do |\noutput |e a seminar go next?\n3 ~ od - 4 — Prk _\na (ieee ae ee\nother |S: a i ox A ——\nrobots’ Lie é-@= eee\nmaps\n= conditions How dol\nmaps | Current get there?\n[| -——\"— seminar\n: a =\ncommintiieate Global Planner Local Planner Controller\nto other : maine\nat Ah Hi g 8 hjectory commands\nPM nee \\\ner if He ath Wao Io\nPr |e\" | :\nMe x &\n6",
+      "slide_type": "mixed",
+      "embedded_images": [
+        {
+          "file": "path_planning_p006_img01.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p006_img01.png",
+          "width": 114,
+          "height": 53,
+          "colorspace": 3
+        },
+        {
+          "file": "path_planning_p006_img02.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p006_img02.png",
+          "width": 89,
+          "height": 154,
+          "colorspace": 3
+        },
+        {
+          "file": "path_planning_p006_img03.jpeg",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p006_img03.jpeg",
+          "width": 1654,
+          "height": 766,
+          "colorspace": 3
+        }
+      ],
+      "image_count": 3,
+      "page_render": "path_planning_p006.png"
+    },
+    {
+      "page": 7,
+      "title": "Definition: Path Planning",
+      "body_lines": [
+        "Path Planning:",
+        "➢",
+        "Given the map, the current robot",
+        "location, and the goal",
+        "➢",
+        "Find a trajectory that will cause the",
+        "robot to reach the goal location when",
+        "executed",
+        "7"
+      ],
+      "all_text_native": "Definition: Path Planning\nPath Planning:\n➢\nGiven the map, the current robot\nlocation, and the goal\n➢\nFind a trajectory that will cause the\nrobot to reach the goal location when\nexecuted\n7\n41068 Robotics Studio 1",
+      "ocr_text": "Definition: Path Planning\nPath Planning:\n{ > Given the map, the current robot\n6. \\ ‘ ) location, and the goal\n. _ > Find a trajectory that will cause the\n— robot to reach the goal location when\nC arte\nSee a executed\n\" . (2\n7",
+      "slide_type": "text",
+      "embedded_images": [
+        {
+          "file": "path_planning_p007_img01.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p007_img01.png",
+          "width": 114,
+          "height": 53,
+          "colorspace": 3
+        },
+        {
+          "file": "path_planning_p007_img02.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p007_img02.png",
+          "width": 89,
+          "height": 154,
+          "colorspace": 3
+        },
+        {
+          "file": "path_planning_p007_img03.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p007_img03.png",
+          "width": 514,
+          "height": 417,
+          "colorspace": 1
+        }
+      ],
+      "image_count": 3,
+      "page_render": "path_planning_p007.png"
+    },
+    {
+      "page": 8,
+      "title": "What is Path Planning?",
+      "body_lines": [
+        "➢",
+        "Robot path planning",
+        "is the process of figuring out",
+        "how the robot moves",
+        "from its current state to a target",
+        "given its map, constraints, uncertainties.",
+        "➢",
+        "It includes computing feasible, safe paths/trajectories; handling obstacles",
+        "and dynamic objects; respecting kinematic/dynamic limits and non-",
+        "holonomic constraints; and replanning as the world changes",
+        "➢",
+        "Good path planning enables smooth, efficient, and safe motion, making real-",
+        "time progress toward goals while balancing time, energy, and risk.",
+        "8"
+      ],
+      "all_text_native": "What is Path Planning?\n➢\nRobot path planning\nis the process of figuring out\nhow the robot moves\nfrom its current state to a target\ngiven its map, constraints, uncertainties.\n➢\nIt includes computing feasible, safe paths/trajectories; handling obstacles\nand dynamic objects; respecting kinematic/dynamic limits and non-\nholonomic constraints; and replanning as the world changes\n➢\nGood path planning enables smooth, efficient, and safe motion, making real-\ntime progress toward goals while balancing time, energy, and risk.\n8\n41068 Robotics Studio 1",
+      "ocr_text": "What is Path Planning?\n\n> Robot path planning is the process of figuring out how the robot moves\nfrom its current state to a target given its map, constraints, uncertainties.\n\n> Itincludes computing feasible, safe paths/trajectories; handling obstacles\nand dynamic objects; respecting kinematic/dynamic limits and non-\nholonomic constraints; and replanning as the world changes\n\n> Good path planning enables smooth, efficient, and safe motion, making real-\ntime progress toward goals while balancing time, energy, and risk.\n\n8",
+      "slide_type": "text",
+      "embedded_images": [
+        {
+          "file": "path_planning_p008_img01.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p008_img01.png",
+          "width": 114,
+          "height": 53,
+          "colorspace": 3
+        },
+        {
+          "file": "path_planning_p008_img02.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p008_img02.png",
+          "width": 89,
+          "height": 154,
+          "colorspace": 3
+        }
+      ],
+      "image_count": 2,
+      "page_render": "path_planning_p008.png"
+    },
+    {
+      "page": 9,
+      "title": "Why is Path Planning Challenging?",
+      "body_lines": [
+        "➢",
+        "Defining the right objective: time, speed, safety, comfort",
+        "➢",
+        "Incomplete and uncertain information – usually from noisy sensors",
+        "➢",
+        "Interact with high-level decision making",
+        "➢",
+        "Interact with lower-level controllers",
+        "➢",
+        "Computationally difficult – many paths to pick from",
+        "➢",
+        "Choosing the right algorithm for the task",
+        "➢",
+        "Tuning algorithm parameters",
+        "➢",
+        "Multi-robot collision avoidance",
+        "9"
+      ],
+      "all_text_native": "Why is Path Planning Challenging?\n➢\nDefining the right objective: time, speed, safety, comfort\n➢\nIncomplete and uncertain information – usually from noisy sensors\n➢\nInteract with high-level decision making\n➢\nInteract with lower-level controllers\n➢\nComputationally difficult – many paths to pick from\n➢\nChoosing the right algorithm for the task\n➢\nTuning algorithm parameters\n➢\nMulti-robot collision avoidance\n9\n41068 Robotics Studio 1",
+      "ocr_text": "Why is Path Planning Challenging?\n> Defining the right objective: time, speed, safety, comfort\n> Incomplete and uncertain information — usually from noisy sensors\n>» Interact with high-level decision making\n>» Interact with lower-level controllers\n> Computationally difficult - many paths to pick from\n>» Choosing the right algorithm for the task\n>» Tuning algorithm parameters\n>» Multi-robot collision avoidance\n9",
+      "slide_type": "text",
+      "embedded_images": [
+        {
+          "file": "path_planning_p009_img01.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p009_img01.png",
+          "width": 114,
+          "height": 53,
+          "colorspace": 3
+        },
+        {
+          "file": "path_planning_p009_img02.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p009_img02.png",
+          "width": 89,
+          "height": 154,
+          "colorspace": 3
+        }
+      ],
+      "image_count": 2,
+      "page_render": "path_planning_p009.png"
+    },
+    {
+      "page": 10,
+      "title": "Questions for your 41068 Project",
+      "body_lines": [
+        "➢",
+        "Introduce standard path planning techniques",
+        "➢",
+        "Your project must have some decision making / path planning",
+        "➢",
+        "How will your robot navigate around the environment?",
+        "•",
+        "You are probably using the Nav2 stack",
+        "•",
+        "But how does this work?",
+        "•",
+        "How can you modify it?",
+        "•",
+        "Or implement it yourself?",
+        "10"
+      ],
+      "all_text_native": "Questions for your 41068 Project\n➢\nIntroduce standard path planning techniques\n➢\nYour project must have some decision making / path planning\n➢\nHow will your robot navigate around the environment?\n•\nYou are probably using the Nav2 stack\n•\nBut how does this work?\n•\nHow can you modify it?\n•\nOr implement it yourself?\n10\n41068 Robotics Studio 1",
+      "ocr_text": "Questions for your 41068 Project\n» Introduce standard path planning techniques\n> Your project must have some decision making / path planning\n> How will your robot navigate around the environment?\n« You are probably using the Nav2 stack\n* But how does this work? \"\n* How can you modify it? car\n* Orimplement it yourself? AN\n|\nee\n10",
+      "slide_type": "text",
+      "embedded_images": [
+        {
+          "file": "path_planning_p010_img01.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p010_img01.png",
+          "width": 114,
+          "height": 53,
+          "colorspace": 3
+        },
+        {
+          "file": "path_planning_p010_img02.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p010_img02.png",
+          "width": 89,
+          "height": 154,
+          "colorspace": 3
+        },
+        {
+          "file": "path_planning_p010_img03.jpeg",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p010_img03.jpeg",
+          "width": 722,
+          "height": 481,
+          "colorspace": 3
+        }
+      ],
+      "image_count": 3,
+      "page_render": "path_planning_p010.png"
+    },
+    {
+      "page": 11,
+      "title": "Outline",
+      "body_lines": [
+        "➢",
+        "Quick definitions",
+        "➢",
+        "Artificial potential fields",
+        "➢",
+        "Graph search methods",
+        "➢",
+        "Sampling-based motion planning",
+        "➢",
+        "Nav2 navigation stack",
+        "11"
+      ],
+      "all_text_native": "Outline\n➢\nQuick definitions\n➢\nArtificial potential fields\n➢\nGraph search methods\n➢\nSampling-based motion planning\n➢\nNav2 navigation stack\n11\n41068 Robotics Studio 1",
+      "ocr_text": "or\nOutline z\n> Quick definitions\n> Artificial potential fields\n>» Graph search methods\n>» Sampling-based motion planning\n>» Nav2 navigation stack",
+      "slide_type": "text",
+      "embedded_images": [
+        {
+          "file": "path_planning_p011_img01.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p011_img01.png",
+          "width": 114,
+          "height": 53,
+          "colorspace": 3
+        },
+        {
+          "file": "path_planning_p011_img02.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p011_img02.png",
+          "width": 89,
+          "height": 154,
+          "colorspace": 3
+        }
+      ],
+      "image_count": 2,
+      "page_render": "path_planning_p011.png"
+    },
+    {
+      "page": 12,
+      "title": "",
+      "body_lines": [
+        "Quick Definitions"
+      ],
+      "all_text_native": "Quick Definitions",
+      "ocr_text": "S . ° ° oO e e O O ° e cS . : 5 OC e@ e oO\n\nOO 0 e e e ° : . ° : e © e e e e 2 :\n\ne O OD e @ O . ° . O : e OO) C e @ O . :\n\ne 0 O e e@ O ° ° ° O° ° e O 0 e e@ O o °\nQuick Definitions",
+      "slide_type": "visual_heavy",
+      "embedded_images": [
+        {
+          "file": "path_planning_p012_img01.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p012_img01.png",
+          "width": 403,
+          "height": 1163,
+          "colorspace": 3
+        },
+        {
+          "file": "path_planning_p012_img02.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p012_img02.png",
+          "width": 403,
+          "height": 824,
+          "colorspace": 3
+        }
+      ],
+      "image_count": 2,
+      "page_render": "path_planning_p012.png"
+    },
+    {
+      "page": 13,
+      "title": "Configuration Space",
+      "body_lines": [
+        "➢",
+        "Although the motion planning problem is defined in the regular world (the “workspace”),",
+        "it lives in another space:",
+        "the configuration space",
+        "➢",
+        "A robot configuration",
+        "𝑞",
+        "is a specification of the position of all robot points relative to a",
+        "fixed coordinate system",
+        "➢",
+        "Usually a configuration is expressed as a",
+        "vector of positions and orientations",
+        "➢",
+        "The configuration space (“C-space”) is the",
+        "space of all possible configurations",
+        "➢",
+        "The topology of C-space is usually",
+        "not the Cartesian space",
+        "13"
+      ],
+      "all_text_native": "Configuration Space\n➢\nAlthough the motion planning problem is defined in the regular world (the “workspace”),\nit lives in another space:\nthe configuration space\n➢\nA robot configuration\n𝑞\nis a specification of the position of all robot points relative to a\nfixed coordinate system\n➢\nUsually a configuration is expressed as a\nvector of positions and orientations\n➢\nThe configuration space (“C-space”) is the\nspace of all possible configurations\n➢\nThe topology of C-space is usually\nnot the Cartesian space\n13\n41068 Robotics Studio 1",
+      "ocr_text": "Configuration Space\n\n> Although the motion planning problem is defined in the regular world (the “workspace’”),\nit lives in another space: the configuration space\n\n> Arobot configuration q is a specification of the position of all robot points relative to a\nfixed coordinate system\n\n> Usually a configuration is expressed as a vector of positions and orientations\n\n> The configuration space (“C-space”) is the space of all possible configurations\n\n> The topology of C-space is usually not the Cartesian space\n\n13",
+      "slide_type": "text",
+      "embedded_images": [
+        {
+          "file": "path_planning_p013_img01.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p013_img01.png",
+          "width": 114,
+          "height": 53,
+          "colorspace": 3
+        },
+        {
+          "file": "path_planning_p013_img02.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p013_img02.png",
+          "width": 89,
+          "height": 154,
+          "colorspace": 3
+        }
+      ],
+      "image_count": 2,
+      "page_render": "path_planning_p013.png"
+    },
+    {
+      "page": 14,
+      "title": "Example: Robot Arms",
+      "body_lines": [
+        "3 different configurations",
+        "Configuration space",
+        "14"
+      ],
+      "all_text_native": "Example: Robot Arms\n3 different configurations\nConfiguration space\n14\n41068 Robotics Studio 1",
+      "ocr_text": "Example: Robot Arms\n3 different configurations Configuration space\ni nh\n14",
+      "slide_type": "mixed",
+      "embedded_images": [
+        {
+          "file": "path_planning_p014_img01.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p014_img01.png",
+          "width": 114,
+          "height": 53,
+          "colorspace": 3
+        },
+        {
+          "file": "path_planning_p014_img02.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p014_img02.png",
+          "width": 89,
+          "height": 154,
+          "colorspace": 3
+        },
+        {
+          "file": "path_planning_p014_img03.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p014_img03.png",
+          "width": 541,
+          "height": 505,
+          "colorspace": 3
+        },
+        {
+          "file": "path_planning_p014_img04.jpeg",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p014_img04.jpeg",
+          "width": 603,
+          "height": 581,
+          "colorspace": 3
+        }
+      ],
+      "image_count": 4,
+      "page_render": "path_planning_p014.png"
+    },
+    {
+      "page": 15,
+      "title": "Example: 2D World, 2 Degrees of Freedom, Circle",
+      "body_lines": [
+        "Workspace",
+        "Configuration Space",
+        "15"
+      ],
+      "all_text_native": "Example: 2D World, 2 Degrees of Freedom, Circle\nWorkspace\nConfiguration Space\n15\n41068 Robotics Studio 1",
+      "ocr_text": "Example: 2D World, 2 Degrees of Freedom, Circle x\nWhere can | move Where can | move\nthis robot in the this point in the\nvicinity of this vicinity of this\nobstacle? __is —\nequivalent oe\nS to... S\n: i | Li\nWorkspace Configuration Space",
+      "slide_type": "mixed",
+      "embedded_images": [
+        {
+          "file": "path_planning_p015_img01.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p015_img01.png",
+          "width": 114,
+          "height": 53,
+          "colorspace": 3
+        },
+        {
+          "file": "path_planning_p015_img02.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p015_img02.png",
+          "width": 89,
+          "height": 154,
+          "colorspace": 3
+        },
+        {
+          "file": "path_planning_p015_img03.jpeg",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p015_img03.jpeg",
+          "width": 878,
+          "height": 463,
+          "colorspace": 3
+        }
+      ],
+      "image_count": 3,
+      "page_render": "path_planning_p015.png"
+    },
+    {
+      "page": 16,
+      "title": "Motion Models",
+      "body_lines": [
+        "Industrial robot arm",
+        "Omnidirectional",
+        "Dubins car",
+        "Unicycle",
+        "16"
+      ],
+      "all_text_native": "Motion Models\nIndustrial robot arm\nOmnidirectional\nDubins car\nUnicycle\n16\n41068 Robotics Studio 1",
+      "ocr_text": ".\nMotion Models x\n&\nCee\noe\nOmnidirectional Dubins car Industrial robot arm\nQO ooo oN. vo, 5\nY.. ‘+, Po Og z\n3 \"SX \\ : \\ | Ke °\n. C . y. , Z \\ oY JOINT 3.9... (a &\n%, Whiz ~ ee S Fo = sf SS)\n>, 3 ’ \\ in \\ Ss 5, “A JOINT 6\n| ‘. , } , \\ . ; Jo; /) uy\nUnicycle Ne Se ONG cape .\nYo Lp 7 a ei\nVb.2 ' . ' 1 ° ‘\nfr 0 \\ vo} '\nWoz SU 2",
+      "slide_type": "mixed",
+      "embedded_images": [
+        {
+          "file": "path_planning_p016_img01.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p016_img01.png",
+          "width": 114,
+          "height": 53,
+          "colorspace": 3
+        },
+        {
+          "file": "path_planning_p016_img02.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p016_img02.png",
+          "width": 89,
+          "height": 154,
+          "colorspace": 3
+        },
+        {
+          "file": "path_planning_p016_img03.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p016_img03.png",
+          "width": 468,
+          "height": 501,
+          "colorspace": 3
+        },
+        {
+          "file": "path_planning_p016_img04.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p016_img04.png",
+          "width": 612,
+          "height": 410,
+          "colorspace": 3
+        },
+        {
+          "file": "path_planning_p016_img05.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p016_img05.png",
+          "width": 681,
+          "height": 479,
+          "colorspace": 3
+        },
+        {
+          "file": "path_planning_p016_img06.jpeg",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p016_img06.jpeg",
+          "width": 804,
+          "height": 873,
+          "colorspace": 3
+        },
+        {
+          "file": "path_planning_p016_img07.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p016_img07.png",
+          "width": 326,
+          "height": 197,
+          "colorspace": 3
+        },
+        {
+          "file": "path_planning_p016_img08.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p016_img08.png",
+          "width": 307,
+          "height": 308,
+          "colorspace": 3
+        }
+      ],
+      "image_count": 8,
+      "page_render": "path_planning_p016.png"
+    },
+    {
+      "page": 17,
+      "title": "Method Variations",
+      "body_lines": [
+        "17"
+      ],
+      "all_text_native": "Method Variations\n17\n41068 Robotics Studio 1",
+      "ocr_text": "Method Variations\nControl, path finding, trajectory optimization\ne Combining methods:\n1) Path Finding pat\n2) Trajectory Optimization (“smoothing”) jectory optinizatia\n3) Feedback Control\nfeedback control _\nstart goal\ne Many problems can be solved with only feedback control (though not\noptimally)\ne Many more problems can be solved /ocally optimal with only trajectory\noptimization\ne Tricky problems need path finding: global search for valid paths\n17",
+      "slide_type": "visual_heavy",
+      "embedded_images": [
+        {
+          "file": "path_planning_p017_img01.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p017_img01.png",
+          "width": 114,
+          "height": 53,
+          "colorspace": 3
+        },
+        {
+          "file": "path_planning_p017_img02.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p017_img02.png",
+          "width": 89,
+          "height": 154,
+          "colorspace": 3
+        },
+        {
+          "file": "path_planning_p017_img03.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p017_img03.png",
+          "width": 889,
+          "height": 536,
+          "colorspace": 3
+        }
+      ],
+      "image_count": 3,
+      "page_render": "path_planning_p017.png"
+    },
+    {
+      "page": 18,
+      "title": "",
+      "body_lines": [
+        "Artificial Potential Fields"
+      ],
+      "all_text_native": "Artificial Potential Fields",
+      "ocr_text": "S . ° ° Oo e@ e O O e e cS . : 9 OC e@ e oO\n\nOO © O e e e 0 : . . : OO e e e e ° :\n\ne O O e @ Oo : ° . 0 7 e O} CU e e O : 0\n\ne Oo OQ e e O ° ° . ° ° e O O e e © ° °\nArtificial Potential Fields",
+      "slide_type": "visual_heavy",
+      "embedded_images": [
+        {
+          "file": "path_planning_p018_img01.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p018_img01.png",
+          "width": 403,
+          "height": 1163,
+          "colorspace": 3
+        },
+        {
+          "file": "path_planning_p018_img02.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p018_img02.png",
+          "width": 403,
+          "height": 824,
+          "colorspace": 3
+        }
+      ],
+      "image_count": 2,
+      "page_render": "path_planning_p018.png"
+    },
+    {
+      "page": 19,
+      "title": "Artificial Potential Fields",
+      "body_lines": [
+        "➢",
+        "Attempts to guide the robot from the initial configuration to the goal configuration while",
+        "staying in C-free",
+        "➢",
+        "Analogous to an electric potential field",
+        "Electric potential field",
+        "➢",
+        "Potential field composed of:",
+        "•",
+        "Attraction force at goal",
+        "•",
+        "Repulsion force at obstacles",
+        "➢",
+        "The robot follows a virtual force defined by",
+        "the gradient of the potential field",
+        "19"
+      ],
+      "all_text_native": "Artificial Potential Fields\n➢\nAttempts to guide the robot from the initial configuration to the goal configuration while\nstaying in C-free\n➢\nAnalogous to an electric potential field\nElectric potential field\n➢\nPotential field composed of:\n•\nAttraction force at goal\n•\nRepulsion force at obstacles\n➢\nThe robot follows a virtual force defined by\nthe gradient of the potential field\n19\n41068 Robotics Studio 1",
+      "ocr_text": "Artificial Potential Fields\n> Attempts to guide the robot from the initial configuration to the goal configuration while\nstaying in C-free\n» Analogous to an electric potential field Electric potential field\n> Potential field composed of:\n« Attraction force at goal\n* Repulsion force at obstacles eo\n> The robot follows a virtual force defined by \\\nthe gradient of the potential field > 3)\nJIS 19",
+      "slide_type": "text",
+      "embedded_images": [
+        {
+          "file": "path_planning_p019_img01.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p019_img01.png",
+          "width": 114,
+          "height": 53,
+          "colorspace": 3
+        },
+        {
+          "file": "path_planning_p019_img02.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p019_img02.png",
+          "width": 89,
+          "height": 154,
+          "colorspace": 3
+        },
+        {
+          "file": "path_planning_p019_img03.jpeg",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p019_img03.jpeg",
+          "width": 915,
+          "height": 686,
+          "colorspace": 3
+        }
+      ],
+      "image_count": 3,
+      "page_render": "path_planning_p019.png"
+    },
+    {
+      "page": 20,
+      "title": "Example",
+      "body_lines": [
+        "20"
+      ],
+      "all_text_native": "Example\n20\n41068 Robotics Studio 1",
+      "ocr_text": "Ak ere eree Saat saa we\nSASS SRE EG LiRPEESESEE : ee eee\nmae See bea eee eG oe ee ee wae - lees\nva oa bbe eA tte. wee ae re\na eo ee =a cee\nSENN O RLU LE LES begeeercce LLldihigitiegsss Dit: ritt\nRRR RL LLG] So Fegeeesrse SILI b pees ececis. re fteEe\nMAAASSSAS La ereeer es Bese Mathes Sammammmgetneiabtessivanun\neee eat peice aes CIDEEESEER ED age eceere | Seana eee Eas\nSEES eee STTTEDSDREE Gg eeeeecrs: eageee PaaS\nmse? goa Befem mats ami eel SESGEE SEELT TL RRR\nane eee = ————=Er easas ag PERS\nceatit Pi tdEh eee ae SSE SoeS £e¢ A Peet eS\nCEEEIIIS DIST 1 TLESEEEI TITISITES ep PP PTTL l srl: fet eas VEb\neee eee! LIEEEEEES REESE Ie: certs iiea rh\nenn ET EAA A Mtn meee DLLTie ecb bya este eis | te 4 3\n\nET ET A AC a nn reine a\nene an SY RAS WAN ea FOR ee Fe t\n\ncree ere le YF TEA aN aa rt ft ae ee\neee ENS LS RR ela pager gee Fee ee eet E }\nee ee ee RD t KAAS Se nee PR Be PAS ah\neet e ee ee) PSESTS ROS pordedeeaaer ant i\nA APP SAAS eee ere \"\nAttractive Potential Repulsive Potential Combined Potential\n\nfor goals for obstacles Field\n\n£ . ( ) att ) rep( )\n- : 20",
+      "slide_type": "visual_heavy",
+      "embedded_images": [
+        {
+          "file": "path_planning_p020_img01.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p020_img01.png",
+          "width": 114,
+          "height": 53,
+          "colorspace": 3
+        },
+        {
+          "file": "path_planning_p020_img02.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p020_img02.png",
+          "width": 89,
+          "height": 154,
+          "colorspace": 3
+        },
+        {
+          "file": "path_planning_p020_img03.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p020_img03.png",
+          "width": 750,
+          "height": 365,
+          "colorspace": 3
+        }
+      ],
+      "image_count": 3,
+      "page_render": "path_planning_p020.png"
+    },
+    {
+      "page": 21,
+      "title": "Many Obstacles: Move Downhill",
+      "body_lines": [
+        "21"
+      ],
+      "all_text_native": "Many Obstacles: Move Downhill\n21\n41068 Robotics Studio 1",
+      "ocr_text": "Many Obstacles: Move Downhill\n| Obstacles\n| - - A\\ \\r—~_4;\n| Space oe | \\\\ oo ;\nEAE\n|\nUS 21",
+      "slide_type": "visual_heavy",
+      "embedded_images": [
+        {
+          "file": "path_planning_p021_img01.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p021_img01.png",
+          "width": 114,
+          "height": 53,
+          "colorspace": 3
+        },
+        {
+          "file": "path_planning_p021_img02.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p021_img02.png",
+          "width": 89,
+          "height": 154,
+          "colorspace": 3
+        },
+        {
+          "file": "path_planning_p021_img03.jpeg",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p021_img03.jpeg",
+          "width": 458,
+          "height": 375,
+          "colorspace": 3
+        }
+      ],
+      "image_count": 3,
+      "page_render": "path_planning_p021.png"
+    },
+    {
+      "page": 22,
+      "title": "When does it go wrong?",
+      "body_lines": [
+        "➢",
+        "Stuck in local minima",
+        "➢",
+        "How to fix this?",
+        "•",
+        "Random walk when stuck",
+        "•",
+        "Define potential fields without local minima (?)",
+        "•",
+        "Combine with global path planning",
+        "22"
+      ],
+      "all_text_native": "When does it go wrong?\n➢\nStuck in local minima\n➢\nHow to fix this?\n•\nRandom walk when stuck\n•\nDefine potential fields without local minima (?)\n•\nCombine with global path planning\n22\n41068 Robotics Studio 1",
+      "ocr_text": "When does it go wrong?\n> Stuck in local minima\n> How to fix this?\n¢« Random walk when stuck “ 10 *10* et\n* Define potential fields without local minima (?) 2 5, _ =\n£ goal\n* Combine with global path planning : ‘\n6\n4\nX/m 2\n\\ ses\n0 a ee a -2\none 4 .\n8\n22",
+      "slide_type": "text",
+      "embedded_images": [
+        {
+          "file": "path_planning_p022_img01.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p022_img01.png",
+          "width": 114,
+          "height": 53,
+          "colorspace": 3
+        },
+        {
+          "file": "path_planning_p022_img02.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p022_img02.png",
+          "width": 89,
+          "height": 154,
+          "colorspace": 3
+        },
+        {
+          "file": "path_planning_p022_img03.jpeg",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p022_img03.jpeg",
+          "width": 588,
+          "height": 395,
+          "colorspace": 3
+        }
+      ],
+      "image_count": 3,
+      "page_render": "path_planning_p022.png"
+    },
+    {
+      "page": 23,
+      "title": "",
+      "body_lines": [
+        "Graph Search"
+      ],
+      "all_text_native": "Graph Search",
+      "ocr_text": "S . ° ° oO e e O O e e cS . : 9 OC e@ e oO\n\nOO 0 e e e ° : . ° [> © © e e e e 2 :\n\ne O OD e @ O . 0 . O o @ OO) C @ @ O : :\n\ne 0 O e e@ O ° ° ° O° ° e O 0 e e@ O o °\nGraph Search",
+      "slide_type": "visual_heavy",
+      "embedded_images": [
+        {
+          "file": "path_planning_p023_img01.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p023_img01.png",
+          "width": 403,
+          "height": 1163,
+          "colorspace": 3
+        },
+        {
+          "file": "path_planning_p023_img02.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p023_img02.png",
+          "width": 403,
+          "height": 824,
+          "colorspace": 3
+        }
+      ],
+      "image_count": 2,
+      "page_render": "path_planning_p023.png"
+    },
+    {
+      "page": 24,
+      "title": "Graph Search Method",
+      "body_lines": [
+        "1.",
+        "Discretise C-Space into a graph",
+        "•",
+        "Grid cells",
+        "•",
+        "Visibility graph",
+        "•",
+        "Probabilistic roadmap",
+        "2.",
+        "Perform a graph search",
+        "3.",
+        "Extract the shortest path",
+        "24"
+      ],
+      "all_text_native": "Graph Search Method\n1.\nDiscretise C-Space into a graph\n•\nGrid cells\n•\nVisibility graph\n•\nProbabilistic roadmap\n2.\nPerform a graph search\n3.\nExtract the shortest path\n24\n41068 Robotics Studio 1",
+      "ocr_text": "Graph Search Method %\ne\n1. Discretise C-Space into a graph\n* Grid cells\n* Visibility graph\n¢ Probabilistic roadmap\n2. Perform a graph search\n3. Extract the shortest path",
+      "slide_type": "text",
+      "embedded_images": [
+        {
+          "file": "path_planning_p024_img01.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p024_img01.png",
+          "width": 114,
+          "height": 53,
+          "colorspace": 3
+        },
+        {
+          "file": "path_planning_p024_img02.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p024_img02.png",
+          "width": 89,
+          "height": 154,
+          "colorspace": 3
+        }
+      ],
+      "image_count": 2,
+      "page_render": "path_planning_p024.png"
+    },
+    {
+      "page": 25,
+      "title": "Graph Data Structure",
+      "body_lines": [
+        "25"
+      ],
+      "all_text_native": "Graph Data Structure\n25\n41068 Robotics Studio 1",
+      "ocr_text": "eo\nGraph Data Structure +\n44\nCe\no\n¢ Graph G = (V, E) where V is a set of vertices and E is a set of edges.\nEach edge e € E is a 2-tuple of the form (v, w) where v, w € V, and e is called an incident on v and w.\n©) o V = (0, 1, 2, 3, 4}\n@)  E=(0,0,0,2),0,9), 0.4),\n(2, 3), (3, 4), (4, 9}\nO—®\n¢ An edge may be directed or undirected.\n« An edge may also have a weight.\n2\n(0)—*\"0) (1).\nQ) 1 1 @)\nwid 5 ;\nDirected, unweighted Directed, weighted",
+      "slide_type": "visual_heavy",
+      "embedded_images": [
+        {
+          "file": "path_planning_p025_img01.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p025_img01.png",
+          "width": 114,
+          "height": 53,
+          "colorspace": 3
+        },
+        {
+          "file": "path_planning_p025_img02.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p025_img02.png",
+          "width": 89,
+          "height": 154,
+          "colorspace": 3
+        },
+        {
+          "file": "path_planning_p025_img03.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p025_img03.png",
+          "width": 728,
+          "height": 43,
+          "colorspace": 3
+        },
+        {
+          "file": "path_planning_p025_img04.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p025_img04.png",
+          "width": 990,
+          "height": 31,
+          "colorspace": 3
+        },
+        {
+          "file": "path_planning_p025_img05.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p025_img05.png",
+          "width": 728,
+          "height": 475,
+          "colorspace": 3
+        }
+      ],
+      "image_count": 5,
+      "page_render": "path_planning_p025.png"
+    },
+    {
+      "page": 26,
+      "title": "Graph Data Structure",
+      "body_lines": [
+        "26"
+      ],
+      "all_text_native": "Graph Data Structure\n26\n41068 Robotics Studio 1",
+      "ocr_text": "+\nGraph Data Structure +\n&%\nCe\ne\n¢ A path is a sequence of vertices connected by edges, and represented as a sequence in 2 ways:\n© (VQ, 1, Vj. >, Vos--sVp_]> Eps Vy) -- alternating vertices and edges\n© (Vos V1+ V2ssVp-1+ Vy) -- vertices only\n¢ A graph is connected if, for any vertices v and w, there is a path from v to w.\nAn unconnected graph",
+      "slide_type": "visual_heavy",
+      "embedded_images": [
+        {
+          "file": "path_planning_p026_img01.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p026_img01.png",
+          "width": 114,
+          "height": 53,
+          "colorspace": 3
+        },
+        {
+          "file": "path_planning_p026_img02.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p026_img02.png",
+          "width": 89,
+          "height": 154,
+          "colorspace": 3
+        },
+        {
+          "file": "path_planning_p026_img03.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p026_img03.png",
+          "width": 950,
+          "height": 364,
+          "colorspace": 3
+        }
+      ],
+      "image_count": 3,
+      "page_render": "path_planning_p026.png"
+    },
+    {
+      "page": 27,
+      "title": "Graph Data Structure",
+      "body_lines": [
+        "27"
+      ],
+      "all_text_native": "Graph Data Structure\n27\n41068 Robotics Studio 1",
+      "ocr_text": "°\nGraph Data Structure x\n'°\nCee\n2. Graph Representations ~\n¢ Adjacency matrix\n© n by n matrix, where n is number of vertices\n© A(i,j) = 1 iff (i,j) is an edge, or 0 otherwise\n© For weighted graph: A(i,j) = w (weight of edge), or positive infinity otherwise\n(0) (1) o1odo0o1\nooiii\n(2) A=l/o0000\nooi0o0\n4)—-+>@ oo0010\n2\n(0) (1) 5 o2oo\noo 516\n1 1 (2) A= : oO Oo © ]\non fF wm wo\n3 ooo 1]\nVe 3)",
+      "slide_type": "visual_heavy",
+      "embedded_images": [
+        {
+          "file": "path_planning_p027_img01.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p027_img01.png",
+          "width": 114,
+          "height": 53,
+          "colorspace": 3
+        },
+        {
+          "file": "path_planning_p027_img02.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p027_img02.png",
+          "width": 89,
+          "height": 154,
+          "colorspace": 3
+        },
+        {
+          "file": "path_planning_p027_img03.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p027_img03.png",
+          "width": 883,
+          "height": 546,
+          "colorspace": 3
+        }
+      ],
+      "image_count": 3,
+      "page_render": "path_planning_p027.png"
+    },
+    {
+      "page": 28,
+      "title": "Graph Data Structure",
+      "body_lines": [
+        "28"
+      ],
+      "all_text_native": "Graph Data Structure\n28\n41068 Robotics Studio 1",
+      "ocr_text": "+\nGraph Data Structure +\ne\ne Adjacency list\n© Each vertex has a linked list of edges\n© Edge stores destination and label\n© Better when adjacency matrix is sparse\npL Tet\nWY | bah\n2 = aT\nY-@ 67\nOD. = oe\nbea hora\n‘| A | @ |\n(4) GY 3 | L237 |\n' [am",
+      "slide_type": "visual_heavy",
+      "embedded_images": [
+        {
+          "file": "path_planning_p028_img01.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p028_img01.png",
+          "width": 114,
+          "height": 53,
+          "colorspace": 3
+        },
+        {
+          "file": "path_planning_p028_img02.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p028_img02.png",
+          "width": 89,
+          "height": 154,
+          "colorspace": 3
+        },
+        {
+          "file": "path_planning_p028_img03.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p028_img03.png",
+          "width": 476,
+          "height": 511,
+          "colorspace": 3
+        },
+        {
+          "file": "path_planning_p028_img04.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p028_img04.png",
+          "width": 251,
+          "height": 357,
+          "colorspace": 3
+        }
+      ],
+      "image_count": 4,
+      "page_render": "path_planning_p028.png"
+    },
+    {
+      "page": 29,
+      "title": "C-free Space Discretisation: Cell Decomposition",
+      "body_lines": [
+        "1.",
+        "Create a grid",
+        "2.",
+        "Avoid any cells that intersect with an obstacle",
+        "3.",
+        "Connect a graph over the cells",
+        "4.",
+        "Plan shortest path",
+        "5.",
+        "If no plan exists, double the resolution and try again!",
+        "29"
+      ],
+      "all_text_native": "C-free Space Discretisation: Cell Decomposition\n1.\nCreate a grid\n2.\nAvoid any cells that intersect with an obstacle\n3.\nConnect a graph over the cells\n4.\nPlan shortest path\n5.\nIf no plan exists, double the resolution and try again!\n29\n41068 Robotics Studio 1",
+      "ocr_text": "C-free Space Discretisation: Cell Decomposition\n1. Create a grid\n2. Avoid any cells that intersect with an obstacle\n3. Connect a graph over the cells\n4. Plan shortest path\n5. Ifno plan exists, double the resolution and try again!\n\n+ +\n\n3 3\n29",
+      "slide_type": "text",
+      "embedded_images": [
+        {
+          "file": "path_planning_p029_img01.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p029_img01.png",
+          "width": 114,
+          "height": 53,
+          "colorspace": 3
+        },
+        {
+          "file": "path_planning_p029_img02.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p029_img02.png",
+          "width": 89,
+          "height": 154,
+          "colorspace": 3
+        },
+        {
+          "file": "path_planning_p029_img03.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p029_img03.png",
+          "width": 672,
+          "height": 415,
+          "colorspace": 3
+        },
+        {
+          "file": "path_planning_p029_img04.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p029_img04.png",
+          "width": 672,
+          "height": 415,
+          "colorspace": 3
+        }
+      ],
+      "image_count": 4,
+      "page_render": "path_planning_p029.png"
+    },
+    {
+      "page": 30,
+      "title": "Wavefront Algorithm",
+      "body_lines": [
+        "➢",
+        "Motivated by water waves",
+        "1.",
+        "Create a discretised map using cell decomposition",
+        "2.",
+        "Add in start and goal locations",
+        "3.",
+        "Fill in the “wavefront table”",
+        "4.",
+        "Get the obstacle-free path from the wavefront table",
+        "(Many ways to implement this)",
+        "30"
+      ],
+      "all_text_native": "Wavefront Algorithm\n➢\nMotivated by water waves\n1.\nCreate a discretised map using cell decomposition\n2.\nAdd in start and goal locations\n3.\nFill in the “wavefront table”\n4.\nGet the obstacle-free path from the wavefront table\n(Many ways to implement this)\n30\n41068 Robotics Studio 1",
+      "ocr_text": "Wavefront Algorithm\n\n> Motivated by water waves\n\n1. Create a discretised map using cell decomposition\n2. Add in start and goal locations\n\n3. Fill in the “wavefront table”\n\n4. Get the obstacle-free path from the wavefront table\n(Many ways to implement this)\nUE) 30",
+      "slide_type": "text",
+      "embedded_images": [
+        {
+          "file": "path_planning_p030_img01.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p030_img01.png",
+          "width": 114,
+          "height": 53,
+          "colorspace": 3
+        },
+        {
+          "file": "path_planning_p030_img02.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p030_img02.png",
+          "width": 89,
+          "height": 154,
+          "colorspace": 3
+        },
+        {
+          "file": "path_planning_p030_img03.jpeg",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p030_img03.jpeg",
+          "width": 820,
+          "height": 410,
+          "colorspace": 3
+        }
+      ],
+      "image_count": 3,
+      "page_render": "path_planning_p030.png"
+    },
+    {
+      "page": 31,
+      "title": "Wavefront Algorithm",
+      "body_lines": [
+        "31"
+      ],
+      "all_text_native": "Wavefront Algorithm\n31\n41068 Robotics Studio 1",
+      "ocr_text": "Wavefront Algorithm\nS— start, G--goal",
+      "slide_type": "visual_heavy",
+      "embedded_images": [
+        {
+          "file": "path_planning_p031_img01.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p031_img01.png",
+          "width": 114,
+          "height": 53,
+          "colorspace": 3
+        },
+        {
+          "file": "path_planning_p031_img02.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p031_img02.png",
+          "width": 89,
+          "height": 154,
+          "colorspace": 3
+        },
+        {
+          "file": "path_planning_p031_img03.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p031_img03.png",
+          "width": 512,
+          "height": 556,
+          "colorspace": 3
+        }
+      ],
+      "image_count": 3,
+      "page_render": "path_planning_p031.png"
+    },
+    {
+      "page": 32,
+      "title": "Wavefront Algorithm",
+      "body_lines": [
+        "32"
+      ],
+      "all_text_native": "Wavefront Algorithm\n32\n41068 Robotics Studio 1",
+      "ocr_text": "Wavefront Algorithm\nS— start, G--goal Build the wave (start from goal)\n8 7 65 5 5\n8 |\n6 8",
+      "slide_type": "visual_heavy",
+      "embedded_images": [
+        {
+          "file": "path_planning_p032_img01.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p032_img01.png",
+          "width": 114,
+          "height": 53,
+          "colorspace": 3
+        },
+        {
+          "file": "path_planning_p032_img02.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p032_img02.png",
+          "width": 89,
+          "height": 154,
+          "colorspace": 3
+        },
+        {
+          "file": "path_planning_p032_img03.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p032_img03.png",
+          "width": 1092,
+          "height": 556,
+          "colorspace": 3
+        }
+      ],
+      "image_count": 3,
+      "page_render": "path_planning_p032.png"
+    },
+    {
+      "page": 33,
+      "title": "Wavefront Algorithm",
+      "body_lines": [
+        "33"
+      ],
+      "all_text_native": "Wavefront Algorithm\n33\n41068 Robotics Studio 1",
+      "ocr_text": "Wavefront Algorithm\nS— start, G-- goal Get the path (reverse order)\n87 65. 5 5\n8\ngf 3\n6 68\n33",
+      "slide_type": "visual_heavy",
+      "embedded_images": [
+        {
+          "file": "path_planning_p033_img01.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p033_img01.png",
+          "width": 114,
+          "height": 53,
+          "colorspace": 3
+        },
+        {
+          "file": "path_planning_p033_img02.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p033_img02.png",
+          "width": 89,
+          "height": 154,
+          "colorspace": 3
+        },
+        {
+          "file": "path_planning_p033_img03.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p033_img03.png",
+          "width": 1059,
+          "height": 545,
+          "colorspace": 3
+        }
+      ],
+      "image_count": 3,
+      "page_render": "path_planning_p033.png"
+    },
+    {
+      "page": 34,
+      "title": "Wavefront Algorithm",
+      "body_lines": [
+        "What assumption is being made",
+        "about the graph edges here?",
+        "34"
+      ],
+      "all_text_native": "Wavefront Algorithm\nWhat assumption is being made\nabout the graph edges here?\n34\n41068 Robotics Studio 1",
+      "ocr_text": "Wavefront Algorithm What assumption is being made\nabout the graph edges here?\nS— start, G-- goal Get the path (reverse order)\n\n8 7 65. 5\n\n—\n\n33)\n\n6 6",
+      "slide_type": "mixed",
+      "embedded_images": [
+        {
+          "file": "path_planning_p034_img01.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p034_img01.png",
+          "width": 114,
+          "height": 53,
+          "colorspace": 3
+        },
+        {
+          "file": "path_planning_p034_img02.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p034_img02.png",
+          "width": 89,
+          "height": 154,
+          "colorspace": 3
+        },
+        {
+          "file": "path_planning_p034_img03.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p034_img03.png",
+          "width": 1059,
+          "height": 545,
+          "colorspace": 3
+        }
+      ],
+      "image_count": 3,
+      "page_render": "path_planning_p034.png"
+    },
+    {
+      "page": 35,
+      "title": "A General Shortest Path Problem",
+      "body_lines": [
+        "➢",
+        "Given a weighted graph and two vertices s and g",
+        "Find a shortest path from s to g (i.e. path with least sum of edge costs)",
+        "s",
+        "g",
+        "35"
+      ],
+      "all_text_native": "A General Shortest Path Problem\n➢\nGiven a weighted graph and two vertices s and g\nFind a shortest path from s to g (i.e. path with least sum of edge costs)\ns\ng\n35\n41068 Robotics Studio 1",
+      "ocr_text": "A General Shortest Path Problem\n> Given a weighted graph and two vertices s and g\nFind a shortest path from s to g (i.e. path with least sum of edge costs)\nSs 2\nNS\n| A | “@o\nO5*Gr ?\n35",
+      "slide_type": "text",
+      "embedded_images": [
+        {
+          "file": "path_planning_p035_img01.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p035_img01.png",
+          "width": 114,
+          "height": 53,
+          "colorspace": 3
+        },
+        {
+          "file": "path_planning_p035_img02.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p035_img02.png",
+          "width": 89,
+          "height": 154,
+          "colorspace": 3
+        },
+        {
+          "file": "path_planning_p035_img03.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p035_img03.png",
+          "width": 227,
+          "height": 167,
+          "colorspace": 3
+        }
+      ],
+      "image_count": 3,
+      "page_render": "path_planning_p035.png"
+    },
+    {
+      "page": 36,
+      "title": "Dijkstra’s Algorithm",
+      "body_lines": [
+        "➢",
+        "An algorithm that solves the shortest path problem",
+        "➢",
+        "Traverse the graph by visiting the next vertex that",
+        "has the lowest path cost",
+        "➢",
+        "Maintain two sets:",
+        "•",
+        "Visited set (red)",
+        "•",
+        "Unvisited set (blue)",
+        "36"
+      ],
+      "all_text_native": "Dijkstra’s Algorithm\n➢\nAn algorithm that solves the shortest path problem\n➢\nTraverse the graph by visiting the next vertex that\nhas the lowest path cost\n➢\nMaintain two sets:\n•\nVisited set (red)\n•\nUnvisited set (blue)\n36\n41068 Robotics Studio 1",
+      "ocr_text": ". ; . o\nDijkstra’s Algorithm x\n“SY\n\nPea ii didi i ii iii iiix:\n\n> An algorithm that solves the shortest path problem |....---..-...--...2205055\n>» Traverse the graph by visiting the next vertex that [oc ccc\nhas the lowest path cost ww\n\n> Maintain two sets: te De\n* Visited set (red) pet De\n\n* Unvisited set (blue) te De\nSorr@iiiiiiiiipiiiiinn",
+      "slide_type": "text",
+      "embedded_images": [
+        {
+          "file": "path_planning_p036_img01.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p036_img01.png",
+          "width": 114,
+          "height": 53,
+          "colorspace": 3
+        },
+        {
+          "file": "path_planning_p036_img02.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p036_img02.png",
+          "width": 89,
+          "height": 154,
+          "colorspace": 3
+        },
+        {
+          "file": "path_planning_p036_img03.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p036_img03.png",
+          "width": 366,
+          "height": 366,
+          "colorspace": 3
+        }
+      ],
+      "image_count": 3,
+      "page_render": "path_planning_p036.png"
+    },
+    {
+      "page": 37,
+      "title": "Dijkstra’s Algorithm",
+      "body_lines": [
+        "Each node has a “path cost” and a “parent pointer”",
+        "1.",
+        "Empty all parent pointers and path costs",
+        "2.",
+        "Create empty",
+        "unvisited",
+        "and",
+        "visited sets",
+        "3.",
+        "Add start node to",
+        "unvisited set",
+        "with cost 0",
+        "4.",
+        "Select the node in the",
+        "unvisited set",
+        "with minimum path cost",
+        "5.",
+        "Move this selected node to the",
+        "visited set",
+        "6.",
+        "For each neighbour of the selected node:",
+        "•",
+        "If in",
+        "visited set",
+        ": do nothing",
+        "•",
+        "If in",
+        "unvisited set",
+        ": update the cost and parent if this path has lower cost",
+        "•",
+        "Otherwise: add it to the",
+        "unvisited set",
+        "with appropriate cost and parent",
+        "7.",
+        "Repeat from step 4 until the",
+        "unvisited set",
+        "is empty or the goal is found",
+        "37"
+      ],
+      "all_text_native": "Dijkstra’s Algorithm\nEach node has a “path cost” and a “parent pointer”\n1.\nEmpty all parent pointers and path costs\n2.\nCreate empty\nunvisited\nand\nvisited sets\n3.\nAdd start node to\nunvisited set\nwith cost 0\n4.\nSelect the node in the\nunvisited set\nwith minimum path cost\n5.\nMove this selected node to the\nvisited set\n6.\nFor each neighbour of the selected node:\n•\nIf in\nvisited set\n: do nothing\n•\nIf in\nunvisited set\n: update the cost and parent if this path has lower cost\n•\nOtherwise: add it to the\nunvisited set\nwith appropriate cost and parent\n7.\nRepeat from step 4 until the\nunvisited set\nis empty or the goal is found\n37\n41068 Robotics Studio 1",
+      "ocr_text": "Dijkstra’s Algorithm\nto ee 11%\n\nEach node has a “path cost” and a “parent pointer” Dollliiiiiiiiiiiiiiisicn:\n|. Empty all parent pointers and path costs ne a ope\n2. Create empty unvisited and visited sets a\n3. Add start node to unvisited set with cost 0 plitiiiiiininw cc:\n4. Select the node in the unvisited set with minimum path cost veces « coves MB eee.\n5. Move this selected node to the visited set Siospisiiiiiiiiin:\n6. For each neighbour of the selected node: Senne eeeeeeSESEEEEEEEEE\n\n° If in visited set: do nothing\n\n° If in unvisited set: update the cost and parent if this path has lower cost\n\n° Otherwise: add it to the unvisited set with appropriate cost and parent\n7. Repeat from step 4 until the unvisited set is empty or the goal is found\n\n37",
+      "slide_type": "text",
+      "embedded_images": [
+        {
+          "file": "path_planning_p037_img01.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p037_img01.png",
+          "width": 114,
+          "height": 53,
+          "colorspace": 3
+        },
+        {
+          "file": "path_planning_p037_img02.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p037_img02.png",
+          "width": 89,
+          "height": 154,
+          "colorspace": 3
+        },
+        {
+          "file": "path_planning_p037_img03.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p037_img03.png",
+          "width": 366,
+          "height": 366,
+          "colorspace": 3
+        }
+      ],
+      "image_count": 3,
+      "page_render": "path_planning_p037.png"
+    },
+    {
+      "page": 38,
+      "title": "A* (“A star”) Algorithm",
+      "body_lines": [
+        "➢",
+        "An algorithm for the general shortest path problem that is faster than Dijkstra’s",
+        "algorithm in typical scenarios",
+        "➢",
+        "Relies on a user-defined heuristic estimate",
+        "➢",
+        "One change to the algorithm: Define the node costs",
+        "f",
+        ",",
+        "g",
+        ", and",
+        "h",
+        "as:",
+        "𝑓𝑥= 𝑔𝑥+ ℎ(𝑥)",
+        "Estimated",
+        "path cost from",
+        "start node to",
+        "to goal",
+        "𝑥",
+        "Path-cost: cost of the shortest",
+        "Heuristic: Estimate of the",
+        "path from start node to",
+        "distance to the goal",
+        "𝑥",
+        "➢",
+        "Heuristic must be admissible (not overestimate) and consistent (monotone increasing)",
+        "➢",
+        "Equivalent to Dijkstra’s algorithm when",
+        "ℎ𝑥= 0",
+        "38"
+      ],
+      "all_text_native": "A* (“A star”) Algorithm\n➢\nAn algorithm for the general shortest path problem that is faster than Dijkstra’s\nalgorithm in typical scenarios\n➢\nRelies on a user-defined heuristic estimate\n➢\nOne change to the algorithm: Define the node costs\nf\n,\ng\n, and\nh\nas:\n𝑓𝑥= 𝑔𝑥+ ℎ(𝑥)\nEstimated\npath cost from\nstart node to\nto goal\n𝑥\nPath-cost: cost of the shortest\nHeuristic: Estimate of the\npath from start node to\ndistance to the goal\n𝑥\n➢\nHeuristic must be admissible (not overestimate) and consistent (monotone increasing)\n➢\nEquivalent to Dijkstra’s algorithm when\nℎ𝑥= 0\n38\n41068 Robotics Studio 1",
+      "ocr_text": "A* (“A star’) Algorithm\n> Analgorithm for the general shortest path problem that is faster than Dijkstra’s\n\nalgorithm in typical scenarios\n> Relies on a user-defined heuristic estimate\n> One change to the algorithm: Define the node costs f, g, and h as:\n\nxyh=QGgxyt+tha«\nEstimated path cost from — f ( ) gl ) ( )\nstart node to x to goal Yt \\\nPath-cost: cost of the shortest Heuristic: Estimate of the\npath from start node to x distance to the goal\n> Heuristic must be admissible (not overestimate) and consistent (monotone increasing)\n> Equivalent to Dijkstra’s algorithm when h(x) = 0\n38",
+      "slide_type": "text",
+      "embedded_images": [
+        {
+          "file": "path_planning_p038_img01.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p038_img01.png",
+          "width": 114,
+          "height": 53,
+          "colorspace": 3
+        },
+        {
+          "file": "path_planning_p038_img02.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p038_img02.png",
+          "width": 89,
+          "height": 154,
+          "colorspace": 3
+        }
+      ],
+      "image_count": 2,
+      "page_render": "path_planning_p038.png"
+    },
+    {
+      "page": 39,
+      "title": "A* cost heuristic",
+      "body_lines": [
+        "𝑓𝑥= 𝑔𝑥+ ℎ(𝑥)",
+        "Estimated",
+        "path cost from",
+        "start node to",
+        "to goal",
+        "𝑥",
+        "Path-cost: cost of the shortest",
+        "Heuristic: Estimate of the",
+        "path from start node to",
+        "distance to the goal",
+        "𝑥",
+        "s",
+        "x",
+        "ℎ𝑥",
+        "6",
+        "g",
+        "𝑔𝑥",
+        "39"
+      ],
+      "all_text_native": "A* cost heuristic\n𝑓𝑥= 𝑔𝑥+ ℎ(𝑥)\nEstimated\npath cost from\nstart node to\nto goal\n𝑥\nPath-cost: cost of the shortest\nHeuristic: Estimate of the\npath from start node to\ndistance to the goal\n𝑥\ns\nx\nℎ𝑥\n6\ng\n𝑔𝑥\n39\n41068 Robotics Studio 1",
+      "ocr_text": "A* cost heuristic x\nwe\nEstimated path cost from —> f (x) = g(x) + h(x)\nstart node to x to goal ZA \\\nPath-cost: cost of the shortest Heuristic: Estimate of the\npath from start node to x distance to the goal\nS 2\n(0) 5\na x\nI 6 |i (2) 2. h(x)\nA - 3 6 sea ~. .\n~h\nOTe ‘@)\ng(x)",
+      "slide_type": "text",
+      "embedded_images": [
+        {
+          "file": "path_planning_p039_img01.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p039_img01.png",
+          "width": 114,
+          "height": 53,
+          "colorspace": 3
+        },
+        {
+          "file": "path_planning_p039_img02.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p039_img02.png",
+          "width": 89,
+          "height": 154,
+          "colorspace": 3
+        },
+        {
+          "file": "path_planning_p039_img03.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p039_img03.png",
+          "width": 227,
+          "height": 167,
+          "colorspace": 3
+        }
+      ],
+      "image_count": 3,
+      "page_render": "path_planning_p039.png"
+    },
+    {
+      "page": 40,
+      "title": "Dijkstra’s vs A*",
+      "body_lines": [
+        "40"
+      ],
+      "all_text_native": "Dijkstra’s vs A*\n40\n41068 Robotics Studio 1",
+      "ocr_text": "Dijkst A*\n\nwe\nBe ee ee ee\neee ae see ee se tee se ee eee\nas te ee ee se tee se ee eee\nfee ee ee es Pe a a bee ee ee\nfee ee ee es Po a a tee ee ee\nPe a bee ee ee fet ee ee he se ee eee\nHe see ee fet ee ee he se ee eee\nPa Pa\n\nU a) 41068 Robotics Studio 1",
+      "slide_type": "visual_heavy",
+      "embedded_images": [
+        {
+          "file": "path_planning_p040_img01.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p040_img01.png",
+          "width": 114,
+          "height": 53,
+          "colorspace": 3
+        },
+        {
+          "file": "path_planning_p040_img02.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p040_img02.png",
+          "width": 89,
+          "height": 154,
+          "colorspace": 3
+        },
+        {
+          "file": "path_planning_p040_img03.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p040_img03.png",
+          "width": 366,
+          "height": 366,
+          "colorspace": 3
+        },
+        {
+          "file": "path_planning_p040_img04.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p040_img04.png",
+          "width": 366,
+          "height": 366,
+          "colorspace": 3
+        }
+      ],
+      "image_count": 4,
+      "page_render": "path_planning_p040.png"
+    },
+    {
+      "page": 41,
+      "title": "",
+      "body_lines": [
+        "Sampling-Based Motion Planning"
+      ],
+      "all_text_native": "Sampling-Based Motion Planning",
+      "ocr_text": "S . ° ° Oo e@ e O O e e cS . : 9 OC e@ e oO\nO © oO e e e ° . . ° — OO C e e e ° :\ne O OD e @ O : ° . O : e OO) C e @ O . :\ne Oo OQ e e O ° ° . ° ° e O O e e © ° °\nSampling-Based Motion Planning",
+      "slide_type": "mixed",
+      "embedded_images": [
+        {
+          "file": "path_planning_p041_img01.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p041_img01.png",
+          "width": 403,
+          "height": 1163,
+          "colorspace": 3
+        },
+        {
+          "file": "path_planning_p041_img02.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p041_img02.png",
+          "width": 403,
+          "height": 824,
+          "colorspace": 3
+        }
+      ],
+      "image_count": 2,
+      "page_render": "path_planning_p041.png"
+    },
+    {
+      "page": 42,
+      "title": "Randomised Algorithms (“Monte Carlo Algorithms”)",
+      "body_lines": [
+        "➢",
+        "General method for approaching computationally-",
+        "difficult problems",
+        "➢",
+        "Replace parts of your algorithm that do an exhaustive",
+        "search with random sampling",
+        "➢",
+        "Common approach in robotics:",
+        "•",
+        "Particle filter localisation",
+        "•",
+        "Probabilistic roadmaps (PRM)",
+        "(today)",
+        "•",
+        "Randomly-exploring random trees (RRT)",
+        "(today)",
+        "•",
+        "Monte Carlo tree search (MCTS)",
+        "(previous seminar)",
+        "42"
+      ],
+      "all_text_native": "Randomised Algorithms (“Monte Carlo Algorithms”)\n➢\nGeneral method for approaching computationally-\ndifficult problems\n➢\nReplace parts of your algorithm that do an exhaustive\nsearch with random sampling\n➢\nCommon approach in robotics:\n•\nParticle filter localisation\n•\nProbabilistic roadmaps (PRM)\n(today)\n•\nRandomly-exploring random trees (RRT)\n(today)\n•\nMonte Carlo tree search (MCTS)\n(previous seminar)\n42\n41068 Robotics Studio 1",
+      "ocr_text": "Randomised Algorithms (“Monte Carlo Algorithms’)\n@e\n> General method for approaching computationally- a y e\ndifficult problems = ol ed 3\nae) a]\n> Replace parts of your algorithm that do an exhaustive beac = ad\nsearch with random sampling & ..\neo @\n> Common approach in robotics: ‘oe\n* Particle filter localisation 1\n* Probabilistic roadmaps (PRM) (today) ol/ \\\n*« Randomly-exploring random trees (RRT) (today)\n* Monte Carlo tree search (MCTS) (previous seminar) °\n“ ;\n-1\n-1 -0.5 0 0.5 1\n42",
+      "slide_type": "text",
+      "embedded_images": [
+        {
+          "file": "path_planning_p042_img01.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p042_img01.png",
+          "width": 114,
+          "height": 53,
+          "colorspace": 3
+        },
+        {
+          "file": "path_planning_p042_img02.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p042_img02.png",
+          "width": 89,
+          "height": 154,
+          "colorspace": 3
+        },
+        {
+          "file": "path_planning_p042_img03.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p042_img03.png",
+          "width": 588,
+          "height": 571,
+          "colorspace": 3
+        },
+        {
+          "file": "path_planning_p042_img04.jpeg",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p042_img04.jpeg",
+          "width": 548,
+          "height": 476,
+          "colorspace": 3
+        }
+      ],
+      "image_count": 4,
+      "page_render": "path_planning_p042.png"
+    },
+    {
+      "page": 43,
+      "title": "Probabilistic Roadmaps (PRM)",
+      "body_lines": [
+        "Generate random graphs using random sampling",
+        "1.",
+        "Sample the C-space by generating a large number of samples",
+        "2.",
+        "For every sample that is collision free, create a graph node at that location",
+        "3.",
+        "Connect pairs of nodes that have a short, local path",
+        "4.",
+        "After generating the graph, it can be searched with Dijkstra’s or A*",
+        "From 49274",
+        "Space Robotics",
+        "43"
+      ],
+      "all_text_native": "Probabilistic Roadmaps (PRM)\nGenerate random graphs using random sampling\n1.\nSample the C-space by generating a large number of samples\n2.\nFor every sample that is collision free, create a graph node at that location\n3.\nConnect pairs of nodes that have a short, local path\n4.\nAfter generating the graph, it can be searched with Dijkstra’s or A*\nFrom 49274\nSpace Robotics\n43\n41068 Robotics Studio 1",
+      "ocr_text": "Probabilistic Roadmaps (PRM)\nGenerate random graphs using random sampling\n1. Sample the C-space by generating a large number of samples\n2. For every sample that is collision free, create a graph node at that location\n3. Connect pairs of nodes that have a short, local path\n4. After generating the graph, it can be searched with Dijkstra’s or A*\nor te \\ i e cS\n«i KR ry\n; Lhe We ost\n/ ee rs\n‘i > ar x) From 49274\n‘ ™ Space Robotics\n+a —\nUE) 43",
+      "slide_type": "text",
+      "embedded_images": [
+        {
+          "file": "path_planning_p043_img01.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p043_img01.png",
+          "width": 114,
+          "height": 53,
+          "colorspace": 3
+        },
+        {
+          "file": "path_planning_p043_img02.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p043_img02.png",
+          "width": 89,
+          "height": 154,
+          "colorspace": 3
+        },
+        {
+          "file": "path_planning_p043_img03.jpeg",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p043_img03.jpeg",
+          "width": 980,
+          "height": 691,
+          "colorspace": 3
+        }
+      ],
+      "image_count": 3,
+      "page_render": "path_planning_p043.png"
+    },
+    {
+      "page": 44,
+      "title": "PRM Example",
+      "body_lines": [
+        "44"
+      ],
+      "all_text_native": "PRM Example\n44\n41068 Robotics Studio 1",
+      "ocr_text": "PRM Example\n1 wy °e e > °\n- ai\nfo} . —_ : o . :\nB e : > e ml e@ 7 > e\n. => ° wy °\n° ° 4 ° ) ° ° 4 ° e",
+      "slide_type": "visual_heavy",
+      "embedded_images": [
+        {
+          "file": "path_planning_p044_img01.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p044_img01.png",
+          "width": 114,
+          "height": 53,
+          "colorspace": 3
+        },
+        {
+          "file": "path_planning_p044_img02.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p044_img02.png",
+          "width": 89,
+          "height": 154,
+          "colorspace": 3
+        },
+        {
+          "file": "path_planning_p044_img03.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p044_img03.png",
+          "width": 1169,
+          "height": 566,
+          "colorspace": 3
+        }
+      ],
+      "image_count": 3,
+      "page_render": "path_planning_p044.png"
+    },
+    {
+      "page": 45,
+      "title": "PRM Example",
+      "body_lines": [
+        "45"
+      ],
+      "all_text_native": "PRM Example\n45\n41068 Robotics Studio 1",
+      "ocr_text": "PRM Example",
+      "slide_type": "visual_heavy",
+      "embedded_images": [
+        {
+          "file": "path_planning_p045_img01.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p045_img01.png",
+          "width": 114,
+          "height": 53,
+          "colorspace": 3
+        },
+        {
+          "file": "path_planning_p045_img02.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p045_img02.png",
+          "width": 89,
+          "height": 154,
+          "colorspace": 3
+        },
+        {
+          "file": "path_planning_p045_img03.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p045_img03.png",
+          "width": 1176,
+          "height": 574,
+          "colorspace": 3
+        }
+      ],
+      "image_count": 3,
+      "page_render": "path_planning_p045.png"
+    },
+    {
+      "page": 46,
+      "title": "PRM",
+      "body_lines": [
+        "Advantages:",
+        "➢",
+        "Probabilistically complete",
+        "➢",
+        "Do not construct C-space",
+        "➢",
+        "Apply easily to high dimensional spaces",
+        "➢",
+        "Solved previously unsolved problems",
+        "Disadvantages:",
+        "➢",
+        "Does not work well at all problems",
+        "➢",
+        "Not optimal, not complete",
+        "46"
+      ],
+      "all_text_native": "PRM\nAdvantages:\n➢\nProbabilistically complete\n➢\nDo not construct C-space\n➢\nApply easily to high dimensional spaces\n➢\nSolved previously unsolved problems\nDisadvantages:\n➢\nDoes not work well at all problems\n➢\nNot optimal, not complete\n46\n41068 Robotics Studio 1",
+      "ocr_text": "PRM *\n\n°dg¢ — S\nAdvantages:\n>» Probabilistically complete (Cue\n> Do not construct C-space Ce\n>» Apply easily to high dimensional spaces qy°\n> Solved previously unsolved problems Te\n\n\\ Y o\nDisadvantages: \\\n>» Does not work well at all problems\n> Not optimal, not complete\nqr > Lf",
+      "slide_type": "text",
+      "embedded_images": [
+        {
+          "file": "path_planning_p046_img01.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p046_img01.png",
+          "width": 114,
+          "height": 53,
+          "colorspace": 3
+        },
+        {
+          "file": "path_planning_p046_img02.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p046_img02.png",
+          "width": 89,
+          "height": 154,
+          "colorspace": 3
+        },
+        {
+          "file": "path_planning_p046_img03.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p046_img03.png",
+          "width": 303,
+          "height": 409,
+          "colorspace": 3
+        }
+      ],
+      "image_count": 3,
+      "page_render": "path_planning_p046.png"
+    },
+    {
+      "page": 47,
+      "title": "RRT (Rapidly-Exploring Random Trees)",
+      "body_lines": [
+        "➢",
+        "A different type of randomised algorithm for path planning",
+        "➢",
+        "Conceptually simple: Incrementally grow a tree that explores the space",
+        "➢",
+        "Works well in high-dimensional state space",
+        "➢",
+        "Easily incorporate differential constraints",
+        "➢",
+        "Applicable to a broad class of problems",
+        "➢",
+        "Lots of variants, e.g. RRT* for asymptotic optimality",
+        "47"
+      ],
+      "all_text_native": "RRT (Rapidly-Exploring Random Trees)\n➢\nA different type of randomised algorithm for path planning\n➢\nConceptually simple: Incrementally grow a tree that explores the space\n➢\nWorks well in high-dimensional state space\n➢\nEasily incorporate differential constraints\n➢\nApplicable to a broad class of problems\n➢\nLots of variants, e.g. RRT* for asymptotic optimality\n47\n41068 Robotics Studio 1",
+      "ocr_text": "RRT (Rapidly-Exploring Random Trees)\n> Adifferent type of randomised algorithm for path planning\n> Conceptually simple: Incrementally grow a tree that explores the space\n> Works well in high-dimensional state space\n> Easily incorporate differential constraints\n> Applicable to a broad class of problems\n> Lots of variants, e.g. RRT* for asymptotic optimality\n47",
+      "slide_type": "text",
+      "embedded_images": [
+        {
+          "file": "path_planning_p047_img01.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p047_img01.png",
+          "width": 114,
+          "height": 53,
+          "colorspace": 3
+        },
+        {
+          "file": "path_planning_p047_img02.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p047_img02.png",
+          "width": 89,
+          "height": 154,
+          "colorspace": 3
+        }
+      ],
+      "image_count": 2,
+      "page_render": "path_planning_p047.png"
+    },
+    {
+      "page": 48,
+      "title": "RRT Algorithm",
+      "body_lines": [
+        "tree after a few iterations",
+        "start",
+        "48"
+      ],
+      "all_text_native": "RRT Algorithm\ntree after a few iterations\nstart\n48\n41068 Robotics Studio 1",
+      "ocr_text": "| Cy\nRRT Algorithm %\noe\ntree after a few iterations",
+      "slide_type": "mixed",
+      "embedded_images": [
+        {
+          "file": "path_planning_p048_img01.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p048_img01.png",
+          "width": 114,
+          "height": 53,
+          "colorspace": 3
+        },
+        {
+          "file": "path_planning_p048_img02.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p048_img02.png",
+          "width": 89,
+          "height": 154,
+          "colorspace": 3
+        }
+      ],
+      "image_count": 2,
+      "page_render": "path_planning_p048.png"
+    },
+    {
+      "page": 49,
+      "title": "RRT Algorithm",
+      "body_lines": [
+        "draw a random sample",
+        "random",
+        "point",
+        "start",
+        "49"
+      ],
+      "all_text_native": "RRT Algorithm\ndraw a random sample\nrandom\npoint\nstart\n49\n41068 Robotics Studio 1",
+      "ocr_text": ". eo\nRRT Algorithm x\n~~\ndraw a random sample\nrandom\npoint\nstart °",
+      "slide_type": "mixed",
+      "embedded_images": [
+        {
+          "file": "path_planning_p049_img01.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p049_img01.png",
+          "width": 114,
+          "height": 53,
+          "colorspace": 3
+        },
+        {
+          "file": "path_planning_p049_img02.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p049_img02.png",
+          "width": 89,
+          "height": 154,
+          "colorspace": 3
+        }
+      ],
+      "image_count": 2,
+      "page_render": "path_planning_p049.png"
+    },
+    {
+      "page": 50,
+      "title": "RRT Algorithm",
+      "body_lines": [
+        "find the nearest node",
+        "nearest",
+        "point",
+        "random",
+        "point",
+        "start",
+        "50"
+      ],
+      "all_text_native": "RRT Algorithm\nfind the nearest node\nnearest\npoint\nrandom\npoint\nstart\n50\n41068 Robotics Studio 1",
+      "ocr_text": ". °\nRRT Algorithm +\n4\nCee\n~~\nfind the nearest node\nnearest\npoint random\n-~--+LL point\n~--e LL e\nstart",
+      "slide_type": "mixed",
+      "embedded_images": [
+        {
+          "file": "path_planning_p050_img01.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p050_img01.png",
+          "width": 114,
+          "height": 53,
+          "colorspace": 3
+        },
+        {
+          "file": "path_planning_p050_img02.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p050_img02.png",
+          "width": 89,
+          "height": 154,
+          "colorspace": 3
+        }
+      ],
+      "image_count": 2,
+      "page_render": "path_planning_p050.png"
+    },
+    {
+      "page": 51,
+      "title": "RRT Algorithm",
+      "body_lines": [
+        "“steer” towards the random point",
+        "nearest",
+        "point",
+        "random",
+        "point",
+        "start",
+        "51"
+      ],
+      "all_text_native": "RRT Algorithm\n“steer” towards the random point\nnearest\npoint\nrandom\npoint\nstart\n51\n41068 Robotics Studio 1",
+      "ocr_text": ". eo\n\nRRT Algorithm x\neS\n\n“steer” towards the random point\n\nnearest\npoint random\n--@-_ point\nstart e",
+      "slide_type": "mixed",
+      "embedded_images": [
+        {
+          "file": "path_planning_p051_img01.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p051_img01.png",
+          "width": 114,
+          "height": 53,
+          "colorspace": 3
+        },
+        {
+          "file": "path_planning_p051_img02.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p051_img02.png",
+          "width": 89,
+          "height": 154,
+          "colorspace": 3
+        }
+      ],
+      "image_count": 2,
+      "page_render": "path_planning_p051.png"
+    },
+    {
+      "page": 52,
+      "title": "RRT Algorithm",
+      "body_lines": [
+        "insert new node into tree",
+        "new node",
+        "start",
+        "52"
+      ],
+      "all_text_native": "RRT Algorithm\ninsert new node into tree\nnew node\nstart\n52\n41068 Robotics Studio 1",
+      "ocr_text": ". °\nRRT Algorithm x\n~~\ninsert new node into tree\nnew node\nstart",
+      "slide_type": "mixed",
+      "embedded_images": [
+        {
+          "file": "path_planning_p052_img01.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p052_img01.png",
+          "width": 114,
+          "height": 53,
+          "colorspace": 3
+        },
+        {
+          "file": "path_planning_p052_img02.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p052_img02.png",
+          "width": 89,
+          "height": 154,
+          "colorspace": 3
+        }
+      ],
+      "image_count": 2,
+      "page_render": "path_planning_p052.png"
+    },
+    {
+      "page": 53,
+      "title": "RRT Algorithm",
+      "body_lines": [
+        "start",
+        "nearest",
+        "point",
+        "new node",
+        "repeat!",
+        "random",
+        "point",
+        "53"
+      ],
+      "all_text_native": "RRT Algorithm\nstart\nnearest\npoint\nnew node\nrepeat!\nrandom\npoint\n53\n41068 Robotics Studio 1",
+      "ocr_text": ". °\nor\nRRT Algorithm x\n~~\nnearest start\npoint\nnew node\n7 repeat!\nrandom\né point",
+      "slide_type": "mixed",
+      "embedded_images": [
+        {
+          "file": "path_planning_p053_img01.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p053_img01.png",
+          "width": 114,
+          "height": 53,
+          "colorspace": 3
+        },
+        {
+          "file": "path_planning_p053_img02.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p053_img02.png",
+          "width": 89,
+          "height": 154,
+          "colorspace": 3
+        }
+      ],
+      "image_count": 2,
+      "page_render": "path_planning_p053.png"
+    },
+    {
+      "page": 54,
+      "title": "RRT Algorithm",
+      "body_lines": [
+        "repeat!",
+        "repeat!",
+        "start",
+        "repeat!",
+        "repeat!",
+        "repeat!",
+        "54"
+      ],
+      "all_text_native": "RRT Algorithm\nrepeat!\nrepeat!\nstart\nrepeat!\nrepeat!\nrepeat!\n54\n41068 Robotics Studio 1",
+      "ocr_text": ". «\n\nRRT Algorithm x\n\nwy\n\nrepeat!\nrepeat!\nstart repeat!\nrepeat!\nrepeat!",
+      "slide_type": "mixed",
+      "embedded_images": [
+        {
+          "file": "path_planning_p054_img01.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p054_img01.png",
+          "width": 114,
+          "height": 53,
+          "colorspace": 3
+        },
+        {
+          "file": "path_planning_p054_img02.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p054_img02.png",
+          "width": 89,
+          "height": 154,
+          "colorspace": 3
+        }
+      ],
+      "image_count": 2,
+      "page_render": "path_planning_p054.png"
+    },
+    {
+      "page": 55,
+      "title": "Examples",
+      "body_lines": [
+        "55"
+      ],
+      "all_text_native": "Examples\n55\n41068 Robotics Studio 1",
+      "ocr_text": "@\nExamples ~\n: wy\n_\n— , Lom\na 31S e\nye NAD _.\n— KO",
+      "slide_type": "visual_heavy",
+      "embedded_images": [
+        {
+          "file": "path_planning_p055_img01.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p055_img01.png",
+          "width": 114,
+          "height": 53,
+          "colorspace": 3
+        },
+        {
+          "file": "path_planning_p055_img02.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p055_img02.png",
+          "width": 89,
+          "height": 154,
+          "colorspace": 3
+        },
+        {
+          "file": "path_planning_p055_img03.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p055_img03.png",
+          "width": 426,
+          "height": 426,
+          "colorspace": 3
+        },
+        {
+          "file": "path_planning_p055_img04.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p055_img04.png",
+          "width": 143,
+          "height": 143,
+          "colorspace": 3
+        },
+        {
+          "file": "path_planning_p055_img05.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p055_img05.png",
+          "width": 473,
+          "height": 387,
+          "colorspace": 3
+        }
+      ],
+      "image_count": 5,
+      "page_render": "path_planning_p055.png"
+    },
+    {
+      "page": 56,
+      "title": "RRT vs RRT* (adds a “rewiring” step)",
+      "body_lines": [
+        "56"
+      ],
+      "all_text_native": "RRT vs RRT* (adds a “rewiring” step)\n56\n41068 Robotics Studio 1",
+      "ocr_text": "* (adds a “rewiring” st\nRRT vs RRT™ (adds a “rewiring” step\n10 Despre TRS RES 10 : SEG Wn EO EE\npanes ‘i ee aaa EES iS See USS peep WA, SESE HVA 1 Ne ace\nRaia gon et eG - eet) A SSSR Teens\nJ Pig a 3 . Py. Barges \\ Yb) SSS, SON ETT ) |, Steric\nORs heer Oa y ae I ee Niece\nee bee LET ede OO te) eS ER QA SRR HT |! ee b\nSee thar EAN SOLS ‘iees| | NY See SI eee\n0 cae en meme by - i — hah hr. SH\n“Fase ee cee | ORY A PNY SY\n{7 aja fealty: SN Nia SS\nRan may, Beat Ry ae 4 r pee \\ SSS SSS ee || Waa} pest!\n4 THE US ., kt ae Vays w 4 SA rani it i Wy\nhe tee Ae oe RR ORL Rh ere SSSR Ltd Lae\nie SEE RSA VALENS Be SSN My A, 42\n2 PES pd Bt chy SAS aa A] 2 WW\nSAT PRR LD RT aE oe SRT F Osh SSS OS NAM of\nEan Ae et ae eee Se SLA\n‘ POT prs ee VUZE\nea oat shy ae hs é Lae ie Se ee a hae\nPRR tan aot ak) eee am See\nDHE eee Ganon EL . RSE) “2 eee mene AN aan\nA Se Me eas i, LLEAD—C.— SSS\nmen ATT PE ae a TAT IW tee ee\n4B Ry Se eS heey ated 4 7A ANE WS Se eS\n‘hae Sasa NE at) “a YEN NSS 3\nER Peep ha ate Da A UH AANA ~S\nelo nee aca P la en: Awd 6.6 VAAee YE SEE AVN ASANO re\nBeek af ESSE ee’) AAA ON N\nSe, ee A vf 3 Na Ma a ae eA\nSi an SOREL pee eh ZEAE WARN X\n8 hate eae pity ioe ed j= PAA NAN NS a\neg el) eR aT ae DERM U ER ETI See HMA eee\nROE rR oa eed ped Sp ER AraC ey ELA LEO\n1io= i < a Latenen” 4 E Verne a = TALE. “a AY \\ \\S SS\n-10 -8 -6 -4 “2 0 2 4 6 8 10 -10 -8 -6 “4 “2 0 2 4 6 8 10\n56",
+      "slide_type": "visual_heavy",
+      "embedded_images": [
+        {
+          "file": "path_planning_p056_img01.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p056_img01.png",
+          "width": 114,
+          "height": 53,
+          "colorspace": 3
+        },
+        {
+          "file": "path_planning_p056_img02.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p056_img02.png",
+          "width": 89,
+          "height": 154,
+          "colorspace": 3
+        },
+        {
+          "file": "path_planning_p056_img03.jpeg",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p056_img03.jpeg",
+          "width": 1141,
+          "height": 570,
+          "colorspace": 3
+        }
+      ],
+      "image_count": 3,
+      "page_render": "path_planning_p056.png"
+    },
+    {
+      "page": 57,
+      "title": "RRT vs PRM",
+      "body_lines": [
+        "57"
+      ],
+      "all_text_native": "RRT vs PRM\n57\n41068 Robotics Studio 1",
+      "ocr_text": "C2\nRRT vs PRM x\nx x\n\n° °",
+      "slide_type": "visual_heavy",
+      "embedded_images": [
+        {
+          "file": "path_planning_p057_img01.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p057_img01.png",
+          "width": 114,
+          "height": 53,
+          "colorspace": 3
+        },
+        {
+          "file": "path_planning_p057_img02.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p057_img02.png",
+          "width": 89,
+          "height": 154,
+          "colorspace": 3
+        },
+        {
+          "file": "path_planning_p057_img03.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p057_img03.png",
+          "width": 366,
+          "height": 366,
+          "colorspace": 3
+        },
+        {
+          "file": "path_planning_p057_img04.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p057_img04.png",
+          "width": 366,
+          "height": 366,
+          "colorspace": 3
+        }
+      ],
+      "image_count": 4,
+      "page_render": "path_planning_p057.png"
+    },
+    {
+      "page": 58,
+      "title": "X",
+      "body_lines": [
+        "Path Smoothing",
+        "➢",
+        "Randomised path planners tend to find paths that are not so great for execution:",
+        "•",
+        "Very jagged",
+        "•",
+        "Often longer than necessary",
+        "➢",
+        "In practice, smooth the path before using it",
+        "➢",
+        "Short-cutting:",
+        "•",
+        "Attempt to connect pairs of nodes along the path while skipping intermediate nodes",
+        "➢",
+        "Non-linear optimisation",
+        "•",
+        "Define a “smoothness” objective and optimise to update the path",
+        "58"
+      ],
+      "all_text_native": "Path Smoothing\n➢\nRandomised path planners tend to find paths that are not so great for execution:\n•\nVery jagged\nX\n•\nOften longer than necessary\n➢\nIn practice, smooth the path before using it\n➢\nShort-cutting:\n•\nAttempt to connect pairs of nodes along the path while skipping intermediate nodes\n➢\nNon-linear optimisation\n•\nDefine a “smoothness” objective and optimise to update the path\n58\n41068 Robotics Studio 1",
+      "ocr_text": "Path Smoothing\n>» Randomised path planners tend to find paths that are not so great for execution:\n« Very jagged\n* Often longer than necessary\n» In practice, smooth the path before using it “_______>\n> Short-cutting:\n« Attempt to connect pairs of nodes along the path while skipping intermediate nodes\n>» Non-linear optimisation a ke = ‘nf, ee\n* Define a “smoothness” objective and optimise to update the path a eA y ~\nEN i , te, ~%\nUS 58",
+      "slide_type": "text",
+      "embedded_images": [
+        {
+          "file": "path_planning_p058_img01.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p058_img01.png",
+          "width": 114,
+          "height": 53,
+          "colorspace": 3
+        },
+        {
+          "file": "path_planning_p058_img02.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p058_img02.png",
+          "width": 89,
+          "height": 154,
+          "colorspace": 3
+        },
+        {
+          "file": "path_planning_p058_img03.jpeg",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p058_img03.jpeg",
+          "width": 357,
+          "height": 267,
+          "colorspace": 3
+        }
+      ],
+      "image_count": 3,
+      "page_render": "path_planning_p058.png"
+    },
+    {
+      "page": 59,
+      "title": "",
+      "body_lines": [
+        "Nav2 Navigation Stack"
+      ],
+      "all_text_native": "Nav2 Navigation Stack",
+      "ocr_text": "S . ° ° Oo e@ e O O e e cS . : 9 OC e@ e oO\n\nO O © e e e ° : . e: : OO C e e e ° :\n\ne O O e @ Oo : ° . 0 7 e O} CU e e O : 0\n\ne Oo OQ e e O ° ° . ° ° e O O e e © ° °\nNav2 Navigation Stack",
+      "slide_type": "visual_heavy",
+      "embedded_images": [
+        {
+          "file": "path_planning_p059_img01.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p059_img01.png",
+          "width": 403,
+          "height": 1163,
+          "colorspace": 3
+        },
+        {
+          "file": "path_planning_p059_img02.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p059_img02.png",
+          "width": 403,
+          "height": 824,
+          "colorspace": 3
+        }
+      ],
+      "image_count": 2,
+      "page_render": "path_planning_p059.png"
+    },
+    {
+      "page": 60,
+      "title": "Nav2",
+      "body_lines": [
+        "➢",
+        "Default navigation tool for ROS2 – very extensively used across research and industry",
+        "60"
+      ],
+      "all_text_native": "Nav2\n➢\nDefault navigation tool for ROS2 – very extensively used across research and industry\n60\n41068 Robotics Studio 1",
+      "ocr_text": "Nav2\n> Default navigation tool for ROS2 — very extensively used across research and industry\nar ri ra : is ; = e\nve  O.: = E} }\ny =i - i : e\nae 4 4 7 oa\non | os er Tt Ss\nmm | i :\" =f= —y ny . . the w\n— a rr a ae\nUS 60",
+      "slide_type": "text",
+      "embedded_images": [
+        {
+          "file": "path_planning_p060_img01.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p060_img01.png",
+          "width": 114,
+          "height": 53,
+          "colorspace": 3
+        },
+        {
+          "file": "path_planning_p060_img02.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p060_img02.png",
+          "width": 89,
+          "height": 154,
+          "colorspace": 3
+        },
+        {
+          "file": "path_planning_p060_img03.jpeg",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p060_img03.jpeg",
+          "width": 879,
+          "height": 566,
+          "colorspace": 3
+        },
+        {
+          "file": "path_planning_p060_img04.jpeg",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p060_img04.jpeg",
+          "width": 883,
+          "height": 796,
+          "colorspace": 3
+        },
+        {
+          "file": "path_planning_p060_img05.jpeg",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p060_img05.jpeg",
+          "width": 882,
+          "height": 791,
+          "colorspace": 3
+        }
+      ],
+      "image_count": 5,
+      "page_render": "path_planning_p060.png"
+    },
+    {
+      "page": 61,
+      "title": "Example: 41068 package",
+      "body_lines": [
+        "61"
+      ],
+      "all_text_native": "Example: 41068 package\n61\n41068 Robotics Studio 1",
+      "ocr_text": "Example: 41068 package\n.\nGazebo /home/student/ros2_ws/install/41068_ignition_bringup/share/41068_ignition_bringup/config/41068.rviz* - RViz o x\nFile Panels Help\n= Gazebo\n(Paimerace | Move camera Clselect 4pFocuscamera eaMeasue 7 20PoseEstimate 7 20Goalrose  @AublshPoint =\nLO et ] © Navigation 2 a\n‘’ i Navigation: active\nfos eae\neh | see ‘ Localization: inactive\n~ wr Ppt\n= . - 7 ss Feedback: active\nitt Sh.. an sa\nateeen” vo SS ad) ee a ae Ge\nx E 7 7 cee a i Distance remaining: 17.67 m\nA 4 4 Time taken: 3s\nWipe\n_ y Recoveries °\nLL e pace\nroa us sedis ates Reset\nee Ser Ze — 5\nTs as ea Waypoint / Nav Through Poses Mode\n2S point / r\n: camera o)\ni Z S hea\ni j . Set\nye 4 AY - SN ey y\n5 Ho ; . \\ a = Se Spe (ee\n: H : : We a “\n/ ‘YP q ; .\n' AY a\" \\:\njy. { Ww : E: :\nTe i an S ‘\nee 7 Sa\nity’ 4 i q SS\nyl» i \\ =\nbe. Ate! # 4 \\ s\n© Time 6)\nROS Time: 118.59 ROS Elapsed: |118.56 Wall Time: |1759220539.70 | wall lapsed: 213.62 Experimental\nReset 12 fps",
+      "slide_type": "visual_heavy",
+      "embedded_images": [
+        {
+          "file": "path_planning_p061_img01.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p061_img01.png",
+          "width": 114,
+          "height": 53,
+          "colorspace": 3
+        },
+        {
+          "file": "path_planning_p061_img02.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p061_img02.png",
+          "width": 89,
+          "height": 154,
+          "colorspace": 3
+        },
+        {
+          "file": "path_planning_p061_img03.jpeg",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p061_img03.jpeg",
+          "width": 1788,
+          "height": 881,
+          "colorspace": 3
+        }
+      ],
+      "image_count": 3,
+      "page_render": "path_planning_p061.png"
+    },
+    {
+      "page": 62,
+      "title": "Example: Turtlebot",
+      "body_lines": [
+        "➢",
+        "https://docs.nav2.org/getting_started/index.html",
+        "62"
+      ],
+      "all_text_native": "Example: Turtlebot\n➢\nhttps://docs.nav2.org/getting_started/index.html\n62\n41068 Robotics Studio 1",
+      "ocr_text": "Example: Turtlebot\n— MT no a =] Bee Lee\nUIs 62",
+      "slide_type": "mixed",
+      "embedded_images": [
+        {
+          "file": "path_planning_p062_img01.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p062_img01.png",
+          "width": 114,
+          "height": 53,
+          "colorspace": 3
+        },
+        {
+          "file": "path_planning_p062_img02.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p062_img02.png",
+          "width": 89,
+          "height": 154,
+          "colorspace": 3
+        },
+        {
+          "file": "path_planning_p062_img03.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p062_img03.png",
+          "width": 600,
+          "height": 310,
+          "colorspace": 3
+        }
+      ],
+      "image_count": 3,
+      "page_render": "path_planning_p062.png"
+    },
+    {
+      "page": 63,
+      "title": "Nav2 Concept",
+      "body_lines": [
+        "➢",
+        "Nav2 enables mobile robots to navigate through complex environments to complete",
+        "user-defined application tasks with nearly any class of robot kinematics",
+        "➢",
+        "Move from Point A to Point B, sequences of points, object following, coverage, etc.",
+        "➢",
+        "Integrates perception, planning, control, localisation, visualisation",
+        "➢",
+        "Compute an environmental model from sensor and semantic data, dynamically path",
+        "plan, compute velocities for motors, avoid obstacles, and structure higher-level robot",
+        "behaviours",
+        "➢",
+        "Highly customisable through plugins and parameters",
+        "See config/nav_params.yaml in 41068 package",
+        "63"
+      ],
+      "all_text_native": "Nav2 Concept\n➢\nNav2 enables mobile robots to navigate through complex environments to complete\nuser-defined application tasks with nearly any class of robot kinematics\n➢\nMove from Point A to Point B, sequences of points, object following, coverage, etc.\n➢\nIntegrates perception, planning, control, localisation, visualisation\n➢\nCompute an environmental model from sensor and semantic data, dynamically path\nplan, compute velocities for motors, avoid obstacles, and structure higher-level robot\nbehaviours\n➢\nHighly customisable through plugins and parameters\nSee config/nav_params.yaml in 41068 package\n63\n41068 Robotics Studio 1",
+      "ocr_text": "Nav2 Concept\n\n>» Nav2 enables mobile robots to navigate through complex environments to complete\nuser-defined application tasks with nearly any class of robot kinematics\n\n> Move from Point A to Point B, sequences of points, object following, coverage, etc.\n\n> Integrates perception, planning, control, localisation, visualisation\n\n> Compute an environmental model from sensor and semantic data, dynamically path\nplan, compute velocities for motors, avoid obstacles, and structure higher-level robot\nbehaviours\n\n>» Highly customisable through plugins and parameters\nSee config/nav_params.yaml in 41068 package\n\n63",
+      "slide_type": "text",
+      "embedded_images": [
+        {
+          "file": "path_planning_p063_img01.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p063_img01.png",
+          "width": 114,
+          "height": 53,
+          "colorspace": 3
+        },
+        {
+          "file": "path_planning_p063_img02.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p063_img02.png",
+          "width": 89,
+          "height": 154,
+          "colorspace": 3
+        }
+      ],
+      "image_count": 2,
+      "page_render": "path_planning_p063.png"
+    },
+    {
+      "page": 64,
+      "title": "Documentation",
+      "body_lines": [
+        "➢",
+        "The documentation is very extensive, go read it!",
+        "https://docs.nav2.org/",
+        "➢",
+        "Overview from the developer:",
+        "https://www.youtube.com/watch?v=QB7lOKp3ZDQ",
+        "➢",
+        "Configuration guide:",
+        "https://docs.nav2.org/configuration/index.html",
+        "➢",
+        "Original academic paper:",
+        "https://arxiv.org/pdf/2003.00368",
+        "64"
+      ],
+      "all_text_native": "Documentation\n➢\nThe documentation is very extensive, go read it!\nhttps://docs.nav2.org/\n➢\nOverview from the developer:\nhttps://www.youtube.com/watch?v=QB7lOKp3ZDQ\n➢\nConfiguration guide:\nhttps://docs.nav2.org/configuration/index.html\n➢\nOriginal academic paper:\nhttps://arxiv.org/pdf/2003.00368\n64\n41068 Robotics Studio 1",
+      "ocr_text": "Documentation\n\n> The documentation is very extensive, go read it!\nhttps://docs.nav2.orq/ aa\n\n> Overview from the developer: te a\nhttps://www.youtube.com/watch?v=QB7lOKp3ZDQ meee\n\n> Configuration guide: aan\nhttps://docs.nav2.org/configuration/index.html an\n\n> Original academic paper: —\nhttps://arxiv.org/pdf/2003.00368 tone\n\n64",
+      "slide_type": "text",
+      "embedded_images": [
+        {
+          "file": "path_planning_p064_img01.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p064_img01.png",
+          "width": 114,
+          "height": 53,
+          "colorspace": 3
+        },
+        {
+          "file": "path_planning_p064_img02.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p064_img02.png",
+          "width": 89,
+          "height": 154,
+          "colorspace": 3
+        },
+        {
+          "file": "path_planning_p064_img03.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p064_img03.png",
+          "width": 310,
+          "height": 873,
+          "colorspace": 3
+        }
+      ],
+      "image_count": 3,
+      "page_render": "path_planning_p064.png"
+    },
+    {
+      "page": 65,
+      "title": "Overview",
+      "body_lines": [
+        "All of the plugins can be",
+        "swapped and customised",
+        "65"
+      ],
+      "all_text_native": "Overview\nAll of the plugins can be\nswapped and customised\n65\n41068 Robotics Studio 1",
+      "ocr_text": ": o\nOverview <\n‘°\nwy\naa eT e ese eeeeeeeeey\n| Waypoint Follower \\ | Autonomy System '\neT BT Plugins\nBT Navigator Server e\nTF\nAll of the plugins can be\nmp Controller Planner Behavior Smoother .\nServer Server Server Server swapped and customised\nSensor Data er ues\nPeer ee ny Global Costmap\nfer ee\ni] i] Ceo Route\nServer\n: Velocity Smoother — ! Collision Monitor —| Robot Base",
+      "slide_type": "mixed",
+      "embedded_images": [
+        {
+          "file": "path_planning_p065_img01.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p065_img01.png",
+          "width": 114,
+          "height": 53,
+          "colorspace": 3
+        },
+        {
+          "file": "path_planning_p065_img02.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p065_img02.png",
+          "width": 89,
+          "height": 154,
+          "colorspace": 3
+        },
+        {
+          "file": "path_planning_p065_img03.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p065_img03.png",
+          "width": 960,
+          "height": 600,
+          "colorspace": 3
+        }
+      ],
+      "image_count": 3,
+      "page_render": "path_planning_p065.png"
+    },
+    {
+      "page": 66,
+      "title": "Commander API",
+      "body_lines": [
+        "➢",
+        "From your code, you can interact with Nav2 using",
+        "“actions”",
+        "•",
+        "Actions are like topics, but have a request and response, and",
+        "goals and results:",
+        "https://docs.ros.org/en/foxy/Tutorials/Beginner-CLI-Tools/Understanding-ROS2-",
+        "Actions/Understanding-ROS2-Actions.html",
+        "•",
+        "41068 package provides example code",
+        "➢",
+        "The “Commander API” simplifies how to call and track",
+        "the actions",
+        "Overview:",
+        "https://docs.nav2.org/commander_api/index.html",
+        "➢",
+        "Code with examples:",
+        "https://github.com/ros-navigation/navigation2/tree/main/nav2_simple_commander",
+        "66"
+      ],
+      "all_text_native": "Commander API\n➢\nFrom your code, you can interact with Nav2 using\n“actions”\n•\nActions are like topics, but have a request and response, and\ngoals and results:\nhttps://docs.ros.org/en/foxy/Tutorials/Beginner-CLI-Tools/Understanding-ROS2-\nActions/Understanding-ROS2-Actions.html\n•\n41068 package provides example code\n➢\nThe “Commander API” simplifies how to call and track\nthe actions\nOverview:\nhttps://docs.nav2.org/commander_api/index.html\n➢\nCode with examples:\nhttps://github.com/ros-navigation/navigation2/tree/main/nav2_simple_commander\n66\n41068 Robotics Studio 1",
+      "ocr_text": "from nav2_simple_commander.robot_navigator import BasicNavigator\nimport rclpy\n> From your code, you can interact with Nav2 using UP\n“actions” nav = BasicNavigator()\n¢ Actions are like topics, but have a request and response, And aay. settnitisirose(init pose)\ngoals and results: nav.waituntilnav2active() # if autostarted, else use Lifecyclestartup()\nhttps://docs.ros.org/en/foxy/Tutorials/Beginner-CLI-Tools/Understanding-ROS2- Bae\nActions/Understanding-ROS2-Actions.html <\npath = nav.getPath(init_pose, goal_pose)\n. smoothed_path = nav.smoothPath(path)\n« 41068 package provides example code\n> The “Commander API” simplifies how to call and track nav.goToPose(goal_pose)\n. while not nav.isTaskComplete():\nfeedback = nav.getFeedback()\nthe actions\n. if feedback.navigation_duration > 600:\nOverview: https://docs.nav2.org/commander_api/index.html nav-concelTask()\neo\n> Code with examples: Rese oe eect)\nhttps://github.com/ros-navigation/navigation2/tree/main/nav2_simple_commander if result == TaskResult. SUCCEEDED:\nint( ‘Goal succeeded!\"\neee ae ae\nprint(‘Goal was canceled!*)\nelif result == TaskResult.FAILED:\nprint(‘Goal failed!\")\n66",
+      "slide_type": "text",
+      "embedded_images": [
+        {
+          "file": "path_planning_p066_img01.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p066_img01.png",
+          "width": 114,
+          "height": 53,
+          "colorspace": 3
+        },
+        {
+          "file": "path_planning_p066_img02.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p066_img02.png",
+          "width": 89,
+          "height": 154,
+          "colorspace": 3
+        },
+        {
+          "file": "path_planning_p066_img03.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p066_img03.png",
+          "width": 430,
+          "height": 502,
+          "colorspace": 3
+        }
+      ],
+      "image_count": 3,
+      "page_render": "path_planning_p066.png"
+    },
+    {
+      "page": 67,
+      "title": "",
+      "body_lines": [
+        "Reflection"
+      ],
+      "all_text_native": "Reflection",
+      "ocr_text": "0 . ° ° oO e e O Oo e e 5 ° 5 5 oO e@ e Oo\n\nOO 0 e e e ° 0 ° ° 9 OO C e e e ° :\n\ne O OD e @ O . 0 . O o @ OO) C e @ O : :\n\ne 0 O e e@ O ° ° ° O° ° e O 0 e e@ O o °\nReflection",
+      "slide_type": "visual_heavy",
+      "embedded_images": [
+        {
+          "file": "path_planning_p067_img01.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p067_img01.png",
+          "width": 403,
+          "height": 1163,
+          "colorspace": 3
+        },
+        {
+          "file": "path_planning_p067_img02.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p067_img02.png",
+          "width": 403,
+          "height": 824,
+          "colorspace": 3
+        }
+      ],
+      "image_count": 2,
+      "page_render": "path_planning_p067.png"
+    },
+    {
+      "page": 68,
+      "title": "Conclusions",
+      "body_lines": [
+        "➢",
+        "Robot path planning",
+        "is the process of figuring out",
+        "how the robot moves from its current",
+        "state to a target",
+        "given its map, constraints, uncertainties.",
+        "➢",
+        "Artificial potential fields",
+        "is a simple path planning approach, but often gets stuck",
+        "➢",
+        "Graph search methods",
+        ", including Dijkstra’s and A*, plan a path globally over a graph",
+        "representing the environment",
+        "➢",
+        "Probabilistic Roadmap (PRM)",
+        "constructs a graph for A* using random sampling",
+        "➢",
+        "Rapidly-Exploring Random Tree (RRT)",
+        "randomly expands a tree over the configuration",
+        "space to find a path",
+        "➢",
+        "Nav2",
+        "is the default ROS2 package for navigation",
+        "68"
+      ],
+      "all_text_native": "Conclusions\n➢\nRobot path planning\nis the process of figuring out\nhow the robot moves from its current\nstate to a target\ngiven its map, constraints, uncertainties.\n➢\nArtificial potential fields\nis a simple path planning approach, but often gets stuck\n➢\nGraph search methods\n, including Dijkstra’s and A*, plan a path globally over a graph\nrepresenting the environment\n➢\nProbabilistic Roadmap (PRM)\nconstructs a graph for A* using random sampling\n➢\nRapidly-Exploring Random Tree (RRT)\nrandomly expands a tree over the configuration\nspace to find a path\n➢\nNav2\nis the default ROS2 package for navigation\n68\n41068 Robotics Studio 1",
+      "ocr_text": "Conclusions\n\n> Robot path planning is the process of figuring out how the robot moves from its current\nstate to a target given its map, constraints, uncertainties.\n\n> Artificial potential fields is a simple path planning approach, but often gets stuck\n\n> Graph search methods, including Dijkstra’s and A*, plan a path globally over a graph\nrepresenting the environment\n\n> Probabilistic Roadmap (PRM) constructs a graph for A* using random sampling\n\n> Rapidly-Exploring Random Tree (RRT) randomly expands a tree over the configuration\nspace to find a path\n\n>» Nav2 is the default ROS2 package for navigation\n\n68",
+      "slide_type": "text",
+      "embedded_images": [
+        {
+          "file": "path_planning_p068_img01.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p068_img01.png",
+          "width": 114,
+          "height": 53,
+          "colorspace": 3
+        },
+        {
+          "file": "path_planning_p068_img02.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p068_img02.png",
+          "width": 89,
+          "height": 154,
+          "colorspace": 3
+        }
+      ],
+      "image_count": 2,
+      "page_render": "path_planning_p068.png"
+    },
+    {
+      "page": 69,
+      "title": "Questions for your 41068 Project",
+      "body_lines": [
+        "➢",
+        "Introduce standard path planning techniques",
+        "➢",
+        "Your project must have some decision making / path planning",
+        "➢",
+        "How will your robot navigate around the environment?",
+        "•",
+        "You are probably using the Nav2 stack",
+        "•",
+        "But how does this work?",
+        "•",
+        "How can you modify it?",
+        "•",
+        "Or implement it yourself?",
+        "69"
+      ],
+      "all_text_native": "Questions for your 41068 Project\n➢\nIntroduce standard path planning techniques\n➢\nYour project must have some decision making / path planning\n➢\nHow will your robot navigate around the environment?\n•\nYou are probably using the Nav2 stack\n•\nBut how does this work?\n•\nHow can you modify it?\n•\nOr implement it yourself?\n69\n41068 Robotics Studio 1",
+      "ocr_text": "Questions for your 41068 Project\n» Introduce standard path planning techniques\n> Your project must have some decision making / path planning\n> How will your robot navigate around the environment?\n« You are probably using the Nav2 stack\n* But how does this work? \"\n* How can you modify it? car\n* Orimplement it yourself? AN\n|\nee\n69",
+      "slide_type": "text",
+      "embedded_images": [
+        {
+          "file": "path_planning_p069_img01.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p069_img01.png",
+          "width": 114,
+          "height": 53,
+          "colorspace": 3
+        },
+        {
+          "file": "path_planning_p069_img02.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p069_img02.png",
+          "width": 89,
+          "height": 154,
+          "colorspace": 3
+        },
+        {
+          "file": "path_planning_p069_img03.jpeg",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/path_planning_p069_img03.jpeg",
+          "width": 722,
+          "height": 481,
+          "colorspace": 3
+        }
+      ],
+      "image_count": 3,
+      "page_render": "path_planning_p069.png"
+    }
+  ]
+}

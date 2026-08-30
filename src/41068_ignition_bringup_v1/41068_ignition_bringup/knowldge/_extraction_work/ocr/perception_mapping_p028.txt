@@ -1,0 +1,7 @@
+Occupancy Grid
+> Originally developed for very noisy sensors (sonar)
+> Create on-the-fly as a robot moves through an environment
+> Need a way to model uncertainty
+L se q ns
+= 5 | ae.
+JIS 28

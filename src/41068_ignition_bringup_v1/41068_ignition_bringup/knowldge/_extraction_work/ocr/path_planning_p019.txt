@@ -1,0 +1,10 @@
+Artificial Potential Fields
+> Attempts to guide the robot from the initial configuration to the goal configuration while
+staying in C-free
+» Analogous to an electric potential field Electric potential field
+> Potential field composed of:
+« Attraction force at goal
+* Repulsion force at obstacles eo
+> The robot follows a virtual force defined by \
+the gradient of the potential field > 3)
+JIS 19

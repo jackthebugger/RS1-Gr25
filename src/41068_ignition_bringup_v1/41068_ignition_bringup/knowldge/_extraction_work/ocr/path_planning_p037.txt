@@ -1,0 +1,19 @@
+Dijkstra’s Algorithm
+to ee 11%
+
+Each node has a “path cost” and a “parent pointer” Dollliiiiiiiiiiiiiiisicn:
+|. Empty all parent pointers and path costs ne a ope
+2. Create empty unvisited and visited sets a
+3. Add start node to unvisited set with cost 0 plitiiiiiininw cc:
+4. Select the node in the unvisited set with minimum path cost veces « coves MB eee.
+5. Move this selected node to the visited set Siospisiiiiiiiiin:
+6. For each neighbour of the selected node: Senne eeeeeeSESEEEEEEEEE
+
+° If in visited set: do nothing
+
+° If in unvisited set: update the cost and parent if this path has lower cost
+
+° Otherwise: add it to the unvisited set with appropriate cost and parent
+7. Repeat from step 4 until the unvisited set is empty or the goal is found
+
+37

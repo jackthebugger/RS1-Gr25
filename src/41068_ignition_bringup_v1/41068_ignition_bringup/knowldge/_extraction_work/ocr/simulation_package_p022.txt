@@ -1,0 +1,36 @@
+Cree eM Lo
+se eer ener
+. cast_shadows>1</cast_shadows:
+pose>® @ 10 @ -@ @/pose:
+World Files qe _
+sto eal Lighting
+linear>@.@1</ linear:
+quadratic>®.@@1</ quadratic:
+attenuation:
+. . . Co Ce eR ee Loose
+The package contains two provided world files Fe 0 DME TES)
+magnetic_field>6e-@6 2.3e-@5 -4.2e-@5</magnetic field:
+. Ser eas to ey
+> simple trees.sdf eda Sia
+real_time_factor>1</real_time_factor:
++ real_time_update_rate>1@@</real_time_update_rate:
+¢ Simple grass plane ec ,
+pre grass P ery ae
+¢ Small number of trees BES OB OB mean
+* Check the basic simulation works Seas aante
+renee og oreo
+> large demo.sdf pth ienrar rs ett
+_ heading deg>@</heading deg:
+surface_model>EARTH_WGS84</surface_model
+* Custom forest ground texture FoI LSER SELES
+feat a a -“ an
+* Forest boundary walls yee
+. . vi areveeclia)
+* Collection of trees, rocks, other objects Ea SOOCOR Ee
+include:
+* Dynamic demo objects (see later slide) Sane aha
+e Richer project starting environment RELATE ORAL GT OSL TSE
+Orbe) sheer
+gan Pe epee ase
+» t- Pine tree - rocks...
+Te //fuel.gazebosim.org/1.0/OpenRobotics/models/PineX20tree

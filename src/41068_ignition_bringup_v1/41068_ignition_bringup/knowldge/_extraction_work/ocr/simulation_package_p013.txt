@@ -1,0 +1,13 @@
+Package Structure
+41068 ignition bringup/
+|— config/ configuration and parameter files
+|— launch/ launch files: start different combinations of the simulation
+|— models/ custom reusable Gazebo environment models
+|— scripts/ two ROS Python examples
+|— urdf husky/ Husky UGV robot, sensors and Gazebo plugins
+|— urdf parrot/ Parrot UAV robot, sensors and Gazebo plugins
+|— worlds/ Gazebo world files
+|— CMakeLists.txt_ installs the package resources and executable scripts
+|— package. xml dependencies and package metadata
+L_ README .md installation and launch instructions and tips
+13

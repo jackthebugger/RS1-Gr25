@@ -1,0 +1,8 @@
+. . eo
+Solution: 2-Opt %
+1. Start with a nearest-neighbour solution
+2. Pick two random edges in the existing solution
+3. Replace them with a better pair of edges
+4. Repeat 2 and 3
+
+: = [ = i

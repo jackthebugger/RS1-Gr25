@@ -1,0 +1,12 @@
+ROS, Gazebo, and RViz
+Ignition Gazebo ROS RViz
+> Simulates: > Provides: > Visualises:
+* The environment * Communication between * Robot models
+« Robot geometry software components * Sensor data
+* Collision and physics * Topics, actions, services, * Maps
+and parameters
+« Joints and actuators . « Paths
+« Autonomy: Mapping,
+* Cameras, lidar and IMUs localisation, planning, ¢ TF frames
+control, [your code], ... * Navigation goals
+9

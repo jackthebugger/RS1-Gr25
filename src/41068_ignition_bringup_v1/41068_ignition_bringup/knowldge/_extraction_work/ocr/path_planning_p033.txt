@@ -1,0 +1,7 @@
+Wavefront Algorithm
+S— start, G-- goal Get the path (reverse order)
+87 65. 5 5
+8
+gf 3
+6 68
+33

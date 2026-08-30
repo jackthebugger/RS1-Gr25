@@ -1,0 +1,15 @@
+Dimensions You Could Change
+
+> The starter package is only a starting point!
+
+> There are many things you can and should change
+* Environment
+*« Dynamic features
+* Robot
+* Sensors
+« Autonomy (perception, decision making, user interface)
+« Multi-robot coordination and communication
+
+> Choose changes that support your project. More complexity is not automatically better.
+
+27

@@ -1,0 +1,15 @@
+. ; . o
+Dijkstra’s Algorithm x
+“SY
+
+Pea ii didi i ii iii iiix:
+
+> An algorithm that solves the shortest path problem |....---..-...--...2205055
+>» Traverse the graph by visiting the next vertex that [oc ccc
+has the lowest path cost ww
+
+> Maintain two sets: te De
+* Visited set (red) pet De
+
+* Unvisited set (blue) te De
+Sorr@iiiiiiiiipiiiiinn

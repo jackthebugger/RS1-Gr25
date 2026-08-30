@@ -1,0 +1,10 @@
+Definition: Path Planning
+Path Planning:
+{ > Given the map, the current robot
+6. \ ‘ ) location, and the goal
+. _ > Find a trajectory that will cause the
+— robot to reach the goal location when
+C arte
+See a executed
+" . (2
+7
