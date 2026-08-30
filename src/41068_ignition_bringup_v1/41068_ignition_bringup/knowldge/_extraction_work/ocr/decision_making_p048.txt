@@ -1,0 +1,8 @@
+Debugging Tips
+> Observe the solutions
+> Plot the tree
+> Show empirically that it is converging
+> Optimisation: Reward evaluation is the slowest part
+« Use a profiler
+* Caching where possible yr
+48

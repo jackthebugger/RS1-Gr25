@@ -1,0 +1,12 @@
+Wavefront Algorithm
+
+> Motivated by water waves
+
+1. Create a discretised map using cell decomposition
+2. Add in start and goal locations
+
+3. Fill in the “wavefront table”
+
+4. Get the obstacle-free path from the wavefront table
+(Many ways to implement this)
+UE) 30

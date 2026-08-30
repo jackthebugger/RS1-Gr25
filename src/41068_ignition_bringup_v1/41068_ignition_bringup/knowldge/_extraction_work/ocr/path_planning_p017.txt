@@ -1,0 +1,14 @@
+Method Variations
+Control, path finding, trajectory optimization
+e Combining methods:
+1) Path Finding pat
+2) Trajectory Optimization (“smoothing”) jectory optinizatia
+3) Feedback Control
+feedback control _
+start goal
+e Many problems can be solved with only feedback control (though not
+optimally)
+e Many more problems can be solved /ocally optimal with only trajectory
+optimization
+e Tricky problems need path finding: global search for valid paths
+17

@@ -1,0 +1,16 @@
+Monte Carlo Tree Search (MCTS)
+
+> Biased random sampling SS
+
+> Exploits “smoothness” of search space a
+
+> Any-time an S
+
+> Only requires evaluation of full paths f Ci
+
+> Can incorporate problem-specific heuristics ) - a
+
+> Has theoretical convergence guarantees . '
+
+> Recently become popular in robotics Computer Go [Siver 2017]
+41

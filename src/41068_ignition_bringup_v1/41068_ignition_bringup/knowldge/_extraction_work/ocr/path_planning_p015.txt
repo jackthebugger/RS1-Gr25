@@ -1,0 +1,9 @@
+Example: 2D World, 2 Degrees of Freedom, Circle x
+Where can | move Where can | move
+this robot in the this point in the
+vicinity of this vicinity of this
+obstacle? __is —
+equivalent oe
+S to... S
+: i | Li
+Workspace Configuration Space

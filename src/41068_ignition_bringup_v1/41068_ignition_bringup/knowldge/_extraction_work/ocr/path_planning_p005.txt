@@ -1,0 +1,20 @@
+Example Decision Making Hierarchy
+SLAM Map Processor Behavior Executive Previous Where do |
+output | BP dad seminar go next?
+3 g _ i
+ir Pasa ee i =
+other |S: ce i ox T\ ——
+robots’ S 3 be a é-@= fae w= Pome]
+maps =
+maps | | conditions
+| ———_—_
+= i
+- |
+communicate Global Planner Local Planner Controller
+to other ¥ motor
+robots SS ' Z trajectory commands
+Py Mn $
+BN SP Tran 103 oe
+PONS * 44 3
+hey A Se
+5

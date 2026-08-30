@@ -1,0 +1,15 @@
+Information-Based Exploration .
+» Alternative to frontier-based exploration ue
+* Mathematically correct ; 8
+« Much slower to compute os
+> Choose the next action that reduces “uncertainty” 1
+> Use a probabilistic occupancy grid uileonenrby
+> “Uncertainty” often defined as entropy Entropy
+§
+B05
+Low Low
+uncertainty uncertainty
+0
+0 0.5 1
+Pr(x =1
+34

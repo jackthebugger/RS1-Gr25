@@ -1,0 +1,17 @@
+Randomised Algorithms (“Monte Carlo Algorithms’)
+@e
+> General method for approaching computationally- a y e
+difficult problems = ol ed 3
+ae) a]
+> Replace parts of your algorithm that do an exhaustive beac = ad
+search with random sampling & ..
+eo @
+> Common approach in robotics: ‘oe
+* Particle filter localisation 1
+* Probabilistic roadmaps (PRM) (today) ol/ \
+*« Randomly-exploring random trees (RRT) (today)
+* Monte Carlo tree search (MCTS) (previous seminar) °
+“ ;
+-1
+-1 -0.5 0 0.5 1
+42

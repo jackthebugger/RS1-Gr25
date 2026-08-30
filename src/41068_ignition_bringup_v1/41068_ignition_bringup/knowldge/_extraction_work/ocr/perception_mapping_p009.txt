@@ -1,0 +1,7 @@
+Sensors
+> Adevice for measuring some physical quantity
+>» The sensor usually converts from the measurement space to an electrical
+signal
+SENSOR Electrical Signal
+Light
+9

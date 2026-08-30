@@ -1,0 +1,12 @@
+Travelling Salesman Problem x
+“Ye
+>» Widely studied benchmark problem in Computer Science
+> Useful approximation to some robotics problems
+» Many solutions exist
+>» Many variants exist
+Problem:
+Given a list of locations and the distances
+between locations,
+what is the shortest possible route
+that visits each location exactly once and
+returns to the origin?

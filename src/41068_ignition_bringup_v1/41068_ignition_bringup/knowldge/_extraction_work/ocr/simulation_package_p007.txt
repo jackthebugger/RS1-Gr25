@@ -1,0 +1,10 @@
+Key ROS Concepts
+> Nodes: running software components
+> Topics: continuous streams of data
+> Messages: the structure of data sent through topics
+> Parameters: the values used to configure nodes
+> Services: request-and-response interactions
+> Actions: longer-running goals with feedback and results
+> TF: coordinate frames and transformations
+> Launch files: start and configure collections of nodes
+7

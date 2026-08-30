@@ -1,0 +1,13 @@
+What is Decision Making?
+
+> Robot decision making is the process of choosing what the robot should
+do next based on its current knowledge, goals, and environment.
+
+>» I\tincludes selecting the next task, goal, or behaviour, rather than just how
+to execute a specific movement.
+
+>» Good decision-making helps a robot act autonomously, adapting to
+changing conditions, and make the best use of its time, sensors, and
+capabilities.
+
+10

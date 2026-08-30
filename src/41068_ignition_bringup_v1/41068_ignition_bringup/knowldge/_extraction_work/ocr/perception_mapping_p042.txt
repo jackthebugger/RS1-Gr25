@@ -1,0 +1,12 @@
+Conclusions
+> Robots typically have many different sensors
+> Robot mapping is the process by which a robot builds a representation of its environment
+using data from its sensors (and prior information).
+> Sensors and maps are useful for:
+¢ Enabling autonomy: Understand location of obstacles, landmarks, traversability, navigable areas
+« Primary tasks: Provide information to humans and other robots that is specific to the task. May be
+provided in a user interface.
+> Many different types of maps for different purposes:
+* Occupancy, terrain, feature, topological, semantic, environmental, ... maps
+> Occupancy grid mapping fuses data from multiple noisy observations
+42

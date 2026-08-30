@@ -1,5 +1,7 @@
 /home/jordan/RS1-Gr25/build/41068_ignition_bringup/CMakeFiles/uninstall.dir
 /home/jordan/RS1-Gr25/build/41068_ignition_bringup/CMakeFiles/41068_ignition_bringup_uninstall.dir
+/home/jordan/RS1-Gr25/build/41068_ignition_bringup/CMakeFiles/ament_cmake_python_symlink_rs1_nav.dir
+/home/jordan/RS1-Gr25/build/41068_ignition_bringup/CMakeFiles/ament_cmake_python_build_rs1_nav_egg.dir
 /home/jordan/RS1-Gr25/build/41068_ignition_bringup/CMakeFiles/test.dir
 /home/jordan/RS1-Gr25/build/41068_ignition_bringup/CMakeFiles/edit_cache.dir
 /home/jordan/RS1-Gr25/build/41068_ignition_bringup/CMakeFiles/rebuild_cache.dir

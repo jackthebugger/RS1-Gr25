@@ -1,0 +1,1762 @@
+{
+  "source_file": "simulation_package.pdf",
+  "metadata": {
+    "format": "PDF 1.7",
+    "title": "Title Heading",
+    "author": "Graeme Best",
+    "subject": "",
+    "keywords": "",
+    "creator": "Microsoft® PowerPoint® for Microsoft 365",
+    "producer": "Microsoft® PowerPoint® for Microsoft 365",
+    "creationDate": "D:20260806115923+10'00'",
+    "modDate": "D:20260806115923+10'00'",
+    "trapped": "",
+    "encryption": null
+  },
+  "page_count": 33,
+  "extraction_date": "2026-08-28T15:37:30.179586",
+  "slides": [
+    {
+      "page": 1,
+      "title": "Simulation Package",
+      "body_lines": [
+        "Overview",
+        "Graeme Best",
+        "Faculty of Engineering and Information Technology",
+        "University of Technology Sydney"
+      ],
+      "all_text_native": "Simulation Package\nOverview\nGraeme Best\n41068 Robotics Studio 1\nFaculty of Engineering and Information Technology\nUniversity of Technology Sydney",
+      "ocr_text": "° e ° e\n\n” ~ te od an ee = . . e e@\n\nCc ae p aT a\nSimulation Package —_—e re ee\nOverview oe e -.) y\n\nAY < 7 e ee Tt \\\nGraeme Best é a e e\n41068 Robotics Studio 1 —_. :\nFaculty of Engineering and Information Technology “O*\nUniversity of Technology Sydney . . . .\n. e e e@",
+      "slide_type": "text",
+      "embedded_images": [
+        {
+          "file": "simulation_package_p001_img01.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/simulation_package_p001_img01.png",
+          "width": 163,
+          "height": 155,
+          "colorspace": 3
+        },
+        {
+          "file": "simulation_package_p001_img02.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/simulation_package_p001_img02.png",
+          "width": 884,
+          "height": 1163,
+          "colorspace": 3
+        },
+        {
+          "file": "simulation_package_p001_img03.jpeg",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/simulation_package_p001_img03.jpeg",
+          "width": 581,
+          "height": 557,
+          "colorspace": 3
+        },
+        {
+          "file": "simulation_package_p001_img04.jpeg",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/simulation_package_p001_img04.jpeg",
+          "width": 645,
+          "height": 546,
+          "colorspace": 3
+        },
+        {
+          "file": "simulation_package_p001_img05.jpeg",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/simulation_package_p001_img05.jpeg",
+          "width": 642,
+          "height": 520,
+          "colorspace": 3
+        },
+        {
+          "file": "simulation_package_p001_img06.jpeg",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/simulation_package_p001_img06.jpeg",
+          "width": 673,
+          "height": 625,
+          "colorspace": 3
+        }
+      ],
+      "image_count": 6,
+      "page_render": "simulation_package_p001.png"
+    },
+    {
+      "page": 2,
+      "title": "The 41068 Simulation Starter Package",
+      "body_lines": [
+        "➢",
+        "ROS 2 package",
+        "•",
+        "Gazebo world of a forest environment",
+        "•",
+        "Ground and aerial robots with sensors",
+        "•",
+        "Simple autonomy stack",
+        "•",
+        "Example autonomy code",
+        "•",
+        "Example dynamic world features",
+        "➢",
+        "Just enough to get started!",
+        "➢",
+        "You should adapt the simulation to",
+        "meet the needs of your project:",
+        "•",
+        "Expanded world",
+        "•",
+        "New objects",
+        "•",
+        "Modified robots",
+        "•",
+        "…",
+        "2"
+      ],
+      "all_text_native": "The 41068 Simulation Starter Package\n➢\nROS 2 package\n•\nGazebo world of a forest environment\n•\nGround and aerial robots with sensors\n•\nSimple autonomy stack\n•\nExample autonomy code\n•\nExample dynamic world features\n➢\nJust enough to get started!\n➢\nYou should adapt the simulation to\nmeet the needs of your project:\n•\nExpanded world\n•\nNew objects\n•\nModified robots\n•\n…\n2\n41068 Robotics Studio 1",
+      "ocr_text": "The 41068 Simulation Starter Package\n> ROS 2 package\n* Gazebo world of a forest environment : » Pa Ay a Be\nF a Rukosns\n¢ Ground and aerial robots with sensors \\ at Bg 4 4 al 2 SS are\ni SO SN SL See ee\n* Simple autonomy stack ws, a ea, LS MONS: Macca ‘\n* Example autonomy code may ae. _\n* Example dynamic world features Q —\n>» Just enough to get started! ie SS Oe =\nPak “Sa a _\n» You should adapt the simulation to MS ae eee re ave S25 =\nmeet the needs of your project: ) Wi Poe He Sn S\nFa Tage BEAR Oe as ‘\n* Expanded world z ale ple: an 5\n7 oe Ae cs be\n* New objects : ‘ Gay KS AS\n* Modified robots (11 dled mS ‘\nUE) 2",
+      "slide_type": "text",
+      "embedded_images": [
+        {
+          "file": "simulation_package_p002_img01.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/simulation_package_p002_img01.png",
+          "width": 114,
+          "height": 53,
+          "colorspace": 3
+        },
+        {
+          "file": "simulation_package_p002_img02.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/simulation_package_p002_img02.png",
+          "width": 89,
+          "height": 154,
+          "colorspace": 3
+        },
+        {
+          "file": "simulation_package_p002_img03.jpeg",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/simulation_package_p002_img03.jpeg",
+          "width": 1350,
+          "height": 796,
+          "colorspace": 3
+        }
+      ],
+      "image_count": 3,
+      "page_render": "simulation_package_p002.png"
+    },
+    {
+      "page": 3,
+      "title": "Questions for your 41068 Project",
+      "body_lines": [
+        "➢",
+        "How will you adapt the simulation environment to support your project?",
+        "➢",
+        "How will you adapt the robots and sensors?",
+        "➢",
+        "How will you adapt and develop the autonomy?",
+        "➢",
+        "How will you test and evaluate your system?",
+        "3"
+      ],
+      "all_text_native": "Questions for your 41068 Project\n➢\nHow will you adapt the simulation environment to support your project?\n➢\nHow will you adapt the robots and sensors?\n➢\nHow will you adapt and develop the autonomy?\n➢\nHow will you test and evaluate your system?\n3\n41068 Robotics Studio 1",
+      "ocr_text": "Questions for your 41068 Project\n> How will you adapt the simulation environment to support your project?\n> How will you adapt the robots and sensors?\n> How will you adapt and develop the autonomy?\n> How will you test and evaluate your system?\n3",
+      "slide_type": "text",
+      "embedded_images": [
+        {
+          "file": "simulation_package_p003_img01.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/simulation_package_p003_img01.png",
+          "width": 114,
+          "height": 53,
+          "colorspace": 3
+        },
+        {
+          "file": "simulation_package_p003_img02.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/simulation_package_p003_img02.png",
+          "width": 89,
+          "height": 154,
+          "colorspace": 3
+        },
+        {
+          "file": "simulation_package_p003_img03.jpeg",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/simulation_package_p003_img03.jpeg",
+          "width": 722,
+          "height": 481,
+          "colorspace": 3
+        }
+      ],
+      "image_count": 3,
+      "page_render": "simulation_package_p003.png"
+    },
+    {
+      "page": 4,
+      "title": "Outline",
+      "body_lines": [
+        "➢",
+        "Very brief ROS 2 refresher",
+        "➢",
+        "Relationship between ROS, Gazebo and RViz",
+        "➢",
+        "Package structure",
+        "•",
+        "Launch files",
+        "•",
+        "Namespaces",
+        "•",
+        "Gazebo-ROS bridges",
+        "•",
+        "Config files",
+        "•",
+        "Robot descriptions",
+        "•",
+        "Worlds and models",
+        "•",
+        "Supplied code",
+        "➢",
+        "Ideas for adapting the simulation",
+        "4"
+      ],
+      "all_text_native": "Outline\n➢\nVery brief ROS 2 refresher\n➢\nRelationship between ROS, Gazebo and RViz\n➢\nPackage structure\n•\nLaunch files\n•\nNamespaces\n•\nGazebo-ROS bridges\n•\nConfig files\n•\nRobot descriptions\n•\nWorlds and models\n•\nSupplied code\n➢\nIdeas for adapting the simulation\n4\n41068 Robotics Studio 1",
+      "ocr_text": "Outline\n> Very brief ROS 2 refresher\n> Relationship between ROS, Gazebo and RViz\n> Package structure\n\n¢ Launch files\n\n« Namespaces\n\n* Gazebo-ROS bridges\n\n* Config files\n\n¢ Robot descriptions\n\n¢ Worlds and models\n\n* Supplied code\n> Ideas for adapting the simulation\n\n4",
+      "slide_type": "text",
+      "embedded_images": [
+        {
+          "file": "simulation_package_p004_img01.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/simulation_package_p004_img01.png",
+          "width": 114,
+          "height": 53,
+          "colorspace": 3
+        },
+        {
+          "file": "simulation_package_p004_img02.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/simulation_package_p004_img02.png",
+          "width": 89,
+          "height": 154,
+          "colorspace": 3
+        }
+      ],
+      "image_count": 2,
+      "page_render": "simulation_package_p004.png"
+    },
+    {
+      "page": 5,
+      "title": "",
+      "body_lines": [
+        "ROS and Gazebo refresher"
+      ],
+      "all_text_native": "ROS and Gazebo refresher",
+      "ocr_text": "S . ° ° Oo e@ e O O e e cS . : 9 OC e@ e oO\n\n©) C) O e @ e © : ° e . C) C) C) e e e 6 .\n\ne@ CO) O) e@ e CO . : . ® ° e@ C) e e@ e@ C) . :\n\ne Oo OQ e e O ° ° . ° ° e O O e e © ° °\nROS and Gazebo refresher",
+      "slide_type": "visual_heavy",
+      "embedded_images": [
+        {
+          "file": "simulation_package_p005_img01.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/simulation_package_p005_img01.png",
+          "width": 403,
+          "height": 1163,
+          "colorspace": 3
+        },
+        {
+          "file": "simulation_package_p005_img02.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/simulation_package_p005_img02.png",
+          "width": 403,
+          "height": 824,
+          "colorspace": 3
+        }
+      ],
+      "image_count": 2,
+      "page_render": "simulation_package_p005.png"
+    },
+    {
+      "page": 6,
+      "title": "What is the Robot Operating System (ROS)?",
+      "body_lines": [
+        "➢",
+        "ROS 2 is a collection of software libraries, communication tools and",
+        "conventions for developing robot systems",
+        "➢",
+        "A ROS system is normally composed of many separate software",
+        "components",
+        "➢",
+        "These components exchange data rather than being combined into one",
+        "large program",
+        "➢",
+        "ROS provides interfaces and communication",
+        "6"
+      ],
+      "all_text_native": "What is the Robot Operating System (ROS)?\n➢\nROS 2 is a collection of software libraries, communication tools and\nconventions for developing robot systems\n➢\nA ROS system is normally composed of many separate software\ncomponents\n➢\nThese components exchange data rather than being combined into one\nlarge program\n➢\nROS provides interfaces and communication\n6\n41068 Robotics Studio 1",
+      "ocr_text": "What is the Robot Operating System (ROS)?\n\n> ROS 2 is a collection of software libraries, communication tools and\nconventions for developing robot systems\n\n> AROS system is normally composed of many separate software\ncomponents\n\n>» These components exchange data rather than being combined into one\nlarge program\n\n> ROS provides interfaces and communication\n\n6",
+      "slide_type": "text",
+      "embedded_images": [
+        {
+          "file": "simulation_package_p006_img01.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/simulation_package_p006_img01.png",
+          "width": 114,
+          "height": 53,
+          "colorspace": 3
+        },
+        {
+          "file": "simulation_package_p006_img02.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/simulation_package_p006_img02.png",
+          "width": 89,
+          "height": 154,
+          "colorspace": 3
+        }
+      ],
+      "image_count": 2,
+      "page_render": "simulation_package_p006.png"
+    },
+    {
+      "page": 7,
+      "title": "Key ROS Concepts",
+      "body_lines": [
+        "➢",
+        "Nodes",
+        ": running software components",
+        "➢",
+        "Topics",
+        ": continuous streams of data",
+        "➢",
+        "Messages",
+        ": the structure of data sent through topics",
+        "➢",
+        "Parameters",
+        ": the values used to configure nodes",
+        "➢",
+        "Services",
+        ": request-and-response interactions",
+        "➢",
+        "Actions",
+        ": longer-running goals with feedback and results",
+        "➢",
+        "TF",
+        ": coordinate frames and transformations",
+        "➢",
+        "Launch files",
+        ": start and configure collections of nodes",
+        "7"
+      ],
+      "all_text_native": "Key ROS Concepts\n➢\nNodes\n: running software components\n➢\nTopics\n: continuous streams of data\n➢\nMessages\n: the structure of data sent through topics\n➢\nParameters\n: the values used to configure nodes\n➢\nServices\n: request-and-response interactions\n➢\nActions\n: longer-running goals with feedback and results\n➢\nTF\n: coordinate frames and transformations\n➢\nLaunch files\n: start and configure collections of nodes\n7\n41068 Robotics Studio 1",
+      "ocr_text": "Key ROS Concepts\n> Nodes: running software components\n> Topics: continuous streams of data\n> Messages: the structure of data sent through topics\n> Parameters: the values used to configure nodes\n> Services: request-and-response interactions\n> Actions: longer-running goals with feedback and results\n> TF: coordinate frames and transformations\n> Launch files: start and configure collections of nodes\n7",
+      "slide_type": "text",
+      "embedded_images": [
+        {
+          "file": "simulation_package_p007_img01.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/simulation_package_p007_img01.png",
+          "width": 114,
+          "height": 53,
+          "colorspace": 3
+        },
+        {
+          "file": "simulation_package_p007_img02.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/simulation_package_p007_img02.png",
+          "width": 89,
+          "height": 154,
+          "colorspace": 3
+        }
+      ],
+      "image_count": 2,
+      "page_render": "simulation_package_p007.png"
+    },
+    {
+      "page": 8,
+      "title": "Relatively Simple Example",
+      "body_lines": [
+        "node",
+        "topic",
+        "Physical or",
+        "Raw sensor data",
+        "Motor commands",
+        "Simulated",
+        "Sensing",
+        "Robot",
+        "Lidar",
+        "scan",
+        "Lidar",
+        "driver",
+        "Waypoint",
+        "Path",
+        "Mapping",
+        "Obstacle",
+        "planning",
+        "Location",
+        "map",
+        "Controller",
+        "GPS",
+        "Goal",
+        "driver",
+        "User",
+        "User",
+        "Perception",
+        "Interface",
+        "interface",
+        "Control",
+        "Planning",
+        "Image",
+        "Object",
+        "Camera",
+        "Object",
+        "location",
+        "driver",
+        "detection",
+        "Decision",
+        "Making",
+        "8"
+      ],
+      "all_text_native": "Relatively Simple Example\nnode\ntopic\nPhysical or\nRaw sensor data\nMotor commands\nSimulated\nSensing\nRobot\nLidar\nscan\nLidar\ndriver\nWaypoint\nPath\nMapping\nObstacle\nplanning\nLocation\nmap\nController\nGPS\nGoal\ndriver\nUser\nUser\nPerception\nInterface\ninterface\nControl\nPlanning\nImage\nObject\nCamera\nObject\nlocation\ndriver\ndetection\nDecision\nMaking\n8\n41068 Robotics Studio 1",
+      "ocr_text": ". . Code) topic o\nRelatively Simple Example Corse) re Ny\n7\nCee\n~~\nRaw sensor data Physical or Motor commands\nftooonnnnnnnnccnccccncccccccccecccncnncnnncssnssnsssnsssccscsosccsesccnnd — SIMURAtEd fem\nSensing Robot\n| Lidar\nLe Lidar scan\n| driver Waypoint\nMapping Path\n| ; Obstacle planning\nLocation map\nGoal\nco . User U\n' Perception ser\nInterface\\ interface Planning Control\nImage Object\ni Camera Object location\ndriver detection Decision\nMaking",
+      "slide_type": "text",
+      "embedded_images": [
+        {
+          "file": "simulation_package_p008_img01.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/simulation_package_p008_img01.png",
+          "width": 114,
+          "height": 53,
+          "colorspace": 3
+        },
+        {
+          "file": "simulation_package_p008_img02.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/simulation_package_p008_img02.png",
+          "width": 89,
+          "height": 154,
+          "colorspace": 3
+        }
+      ],
+      "image_count": 2,
+      "page_render": "simulation_package_p008.png"
+    },
+    {
+      "page": 9,
+      "title": "ROS, Gazebo, and RViz",
+      "body_lines": [
+        "Ignition Gazebo",
+        "ROS",
+        "RViz",
+        "➢",
+        "Visualises:",
+        "➢",
+        "Simulates:",
+        "➢",
+        "Provides:",
+        "•",
+        "The environment",
+        "•",
+        "Communication between",
+        "•",
+        "Robot models",
+        "software components",
+        "•",
+        "Robot geometry",
+        "•",
+        "Sensor data",
+        "•",
+        "Topics, actions, services,",
+        "•",
+        "Collision and physics",
+        "•",
+        "Maps",
+        "and parameters",
+        "•",
+        "Paths",
+        "•",
+        "Joints and actuators",
+        "•",
+        "Autonomy: Mapping,",
+        "•",
+        "Cameras, lidar and IMUs",
+        "localisation, planning,",
+        "•",
+        "TF frames",
+        "control, [your code], …",
+        "•",
+        "Navigation goals",
+        "•",
+        "…",
+        "9"
+      ],
+      "all_text_native": "ROS, Gazebo, and RViz\nIgnition Gazebo\nROS\nRViz\n➢\nVisualises:\n➢\nSimulates:\n➢\nProvides:\n•\nThe environment\n•\nCommunication between\n•\nRobot models\nsoftware components\n•\nRobot geometry\n•\nSensor data\n•\nTopics, actions, services,\n•\nCollision and physics\n•\nMaps\nand parameters\n•\nPaths\n•\nJoints and actuators\n•\nAutonomy: Mapping,\n•\nCameras, lidar and IMUs\nlocalisation, planning,\n•\nTF frames\ncontrol, [your code], …\n•\nNavigation goals\n•\n…\n9\n41068 Robotics Studio 1",
+      "ocr_text": "ROS, Gazebo, and RViz\nIgnition Gazebo ROS RViz\n> Simulates: > Provides: > Visualises:\n* The environment * Communication between * Robot models\n« Robot geometry software components * Sensor data\n* Collision and physics * Topics, actions, services, * Maps\nand parameters\n« Joints and actuators . « Paths\n« Autonomy: Mapping,\n* Cameras, lidar and IMUs localisation, planning, ¢ TF frames\ncontrol, [your code], ... * Navigation goals\n9",
+      "slide_type": "text",
+      "embedded_images": [
+        {
+          "file": "simulation_package_p009_img01.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/simulation_package_p009_img01.png",
+          "width": 114,
+          "height": 53,
+          "colorspace": 3
+        },
+        {
+          "file": "simulation_package_p009_img02.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/simulation_package_p009_img02.png",
+          "width": 89,
+          "height": 154,
+          "colorspace": 3
+        }
+      ],
+      "image_count": 2,
+      "page_render": "simulation_package_p009.png"
+    },
+    {
+      "page": 10,
+      "title": "ROS Learning Resources",
+      "body_lines": [
+        "➢",
+        "This seminar is not a replacement for the ROS tutorials",
+        "➢",
+        "The best way to learn is to try it yourself!",
+        "•",
+        "Use the 41068 package README and working examples",
+        "➢",
+        "Revisit 41012 PFMS and related subjects",
+        "➢",
+        "Official ROS 2 tutorials",
+        "•",
+        "https://docs.ros.org/en/humble/Tutorials.html",
+        "10"
+      ],
+      "all_text_native": "ROS Learning Resources\n➢\nThis seminar is not a replacement for the ROS tutorials\n➢\nThe best way to learn is to try it yourself!\n•\nUse the 41068 package README and working examples\n➢\nRevisit 41012 PFMS and related subjects\n➢\nOfficial ROS 2 tutorials\n•\nhttps://docs.ros.org/en/humble/Tutorials.html\n10\n41068 Robotics Studio 1",
+      "ocr_text": "ROS Learning Resources\n>» This seminar is not a replacement for the ROS tutorials\n> The best way to learn is to try it yourself!\n¢ Use the 41068 package README and working examples\n> Revisit 41012 PFMS and related subjects a + snc\n> Official ROS 2 tutorials See ere\nTutorials\n* https://docs.ros.org/en/humble/Tutorials.htm| come See\n‘ =",
+      "slide_type": "text",
+      "embedded_images": [
+        {
+          "file": "simulation_package_p010_img01.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/simulation_package_p010_img01.png",
+          "width": 114,
+          "height": 53,
+          "colorspace": 3
+        },
+        {
+          "file": "simulation_package_p010_img02.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/simulation_package_p010_img02.png",
+          "width": 89,
+          "height": 154,
+          "colorspace": 3
+        },
+        {
+          "file": "simulation_package_p010_img03.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/simulation_package_p010_img03.png",
+          "width": 1015,
+          "height": 849,
+          "colorspace": 3
+        }
+      ],
+      "image_count": 3,
+      "page_render": "simulation_package_p010.png"
+    },
+    {
+      "page": 11,
+      "title": "",
+      "body_lines": [
+        "Understanding the Supplied Package"
+      ],
+      "all_text_native": "Understanding the Supplied Package",
+      "ocr_text": "S . ° ° Oo e@ e O O e e cS . : 9 OC e@ e oO\nOO 0 e e e 2 . . ° : OO e e e e ° :\ne O OD e @ O : ° . O : e OO) C e @ O . :\ne Oo OQ e e O ° ° . ° ° e O O e e © ° °\nUnderstanding the Supplied Package",
+      "slide_type": "mixed",
+      "embedded_images": [
+        {
+          "file": "simulation_package_p011_img01.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/simulation_package_p011_img01.png",
+          "width": 403,
+          "height": 1163,
+          "colorspace": 3
+        },
+        {
+          "file": "simulation_package_p011_img02.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/simulation_package_p011_img02.png",
+          "width": 403,
+          "height": 824,
+          "colorspace": 3
+        }
+      ],
+      "image_count": 2,
+      "page_render": "simulation_package_p011.png"
+    },
+    {
+      "page": 12,
+      "title": "What You Should See",
+      "body_lines": [
+        "RViz",
+        "Basic",
+        "Visualisation:",
+        "autonomy",
+        "UGV",
+        "Gazebo",
+        "simulator",
+        "Forest",
+        "world",
+        "Cameras",
+        "RViz",
+        "Visualisation:",
+        "Dynamic",
+        "UAV",
+        "objects",
+        "2 robots",
+        "12"
+      ],
+      "all_text_native": "What You Should See\nRViz\nBasic\nVisualisation:\nautonomy\nUGV\nGazebo\nsimulator\nForest\nworld\nCameras\nRViz\nVisualisation:\nDynamic\nUAV\nobjects\n2 robots\n12\n41068 Robotics Studio 1",
+      "ocr_text": "Eile Panels Help\n= Gazebo (hryinteract “Move Camera []Select Focus Camera =Measure  / 2DPosestimate  /Nav2Goal —@ Publish Point\nCo Oe ee ee rT | — —_ = = s RViz\na SS PERE ies <= . . . .\n~ +o Boe ae ee eee \\/isualisation:\nSaas 2 ~~ uw ‘ rel 0) folnlelnayy as ay phe UGV\nGazebo § ah = ; a * * ae\nj & ” Cas i ~ ha < , =\nsimulator 1 au ore a - FZ ,\na eee | \"S| ae\nSSS) re RY Phe: a : ha : uN aN ww ameras\ncae ree eee i SS\n~ ~~ Ny x. > | .\n: 3 rae Ry a home /areame/is_wa/istal/s1060Jgnkon, rig pve 4060, onion bringup/contg/41068_perrtl.rvc*= RV x.\nyA - Printeract |-G*Move camera {\"Iselect pFocus Camera <=Measure “2D PoseEstimate  Nav2Goal © Publish Point i .\n=, w Sicomera s RViz\n: ACEO) : 2 © ag Visualisation:\nBS 7ar- Teall SE : Sy UAV\nobjects - 2 robots ~~ > \\ .\ni A \\ \\\"\n|© Time eo\n12",
+      "slide_type": "text",
+      "embedded_images": [
+        {
+          "file": "simulation_package_p012_img01.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/simulation_package_p012_img01.png",
+          "width": 114,
+          "height": 53,
+          "colorspace": 3
+        },
+        {
+          "file": "simulation_package_p012_img02.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/simulation_package_p012_img02.png",
+          "width": 89,
+          "height": 154,
+          "colorspace": 3
+        },
+        {
+          "file": "simulation_package_p012_img03.jpeg",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/simulation_package_p012_img03.jpeg",
+          "width": 1816,
+          "height": 1030,
+          "colorspace": 3
+        }
+      ],
+      "image_count": 3,
+      "page_render": "simulation_package_p012.png"
+    },
+    {
+      "page": 13,
+      "title": "Package Structure",
+      "body_lines": [
+        "41068_ignition_bringup/",
+        "├── config/",
+        "configuration and parameter files",
+        "├── launch/",
+        "launch files: start different combinations of the simulation",
+        "├── models/",
+        "custom reusable Gazebo environment models",
+        "├── scripts/",
+        "two ROS Python examples",
+        "├── urdf_husky/",
+        "Husky UGV robot, sensors and Gazebo plugins",
+        "├── urdf_parrot/",
+        "Parrot UAV robot, sensors and Gazebo plugins",
+        "├── worlds/",
+        "Gazebo world files",
+        "├── CMakeLists.txt",
+        "installs the package resources and executable scripts",
+        "├── package.xml",
+        "dependencies and package metadata",
+        "└── README.md",
+        "installation and launch instructions and tips",
+        "13"
+      ],
+      "all_text_native": "Package Structure\n41068_ignition_bringup/\n├── config/\nconfiguration and parameter files\n├── launch/\nlaunch files: start different combinations of the simulation\n├── models/\ncustom reusable Gazebo environment models\n├── scripts/\ntwo ROS Python examples\n├── urdf_husky/\nHusky UGV robot, sensors and Gazebo plugins\n├── urdf_parrot/\nParrot UAV robot, sensors and Gazebo plugins\n├── worlds/\nGazebo world files\n├── CMakeLists.txt\ninstalls the package resources and executable scripts\n├── package.xml\ndependencies and package metadata\n└── README.md\ninstallation and launch instructions and tips\n13\n41068 Robotics Studio 1",
+      "ocr_text": "Package Structure\n41068 ignition bringup/\n|— config/ configuration and parameter files\n|— launch/ launch files: start different combinations of the simulation\n|— models/ custom reusable Gazebo environment models\n|— scripts/ two ROS Python examples\n|— urdf husky/ Husky UGV robot, sensors and Gazebo plugins\n|— urdf parrot/ Parrot UAV robot, sensors and Gazebo plugins\n|— worlds/ Gazebo world files\n|— CMakeLists.txt_ installs the package resources and executable scripts\n|— package. xml dependencies and package metadata\nL_ README .md installation and launch instructions and tips\n13",
+      "slide_type": "text",
+      "embedded_images": [
+        {
+          "file": "simulation_package_p013_img01.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/simulation_package_p013_img01.png",
+          "width": 114,
+          "height": 53,
+          "colorspace": 3
+        },
+        {
+          "file": "simulation_package_p013_img02.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/simulation_package_p013_img02.png",
+          "width": 89,
+          "height": 154,
+          "colorspace": 3
+        }
+      ],
+      "image_count": 2,
+      "page_render": "simulation_package_p013.png"
+    },
+    {
+      "page": 14,
+      "title": "Where to Get Started: README.md",
+      "body_lines": [
+        "➢",
+        "Follow the README installation instructions",
+        "•",
+        "Build the workspace",
+        "•",
+        "Launch a simpler configuration first",
+        "•",
+        "Confirm it runs without error",
+        "•",
+        "Drive the robot around",
+        "•",
+        "Try the more complicated configurations",
+        "•",
+        "Preserve this state in Git",
+        "•",
+        "Start making changes",
+        "14"
+      ],
+      "all_text_native": "Where to Get Started:\nREADME.md\n➢\nFollow the README installation instructions\n•\nBuild the workspace\n•\nLaunch a simpler configuration first\n•\nConfirm it runs without error\n•\nDrive the robot around\n•\nTry the more complicated configurations\n•\nPreserve this state in Git\n•\nStart making changes\n14\n41068 Robotics Studio 1",
+      "ocr_text": "Where to Get Started: README .md\nFollow the README installation instructions\n* Build the workspace lo 5\n+ Launch a simpler configuration frst (nn\n* Confirm it runs without error os ee Uo ett Ue\n* Drive the robot around oa ——\n* Try the more complicated configurations = = = Saepaeatch _ cra es\n* Preserve this state in Git ~\n* Start making changes eee peti. aoe tons —\n: > 14",
+      "slide_type": "text",
+      "embedded_images": [
+        {
+          "file": "simulation_package_p014_img01.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/simulation_package_p014_img01.png",
+          "width": 114,
+          "height": 53,
+          "colorspace": 3
+        },
+        {
+          "file": "simulation_package_p014_img02.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/simulation_package_p014_img02.png",
+          "width": 89,
+          "height": 154,
+          "colorspace": 3
+        },
+        {
+          "file": "simulation_package_p014_img03.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/simulation_package_p014_img03.png",
+          "width": 1323,
+          "height": 944,
+          "colorspace": 3
+        }
+      ],
+      "image_count": 3,
+      "page_render": "simulation_package_p014.png"
+    },
+    {
+      "page": 15,
+      "title": "Launch Files",
+      "body_lines": [
+        "➢",
+        "The canonical launch file is:",
+        "41068_ignition.launch.py",
+        "➢",
+        "It supports these main options:",
+        "•",
+        "husky:=true/false",
+        "•",
+        "parrot:=true/false",
+        "•",
+        "slam:=true/false",
+        "•",
+        "nav2:=true/false",
+        "•",
+        "rviz:=true/false",
+        "•",
+        "world:=simple_trees/large_demo",
+        "➢",
+        "41068_ignition_husky.launch.py",
+        "calls the main launch file with Husky only",
+        "➢",
+        "calls the main launch file with Parrot only",
+        "41068_ignition_parrot.launch.py",
+        "15"
+      ],
+      "all_text_native": "Launch Files\n➢\nThe canonical launch file is:\n41068_ignition.launch.py\n➢\nIt supports these main options:\n•\nhusky:=true/false\n•\nparrot:=true/false\n•\nslam:=true/false\n•\nnav2:=true/false\n•\nrviz:=true/false\n•\nworld:=simple_trees/large_demo\n➢\n41068_ignition_husky.launch.py\ncalls the main launch file with Husky only\n➢\ncalls the main launch file with Parrot only\n41068_ignition_parrot.launch.py\n15\n41068 Robotics Studio 1",
+      "ocr_text": "Launch Files\n>» The canonical launch file is: 41068 ignition.launch.py\n> It supports these main options:\n* husky:=true/false\n* parrot:=true/false\n* slam:=true/false\n* nav2:=true/false\n* rviz:=true/false\n* world:=simple trees/large_ demo\n> 41068 ignition _husky.launch.py calls the main launch file with Husky only\n> 41068 ignition parrot.launch.py calls the main launch file with Parrot only\n15",
+      "slide_type": "text",
+      "embedded_images": [
+        {
+          "file": "simulation_package_p015_img01.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/simulation_package_p015_img01.png",
+          "width": 114,
+          "height": 53,
+          "colorspace": 3
+        },
+        {
+          "file": "simulation_package_p015_img02.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/simulation_package_p015_img02.png",
+          "width": 89,
+          "height": 154,
+          "colorspace": 3
+        }
+      ],
+      "image_count": 2,
+      "page_render": "simulation_package_p015.png"
+    },
+    {
+      "page": 16,
+      "title": "What the Main Launch File Starts",
+      "body_lines": [
+        "➢",
+        "The canonical launch file performs the following sequence:",
+        "1.",
+        "Starts the Gazebo world and bridges the simulation clock",
+        "2.",
+        "Generates and spawns each enabled robot",
+        "3.",
+        "Starts robot state publishing, localisation, and the robot-specific Gazebo bridge",
+        "4.",
+        "Optionally starts namespaced SLAM and Nav2 instances for each robot",
+        "5.",
+        "Optionally starts one namespaced RViz process for each robot",
+        "16"
+      ],
+      "all_text_native": "What the Main Launch File Starts\n➢\nThe canonical launch file performs the following sequence:\n1.\nStarts the Gazebo world and bridges the simulation clock\n2.\nGenerates and spawns each enabled robot\n3.\nStarts robot state publishing, localisation, and the robot-specific Gazebo bridge\n4.\nOptionally starts namespaced SLAM and Nav2 instances for each robot\n5.\nOptionally starts one namespaced RViz process for each robot\n16\n41068 Robotics Studio 1",
+      "ocr_text": "What the Main Launch File Starts\n> The canonical launch file performs the following sequence:\n1. Starts the Gazebo world and bridges the simulation clock\n2. Generates and spawns each enabled robot\n3. Starts robot state publishing, localisation, and the robot-specific Gazebo bridge\n4. Optionally starts namespaced SLAM and Nav2 instances for each robot\n5. Optionally starts one namespaced RViz process for each robot\n16",
+      "slide_type": "text",
+      "embedded_images": [
+        {
+          "file": "simulation_package_p016_img01.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/simulation_package_p016_img01.png",
+          "width": 114,
+          "height": 53,
+          "colorspace": 3
+        },
+        {
+          "file": "simulation_package_p016_img02.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/simulation_package_p016_img02.png",
+          "width": 89,
+          "height": 154,
+          "colorspace": 3
+        }
+      ],
+      "image_count": 2,
+      "page_render": "simulation_package_p016.png"
+    },
+    {
+      "page": 17,
+      "title": "Other Launch Files",
+      "body_lines": [
+        "➢",
+        "41068_navigation.launch.py",
+        "•",
+        "Starts namespaced SLAM and Nav2",
+        "•",
+        "Helper launch file – shouldn’t usually be called directly",
+        "➢",
+        "41068_dynamic_world_demo.launch.py",
+        "•",
+        "Starts only the dynamic-world node (described later)",
+        "•",
+        "Assumes the main launch file is already running",
+        "➢",
+        "41068_autonomy_demo.launch.py",
+        "•",
+        "Starts only the example autonomy node (described later)",
+        "•",
+        "Assumes the main launch file is already running",
+        "17"
+      ],
+      "all_text_native": "Other Launch Files\n➢\n41068_navigation.launch.py\n•\nStarts namespaced SLAM and Nav2\n•\nHelper launch file – shouldn’t usually be called directly\n➢\n41068_dynamic_world_demo.launch.py\n•\nStarts only the dynamic-world node (described later)\n•\nAssumes the main launch file is already running\n➢\n41068_autonomy_demo.launch.py\n•\nStarts only the example autonomy node (described later)\n•\nAssumes the main launch file is already running\n17\n41068 Robotics Studio 1",
+      "ocr_text": "Other Launch Files\n> 41068 navigation.launch.py\n¢ Starts namespaced SLAM and Nav2\n* Helper launch file — shouldn’t usually be called directly\n> 41068 dynamic _world_demo.launch.py\n* Starts only the dynamic-world node (described later)\n« Assumes the main launch file is already running\n> 41068 autonomy demo.launch.py\n* Starts only the example autonomy node (described later)\n« Assumes the main launch file is already running\n17",
+      "slide_type": "text",
+      "embedded_images": [
+        {
+          "file": "simulation_package_p017_img01.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/simulation_package_p017_img01.png",
+          "width": 114,
+          "height": 53,
+          "colorspace": 3
+        },
+        {
+          "file": "simulation_package_p017_img02.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/simulation_package_p017_img02.png",
+          "width": 89,
+          "height": 154,
+          "colorspace": 3
+        }
+      ],
+      "image_count": 2,
+      "page_render": "simulation_package_p017.png"
+    },
+    {
+      "page": 18,
+      "title": "Namespaces and TF Frames",
+      "body_lines": [
+        "➢",
+        "The supplied robots are always",
+        "namespaced",
+        ", even when running only one robot",
+        "➢",
+        "Namespaces allow separate copies of nodes/topics for each robot",
+        "➢",
+        "Multiple robots are an option – start by getting one robot working first!",
+        "Husky",
+        "Parrot",
+        "ROS namespace:   /husky1",
+        "ROS namespace:   /parrot1",
+        "ROS topics:      /husky1/scan",
+        "ROS topics:      /parrot1/scan",
+        "/husky1/camera/image",
+        "/parrot1/camera/image",
+        "/husky1/cmd_vel",
+        "/parrot1/cmd_vel",
+        "TF frame prefix: husky1_",
+        "TF frame prefix: parrot1_",
+        "TF frames:       husky1_map",
+        "TF frames:       parrot1_map",
+        "husky1_odom",
+        "parrot1_odom",
+        "husky1_camera_link",
+        "parrot1_camera_link",
+        "Gazebo model:    husky1",
+        "Gazebo model:    parrot1",
+        "18"
+      ],
+      "all_text_native": "Namespaces and TF Frames\n➢\nThe supplied robots are always\nnamespaced\n, even when running only one robot\n➢\nNamespaces allow separate copies of nodes/topics for each robot\n➢\nMultiple robots are an option – start by getting one robot working first!\nHusky\nParrot\nROS namespace:   /husky1\nROS namespace:   /parrot1\nROS topics:      /husky1/scan\nROS topics:      /parrot1/scan\n/husky1/camera/image\n/parrot1/camera/image\n/husky1/cmd_vel\n/parrot1/cmd_vel\nTF frame prefix: husky1_\nTF frame prefix: parrot1_\nTF frames:       husky1_map\nTF frames:       parrot1_map\nhusky1_odom\nparrot1_odom\nhusky1_camera_link\nparrot1_camera_link\nGazebo model:    husky1\nGazebo model:    parrot1\n18\n41068 Robotics Studio 1",
+      "ocr_text": "Namespaces and TF Frames\n\n> The supplied robots are always namespaced, even when running only one robot\n> Namespaces allow separate copies of nodes/topics for each robot\n\n> Multiple robots are an option — start by getting one robot working first!\n\nHusky Parrot\n\nROS namespace: /huskyl ROS namespace: /parrotl\n\nROS topics: /huskyl/scan ROS topics: /parrotl/scan\n/huskyl/camera/image /parrotl/camera/image\n/husky1/cmd_vel /parrotl/cmd_vel\n\nTF frame prefix: huskyl_ TF frame prefix: parrotl_\n\nTE frames: huskyl_ map TF frames: parrotl map\nhuskyl_odom parrotl_odom\nhuskyl_camera_link parrotl camera_link\n\nGazebo model: huskyl Gazebo model: parrotl\n\n18",
+      "slide_type": "text",
+      "embedded_images": [
+        {
+          "file": "simulation_package_p018_img01.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/simulation_package_p018_img01.png",
+          "width": 114,
+          "height": 53,
+          "colorspace": 3
+        },
+        {
+          "file": "simulation_package_p018_img02.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/simulation_package_p018_img02.png",
+          "width": 89,
+          "height": 154,
+          "colorspace": 3
+        }
+      ],
+      "image_count": 2,
+      "page_render": "simulation_package_p018.png"
+    },
+    {
+      "page": 19,
+      "title": "Config Files",
+      "body_lines": [
+        "➢",
+        "Gazebo-ROS bridges",
+        "•",
+        "Global clock",
+        "•",
+        "Husky/Parrot topics",
+        "➢",
+        "Robot localisation",
+        "•",
+        "Parameters for the localisation node",
+        "➢",
+        "SLAM toolbox",
+        "•",
+        "Parameters for the SLAM node",
+        "➢",
+        "Nav2",
+        "•",
+        "Parameters for navigation, planning, and control",
+        "➢",
+        "Rviz",
+        "•",
+        "RViz visualisation configuration",
+        "•",
+        "Best edited directly in rviz then saved",
+        "19"
+      ],
+      "all_text_native": "Config Files\n➢\nGazebo-ROS bridges\n•\nGlobal clock\n•\nHusky/Parrot topics\n➢\nRobot localisation\n•\nParameters for the localisation node\n➢\nSLAM toolbox\n•\nParameters for the SLAM node\n➢\nNav2\n•\nParameters for navigation, planning, and control\n➢\nRviz\n•\nRViz visualisation configuration\n•\nBest edited directly in rviz then saved\n19\n41068 Robotics Studio 1",
+      "ocr_text": "[Py enel Meee ay\n. . ros__parameters:\nC fi F | use_sim time:\nontig Files controller. frequency: 5.0\nmin_x_velocity threshold: @.001\nmin_y velocity threshold: @.5\nrt Mee (eM Celera vane a Cait ELSE\n. failure_tolerance: 0.3\n» Gazebo-ROS bridges Peres go Ges orpse deren\ngoal_checker_plugins:\n* Global clock ~ general_goal_checker\ncontroller_plugins:\n. FollowPath\n* Husky/Parrot topics Re ALE\n. . USO Melee Bret Sala eee tte <i\n» Robot localisation alana chap Paneer\n. . general_goal_ checker:\n*« Parameters for the localisation node Seen\nplugin: nav2_controller: :SimpleGoalChecker\n» SLAM toolbox Sone see oe\nFollowPath:\n. Parameters for the SLAM node plugin: dwb_core: :DWBLocalPlanner\nCal ee nace ea ae a e\nvel x: 0.0\n> Nav2 min.vel_y: 0.0\nae AC\n« Parameters for navigation, planning, and control CEE ae ie OO\n. min_speed_xy: 0.0\n> Rviz eGneeiwe 1G\nmin_speed_theta: 0.\n*  RViz visualisation configuration a ta oq\nacc_lim theta: 3.2\n* Best edited directly in rviz then saved EPs is Ete cee ac\ndecel lim y: 0.0\nCem cree ey)\n19",
+      "slide_type": "text",
+      "embedded_images": [
+        {
+          "file": "simulation_package_p019_img01.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/simulation_package_p019_img01.png",
+          "width": 114,
+          "height": 53,
+          "colorspace": 3
+        },
+        {
+          "file": "simulation_package_p019_img02.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/simulation_package_p019_img02.png",
+          "width": 89,
+          "height": 154,
+          "colorspace": 3
+        },
+        {
+          "file": "simulation_package_p019_img03.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/simulation_package_p019_img03.png",
+          "width": 595,
+          "height": 876,
+          "colorspace": 3
+        }
+      ],
+      "image_count": 3,
+      "page_render": "simulation_package_p019.png"
+    },
+    {
+      "page": 20,
+      "title": "Two Supplied Robots",
+      "body_lines": [
+        "➢",
+        "Husky:",
+        "➢",
+        "Parrot:",
+        "•",
+        "Four-wheeled ground robot",
+        "•",
+        "Visually resembles a quadrotor",
+        "•",
+        "Differential-drive control",
+        "•",
+        "Deliberately simplified",
+        "•",
+        "Simulated odometry",
+        "•",
+        "Uses a Husky-like planar movement",
+        "•",
+        "IMU",
+        "•",
+        "Gravity is disabled",
+        "•",
+        "GPU lidar",
+        "•",
+        "Operates at a fixed altitude",
+        "•",
+        "RGB-D camera",
+        "•",
+        "Collisions are disabled so it can navigate",
+        "through leaves",
+        "20"
+      ],
+      "all_text_native": "Two Supplied Robots\n➢\nHusky:\n➢\nParrot:\n•\nFour-wheeled ground robot\n•\nVisually resembles a quadrotor\n•\nDifferential-drive control\n•\nDeliberately simplified\n•\nSimulated odometry\n•\nUses a Husky-like planar movement\n•\nIMU\n•\nGravity is disabled\n•\nGPU lidar\n•\nOperates at a fixed altitude\n•\nRGB-D camera\n•\nCollisions are disabled so it can navigate\nthrough leaves\n20\n41068 Robotics Studio 1",
+      "ocr_text": "Two Supplied Robots\n> Husky: > Parrot:\n* Four-wheeled ground robot « Visually resembles a quadrotor\n* Differential-drive control * Deliberately simplified\n* Simulated odometry « Uses a Husky-like planar movement\n« IMU * Gravity is disabled\n¢« GPU lidar * Operates at a fixed altitude\n* RGB-D camera * Collisions are disabled so it can navigate\nos through leaves\nai —— | <2 |\nSe VER Ile\nSta _ Ns cae |\nwee\n20",
+      "slide_type": "text",
+      "embedded_images": [
+        {
+          "file": "simulation_package_p020_img01.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/simulation_package_p020_img01.png",
+          "width": 114,
+          "height": 53,
+          "colorspace": 3
+        },
+        {
+          "file": "simulation_package_p020_img02.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/simulation_package_p020_img02.png",
+          "width": 89,
+          "height": 154,
+          "colorspace": 3
+        },
+        {
+          "file": "simulation_package_p020_img03.jpeg",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/simulation_package_p020_img03.jpeg",
+          "width": 488,
+          "height": 468,
+          "colorspace": 3
+        },
+        {
+          "file": "simulation_package_p020_img04.jpeg",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/simulation_package_p020_img04.jpeg",
+          "width": 613,
+          "height": 349,
+          "colorspace": 3
+        }
+      ],
+      "image_count": 4,
+      "page_render": "simulation_package_p020.png"
+    },
+    {
+      "page": 21,
+      "title": "Robot Models",
+      "body_lines": [
+        "➢",
+        "URDF.xacro files describe:",
+        "•",
+        "Links and joints",
+        "•",
+        "Visual and collision geometry",
+        "•",
+        "Inertial properties",
+        "•",
+        "Robot and sensor frames",
+        "•",
+        "Reusable variables and macros",
+        "➢",
+        "Gazebo.xacro files add:",
+        "•",
+        "Simulated sensors and their parameters",
+        "•",
+        "Gazebo topic and model names",
+        "•",
+        "Drive and controller plugins",
+        "21"
+      ],
+      "all_text_native": "Robot Models\n➢\nURDF.xacro files describe:\n•\nLinks and joints\n•\nVisual and collision geometry\n•\nInertial properties\n•\nRobot and sensor frames\n•\nReusable variables and macros\n➢\nGazebo.xacro files add:\n•\nSimulated sensors and their parameters\n•\nGazebo topic and model names\n•\nDrive and controller plugins\n21\n41068 Robotics Studio 1",
+      "ocr_text": "gazebo reference=\"${prefix}base_scan\nmaterial>Gazebo/FlatBlack</material\nRobot Models nares Fp enna Ee\npose relative _to='\"$ e base_scan'>® @ @ @ @ @</pose:\nvisualize>$(arg laser_visual)</visualize\ntopic>model/${gz_model_name}/scan</topic\n7 7 . update_rate>3</update_rate:\n> URDF.xacro files describe: gz_frame_id>${prefix}base_scan</gz_frame_id\n. . ny\n« Links and joints ery\nhorizontal\n7 ie] samples>36@</samples.\n* Visual and collision geometry Seen\n. . CNM iy -8 abe SOA ROME) 28 a\n¢ Inertial properties erat wr sc, ar ae\nhorizontal\n* Robot and sensor frames —\n. nS i\n* Reusable variables and macros max>40</max>\nresolution>@.@15</resolution:\n» Gazebo.xacro files add: bin\n+ . Sey eobe Ska am\n* Simulated sensors and their parameters ree Meet\nstddev>@.01</stddev\n* Gazebo topic and model names ses\n. . uk t ik\n* Drive and controller plugins See\nf-eyd-1ele)\ngazebo reference=\"${pref Tae)\nsensor name=\"rgbd_camera\" type=\"rgbd_camera\ncamera\nhorizontal_fov>2.0944</horizontal_fov:\n21",
+      "slide_type": "text",
+      "embedded_images": [
+        {
+          "file": "simulation_package_p021_img01.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/simulation_package_p021_img01.png",
+          "width": 114,
+          "height": 53,
+          "colorspace": 3
+        },
+        {
+          "file": "simulation_package_p021_img02.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/simulation_package_p021_img02.png",
+          "width": 89,
+          "height": 154,
+          "colorspace": 3
+        },
+        {
+          "file": "simulation_package_p021_img03.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/simulation_package_p021_img03.png",
+          "width": 652,
+          "height": 817,
+          "colorspace": 3
+        }
+      ],
+      "image_count": 3,
+      "page_render": "simulation_package_p021.png"
+    },
+    {
+      "page": 22,
+      "title": "World Files",
+      "body_lines": [
+        "Lighting",
+        "The package contains two provided world files",
+        "➢",
+        "simple_trees.sdf",
+        "•",
+        "Simple grass plane",
+        "Physics",
+        "•",
+        "Small number of trees",
+        "•",
+        "Check the basic simulation works",
+        "➢",
+        "large_demo.sdf",
+        "•",
+        "Custom forest ground texture",
+        "•",
+        "Forest boundary walls",
+        "Terrain",
+        "•",
+        "Collection of trees, rocks, other objects",
+        "•",
+        "Dynamic demo objects (see later slide)",
+        "•",
+        "Richer project starting environment",
+        "Trees,",
+        "rocks…",
+        "22"
+      ],
+      "all_text_native": "World Files\nLighting\nThe package contains two provided world files\n➢\nsimple_trees.sdf\n•\nSimple grass plane\nPhysics\n•\nSmall number of trees\n•\nCheck the basic simulation works\n➢\nlarge_demo.sdf\n•\nCustom forest ground texture\n•\nForest boundary walls\nTerrain\n•\nCollection of trees, rocks, other objects\n•\nDynamic demo objects (see later slide)\n•\nRicher project starting environment\nTrees,\nrocks…\n22\n41068 Robotics Studio 1",
+      "ocr_text": "Cree eM Lo\nse eer ener\n. cast_shadows>1</cast_shadows:\npose>® @ 10 @ -@ @/pose:\nWorld Files qe _\nsto eal Lighting\nlinear>@.@1</ linear:\nquadratic>®.@@1</ quadratic:\nattenuation:\n. . . Co Ce eR ee Loose\nThe package contains two provided world files Fe 0 DME TES)\nmagnetic_field>6e-@6 2.3e-@5 -4.2e-@5</magnetic field:\n. Ser eas to ey\n> simple trees.sdf eda Sia\nreal_time_factor>1</real_time_factor:\n+ real_time_update_rate>1@@</real_time_update_rate:\n¢ Simple grass plane ec ,\npre grass P ery ae\n¢ Small number of trees BES OB OB mean\n* Check the basic simulation works Seas aante\nrenee og oreo\n> large demo.sdf pth ienrar rs ett\n_ heading deg>@</heading deg:\nsurface_model>EARTH_WGS84</surface_model\n* Custom forest ground texture FoI LSER SELES\nfeat a a -“ an\n* Forest boundary walls yee\n. . vi areveeclia)\n* Collection of trees, rocks, other objects Ea SOOCOR Ee\ninclude:\n* Dynamic demo objects (see later slide) Sane aha\ne Richer project starting environment RELATE ORAL GT OSL TSE\nOrbe) sheer\ngan Pe epee ase\n» t- Pine tree - rocks...\nTe //fuel.gazebosim.org/1.0/OpenRobotics/models/PineX20tree",
+      "slide_type": "text",
+      "embedded_images": [
+        {
+          "file": "simulation_package_p022_img01.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/simulation_package_p022_img01.png",
+          "width": 114,
+          "height": 53,
+          "colorspace": 3
+        },
+        {
+          "file": "simulation_package_p022_img02.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/simulation_package_p022_img02.png",
+          "width": 89,
+          "height": 154,
+          "colorspace": 3
+        },
+        {
+          "file": "simulation_package_p022_img03.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/simulation_package_p022_img03.png",
+          "width": 505,
+          "height": 905,
+          "colorspace": 3
+        }
+      ],
+      "image_count": 3,
+      "page_render": "simulation_package_p022.png"
+    },
+    {
+      "page": 23,
+      "title": "Models, Textures, and Gazebo Fuel",
+      "body_lines": [
+        "➢",
+        "Worlds contain objects from Gazebo Fuel:",
+        "https://app.gazebosim.org/fuel/models",
+        "➢",
+        "The package also contains custom models and",
+        "textures in the",
+        "directory",
+        "models",
+        "➢",
+        "Supports other formats, like 3D meshes",
+        "➢",
+        "You can try adding other Fuel objects",
+        "or create your own!",
+        "➢",
+        "Incrementally add complexity – complex models",
+        "can significantly slow down the simulation",
+        "23"
+      ],
+      "all_text_native": "Models, Textures, and Gazebo Fuel\n➢\nWorlds contain objects from Gazebo Fuel:\nhttps://app.gazebosim.org/fuel/models\n➢\nThe package also contains custom models and\ntextures in the\ndirectory\nmodels\n➢\nSupports other formats, like 3D meshes\n➢\nYou can try adding other Fuel objects\nor create your own!\n➢\nIncrementally add complexity – complex models\ncan significantly slow down the simulation\n23\n41068 Robotics Studio 1",
+      "ocr_text": "Models, Textures, and Gazebo Fuel\n> Worlds contain objects from Gazebo Fuel:\nhttps://app.gazebosim.org/fuel/models\n» The package also contains custom models and\ntextures in the models directory\n> Supports other formats, like 3D meshes\n>» You can try adding other Fuel objects\nor create your own!\n> Incrementally add complexity — complex models ie - a\ncan significantly slow down the simulation eae is ae\n23",
+      "slide_type": "text",
+      "embedded_images": [
+        {
+          "file": "simulation_package_p023_img01.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/simulation_package_p023_img01.png",
+          "width": 114,
+          "height": 53,
+          "colorspace": 3
+        },
+        {
+          "file": "simulation_package_p023_img02.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/simulation_package_p023_img02.png",
+          "width": 89,
+          "height": 154,
+          "colorspace": 3
+        },
+        {
+          "file": "simulation_package_p023_img03.jpeg",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/simulation_package_p023_img03.jpeg",
+          "width": 786,
+          "height": 786,
+          "colorspace": 3
+        },
+        {
+          "file": "simulation_package_p023_img04.jpeg",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/simulation_package_p023_img04.jpeg",
+          "width": 786,
+          "height": 337,
+          "colorspace": 3
+        }
+      ],
+      "image_count": 4,
+      "page_render": "simulation_package_p023.png"
+    },
+    {
+      "page": 24,
+      "title": "Provided Script 1: Dynamic World Demo",
+      "body_lines": [
+        "➢",
+        "It’s possible to change parameters of a Gazebo world dynamically from your code!",
+        "•",
+        "Position, colour, visibility, lighting, …",
+        "➢",
+        "dynamic_world_demo.py",
+        "demonstrates how Python code can alter Gazebo:",
+        "•",
+        "Moves a small animal marker randomly around the forest",
+        "•",
+        "Cycles a tree between healthy, fire and burnt appearances",
+        "➢",
+        "See the code to find out how this works",
+        "➢",
+        "Adapt the code to develop other dynamic features!",
+        "24"
+      ],
+      "all_text_native": "Provided Script 1: Dynamic World Demo\n➢\nIt’s possible to change parameters of a Gazebo world dynamically from your code!\n•\nPosition, colour, visibility, lighting, …\n➢\ndynamic_world_demo.py\ndemonstrates how Python code can alter Gazebo:\n•\nMoves a small animal marker randomly around the forest\n•\nCycles a tree between healthy, fire and burnt appearances\n➢\nSee the code to find out how this works\n➢\nAdapt the code to develop other dynamic features!\n24\n41068 Robotics Studio 1",
+      "ocr_text": "Provided Script 1: Dynamic World Demo\n> It’s possible to change parameters of a Gazebo world dynamically from your code!\n* Position, colour, visibility, lighting, ...\n> dynamic _world_demo.py demonstrates how Python code can alter Gazebo:\n* Moves a small animal marker randomly around the forest a a. ra aes , |\n* Cycles a tree between healthy, fire and burnt appearances ae ae rd ys\n. . ee NS RR ae\n> See the code to find out how this works ai ee yea a!\n> Adapt the code to develop other dynamic features! d : ‘\n=_ -— =\nA SSS\na |\n24",
+      "slide_type": "text",
+      "embedded_images": [
+        {
+          "file": "simulation_package_p024_img01.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/simulation_package_p024_img01.png",
+          "width": 114,
+          "height": 53,
+          "colorspace": 3
+        },
+        {
+          "file": "simulation_package_p024_img02.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/simulation_package_p024_img02.png",
+          "width": 89,
+          "height": 154,
+          "colorspace": 3
+        },
+        {
+          "file": "simulation_package_p024_img03.jpeg",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/simulation_package_p024_img03.jpeg",
+          "width": 587,
+          "height": 526,
+          "colorspace": 3
+        }
+      ],
+      "image_count": 3,
+      "page_render": "simulation_package_p024.png"
+    },
+    {
+      "page": 25,
+      "title": "Provided Script 2: Basic Autonomy Demo",
+      "body_lines": [
+        "➢",
+        "basic_autonomy_demo.py",
+        "provides skeleton autonomy code:",
+        "connects perception, mapping and navigation",
+        "➢",
+        "Demonstrates how several ROS interfaces can be connected inside one node",
+        "➢",
+        "Is deliberately not intended to be a good perception/planning algorithm",
+        "➢",
+        "The node does the following:",
+        "•",
+        "Subscribes to a map and an RGB image",
+        "•",
+        "Estimates the brightness of each image",
+        "•",
+        "Uses TF to find the robot pose in the map",
+        "•",
+        "Sample waypoint in known free space. Brighter image = distant goal; darker image = closer goal",
+        "•",
+        "Sends the waypoint to Nav2",
+        "•",
+        "When goal is reached, chooses another goal",
+        "25"
+      ],
+      "all_text_native": "Provided Script 2: Basic Autonomy Demo\n➢\nbasic_autonomy_demo.py\nprovides skeleton autonomy code:\nconnects perception, mapping and navigation\n➢\nDemonstrates how several ROS interfaces can be connected inside one node\n➢\nIs deliberately not intended to be a good perception/planning algorithm\n➢\nThe node does the following:\n•\nSubscribes to a map and an RGB image\n•\nEstimates the brightness of each image\n•\nUses TF to find the robot pose in the map\n•\nSample waypoint in known free space. Brighter image = distant goal; darker image = closer goal\n•\nSends the waypoint to Nav2\n•\nWhen goal is reached, chooses another goal\n25\n41068 Robotics Studio 1",
+      "ocr_text": "Provided Script 2: Basic Autonomy Demo\n> basic autonomy demo.py provides skeleton autonomy code:\nconnects perception, mapping and navigation\n> Demonstrates how several ROS interfaces can be connected inside one node\n> ls deliberately not intended to be a good perception/planning algorithm\n> The node does the following:\n* Subscribes to a map and an RGB image\n« Estimates the brightness of each image\n¢ Uses TF to find the robot pose in the map\n* Sample waypoint in known free space. Brighter image = distant goal; darker image = closer goal\n* Sends the waypoint to Nav2\n« When goal is reached, chooses another goal\n25",
+      "slide_type": "text",
+      "embedded_images": [
+        {
+          "file": "simulation_package_p025_img01.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/simulation_package_p025_img01.png",
+          "width": 114,
+          "height": 53,
+          "colorspace": 3
+        },
+        {
+          "file": "simulation_package_p025_img02.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/simulation_package_p025_img02.png",
+          "width": 89,
+          "height": 154,
+          "colorspace": 3
+        }
+      ],
+      "image_count": 2,
+      "page_render": "simulation_package_p025.png"
+    },
+    {
+      "page": 26,
+      "title": "",
+      "body_lines": [
+        "Ideas for Extending the Package"
+      ],
+      "all_text_native": "Ideas for Extending the Package",
+      "ocr_text": "S . ° ° Oo e@ e O O e e cS . : 9 OC e@ e oO\n\ne © O e e e 0 : . . : OO e e e e ° :\n\ne © Oo Cn) Oo : : : 0 ° e C) C ee e | . .\n\ne Oo OQ e e O ° ° . ° ° e O O e e © ° °\nIdeas for Extending the Package",
+      "slide_type": "mixed",
+      "embedded_images": [
+        {
+          "file": "simulation_package_p026_img01.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/simulation_package_p026_img01.png",
+          "width": 403,
+          "height": 1163,
+          "colorspace": 3
+        },
+        {
+          "file": "simulation_package_p026_img02.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/simulation_package_p026_img02.png",
+          "width": 403,
+          "height": 824,
+          "colorspace": 3
+        }
+      ],
+      "image_count": 2,
+      "page_render": "simulation_package_p026.png"
+    },
+    {
+      "page": 27,
+      "title": "Dimensions You Could Change",
+      "body_lines": [
+        "➢",
+        "The starter package is only a starting point!",
+        "➢",
+        "There are many things you can and should change",
+        "•",
+        "Environment",
+        "•",
+        "Dynamic features",
+        "•",
+        "Robot",
+        "•",
+        "Sensors",
+        "•",
+        "Autonomy (perception, decision making, user interface)",
+        "•",
+        "Multi-robot coordination and communication",
+        "•",
+        "…",
+        "➢",
+        "Choose changes that support your project. More complexity is not automatically better.",
+        "27"
+      ],
+      "all_text_native": "Dimensions You Could Change\n➢\nThe starter package is only a starting point!\n➢\nThere are many things you can and should change\n•\nEnvironment\n•\nDynamic features\n•\nRobot\n•\nSensors\n•\nAutonomy (perception, decision making, user interface)\n•\nMulti-robot coordination and communication\n•\n…\n➢\nChoose changes that support your project. More complexity is not automatically better.\n27\n41068 Robotics Studio 1",
+      "ocr_text": "Dimensions You Could Change\n\n> The starter package is only a starting point!\n\n> There are many things you can and should change\n* Environment\n*« Dynamic features\n* Robot\n* Sensors\n« Autonomy (perception, decision making, user interface)\n« Multi-robot coordination and communication\n\n> Choose changes that support your project. More complexity is not automatically better.\n\n27",
+      "slide_type": "text",
+      "embedded_images": [
+        {
+          "file": "simulation_package_p027_img01.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/simulation_package_p027_img01.png",
+          "width": 114,
+          "height": 53,
+          "colorspace": 3
+        },
+        {
+          "file": "simulation_package_p027_img02.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/simulation_package_p027_img02.png",
+          "width": 89,
+          "height": 154,
+          "colorspace": 3
+        }
+      ],
+      "image_count": 2,
+      "page_render": "simulation_package_p027.png"
+    },
+    {
+      "page": 28,
+      "title": "Examples from 41068 in 2025",
+      "body_lines": [
+        "28"
+      ],
+      "all_text_native": "Examples from 41068 in 2025\n28\n41068 Robotics Studio 1",
+      "ocr_text": "Examples from 41068 in 2025\na ts\n/ ND\neB\né CT:\n> _ Lee,\nee a x os a En\nOO\") FF. Ps pees > aN | pk *.\n® 6 q ae Pee ig a ie | LR Set got\ns — pn eee: «| | Mah yo:\nF rm ora ce ett Hos\n_ gh Po = Ota ~ S g’ vi Le - on ats,\nima Mm tee Ss\n\\ i eee ae > be 4s\nKe Ci ae mike\nme - 5 - = i ‘a ae\nAe i Se\nf ‘ \"we ~\n28",
+      "slide_type": "visual_heavy",
+      "embedded_images": [
+        {
+          "file": "simulation_package_p028_img01.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/simulation_package_p028_img01.png",
+          "width": 114,
+          "height": 53,
+          "colorspace": 3
+        },
+        {
+          "file": "simulation_package_p028_img02.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/simulation_package_p028_img02.png",
+          "width": 89,
+          "height": 154,
+          "colorspace": 3
+        },
+        {
+          "file": "simulation_package_p028_img03.jpeg",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/simulation_package_p028_img03.jpeg",
+          "width": 471,
+          "height": 365,
+          "colorspace": 3
+        },
+        {
+          "file": "simulation_package_p028_img04.jpeg",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/simulation_package_p028_img04.jpeg",
+          "width": 429,
+          "height": 365,
+          "colorspace": 3
+        },
+        {
+          "file": "simulation_package_p028_img05.jpeg",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/simulation_package_p028_img05.jpeg",
+          "width": 449,
+          "height": 365,
+          "colorspace": 3
+        },
+        {
+          "file": "simulation_package_p028_img06.jpeg",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/simulation_package_p028_img06.jpeg",
+          "width": 538,
+          "height": 391,
+          "colorspace": 3
+        },
+        {
+          "file": "simulation_package_p028_img07.jpeg",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/simulation_package_p028_img07.jpeg",
+          "width": 383,
+          "height": 330,
+          "colorspace": 3
+        },
+        {
+          "file": "simulation_package_p028_img08.jpeg",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/simulation_package_p028_img08.jpeg",
+          "width": 644,
+          "height": 423,
+          "colorspace": 3
+        },
+        {
+          "file": "simulation_package_p028_img09.jpeg",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/simulation_package_p028_img09.jpeg",
+          "width": 429,
+          "height": 345,
+          "colorspace": 3
+        },
+        {
+          "file": "simulation_package_p028_img10.jpeg",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/simulation_package_p028_img10.jpeg",
+          "width": 460,
+          "height": 287,
+          "colorspace": 3
+        },
+        {
+          "file": "simulation_package_p028_img11.jpeg",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/simulation_package_p028_img11.jpeg",
+          "width": 545,
+          "height": 272,
+          "colorspace": 3
+        },
+        {
+          "file": "simulation_package_p028_img12.jpeg",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/simulation_package_p028_img12.jpeg",
+          "width": 429,
+          "height": 330,
+          "colorspace": 3
+        },
+        {
+          "file": "simulation_package_p028_img13.jpeg",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/simulation_package_p028_img13.jpeg",
+          "width": 320,
+          "height": 302,
+          "colorspace": 3
+        },
+        {
+          "file": "simulation_package_p028_img14.jpeg",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/simulation_package_p028_img14.jpeg",
+          "width": 599,
+          "height": 866,
+          "colorspace": 3
+        },
+        {
+          "file": "simulation_package_p028_img15.jpeg",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/simulation_package_p028_img15.jpeg",
+          "width": 292,
+          "height": 236,
+          "colorspace": 3
+        },
+        {
+          "file": "simulation_package_p028_img16.jpeg",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/simulation_package_p028_img16.jpeg",
+          "width": 449,
+          "height": 438,
+          "colorspace": 3
+        }
+      ],
+      "image_count": 16,
+      "page_render": "simulation_package_p028.png"
+    },
+    {
+      "page": 29,
+      "title": "Procedurally-Generated World Files",
+      "body_lines": [
+        "➢",
+        "World files follow the “SDF” (Simulation Description Format) format described here:",
+        "https://sdformat.org/spec/",
+        "➢",
+        "SDF files are a type of XML file with predefined tags relevant to robotics simulation:",
+        "•",
+        "World, model, link, joint, pose, visual, collision, material, geometry, sensor, plugin, light, physics, …",
+        "➢",
+        "Modify world files in software:",
+        "•",
+        "Read in a functioning world file using any",
+        "XML parser",
+        "•",
+        "Modify/copy/remove XML objects using code",
+        "•",
+        "Export the modified XML file",
+        "•",
+        "Open new world file in Gazebo, check functionality",
+        "➢",
+        "Get creative – can even create randomised worlds!",
+        "29"
+      ],
+      "all_text_native": "Procedurally-Generated World Files\n➢\nWorld files follow the “SDF” (Simulation Description Format) format described here:\nhttps://sdformat.org/spec/\n➢\nSDF files are a type of XML file with predefined tags relevant to robotics simulation:\n•\nWorld, model, link, joint, pose, visual, collision, material, geometry, sensor, plugin, light, physics, …\n➢\nModify world files in software:\n•\nRead in a functioning world file using any\nXML parser\n•\nModify/copy/remove XML objects using code\n•\nExport the modified XML file\n•\nOpen new world file in Gazebo, check functionality\n➢\nGet creative – can even create randomised worlds!\n29\n41068 Robotics Studio 1",
+      "ocr_text": "Procedurally-Generated World Files\n> World files follow the “SDF” (Simulation Description Format) format described here:\nhttps://sdformat.org/spec/\n> SDF files are a type of XML file with predefined tags relevant to robotics simulation:\n« World, model, link, joint, pose, visual, collision, material, geometry, sensor, plugin, light, physics, ...\n> Modify world files in software:\n* Read in a functioning world file using any XML parser\n* Modify/copy/remove XML objects using code cei\n« Export the modified XML file\n* Open new world file in Gazebo, check functionality al x 2 |\n> Get creative — can even create randomised worlds! [Rie p\n29",
+      "slide_type": "text",
+      "embedded_images": [
+        {
+          "file": "simulation_package_p029_img01.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/simulation_package_p029_img01.png",
+          "width": 114,
+          "height": 53,
+          "colorspace": 3
+        },
+        {
+          "file": "simulation_package_p029_img02.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/simulation_package_p029_img02.png",
+          "width": 89,
+          "height": 154,
+          "colorspace": 3
+        },
+        {
+          "file": "simulation_package_p029_img03.jpeg",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/simulation_package_p029_img03.jpeg",
+          "width": 515,
+          "height": 317,
+          "colorspace": 3
+        },
+        {
+          "file": "simulation_package_p029_img04.jpeg",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/simulation_package_p029_img04.jpeg",
+          "width": 450,
+          "height": 265,
+          "colorspace": 3
+        },
+        {
+          "file": "simulation_package_p029_img05.jpeg",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/simulation_package_p029_img05.jpeg",
+          "width": 515,
+          "height": 302,
+          "colorspace": 3
+        },
+        {
+          "file": "simulation_package_p029_img06.jpeg",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/simulation_package_p029_img06.jpeg",
+          "width": 549,
+          "height": 234,
+          "colorspace": 3
+        }
+      ],
+      "image_count": 6,
+      "page_render": "simulation_package_p029.png"
+    },
+    {
+      "page": 30,
+      "title": "Further Resources",
+      "body_lines": [
+        "➢",
+        "Gazebo Fuel:",
+        "https://app.gazebosim.org/fuel/models",
+        "➢",
+        "SDF file format:",
+        "https://sdformat.org/spec/",
+        "➢",
+        "An XML parser (there are many others):",
+        "https://docs.python.org/3/library/xml.etree.elementtree.html",
+        "➢",
+        "ROS 2 tutorials:",
+        "https://docs.ros.org/en/humble/Tutorials.html",
+        "➢",
+        "Gazebo ignition:",
+        "https://gazebosim.org/home",
+        "➢",
+        "Nav2 autonomy:",
+        "https://docs.nav2.org/",
+        "➢",
+        "Turtlebot autonomy stack:",
+        "https://turtlebot.github.io/turtlebot4-user-manual/",
+        "➢",
+        "41068 seminars will spark ideas for other technical concepts",
+        "30"
+      ],
+      "all_text_native": "Further Resources\n➢\nGazebo Fuel:\nhttps://app.gazebosim.org/fuel/models\n➢\nSDF file format:\nhttps://sdformat.org/spec/\n➢\nAn XML parser (there are many others):\nhttps://docs.python.org/3/library/xml.etree.elementtree.html\n➢\nROS 2 tutorials:\nhttps://docs.ros.org/en/humble/Tutorials.html\n➢\nGazebo ignition:\nhttps://gazebosim.org/home\n➢\nNav2 autonomy:\nhttps://docs.nav2.org/\n➢\nTurtlebot autonomy stack:\nhttps://turtlebot.github.io/turtlebot4-user-manual/\n➢\n41068 seminars will spark ideas for other technical concepts\n30\n41068 Robotics Studio 1",
+      "ocr_text": "Further Resources x\neS\n\n> Gazebo Fuel: https://app.gazebosim.org/fuel/models\n\n> SDF file format: httos://sdformat.org/spec/\n\n> An XML parser (there are many others):\n\nhttps://docs.python.org/3/library/xml.etree.elementtree.html\n\n> ROS 2 tutorials: https://docs.ros.org/en/humble/Tutorials. htm!\n\n>» Gazebo ignition: httos://gazebosim.org/home\n\n> Nav2 autonomy: htips://docs.nav2.org/\n\n> Turtlebot autonomy stack: htips://turtlebot.github.io/turtlebot4-user-manual/\n\n> 41068 seminars will spark ideas for other technical concepts",
+      "slide_type": "text",
+      "embedded_images": [
+        {
+          "file": "simulation_package_p030_img01.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/simulation_package_p030_img01.png",
+          "width": 114,
+          "height": 53,
+          "colorspace": 3
+        },
+        {
+          "file": "simulation_package_p030_img02.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/simulation_package_p030_img02.png",
+          "width": 89,
+          "height": 154,
+          "colorspace": 3
+        }
+      ],
+      "image_count": 2,
+      "page_render": "simulation_package_p030.png"
+    },
+    {
+      "page": 31,
+      "title": "",
+      "body_lines": [
+        "Reflection"
+      ],
+      "all_text_native": "Reflection",
+      "ocr_text": "0 . ° ° oO e e O Oo e e 5 ° 5 5 oO e@ e Oo\n\nOO 0 e e e ° 0 ° ° 9 OO C e e e ° :\n\ne O OD e @ O . 0 . O o @ OO) C e @ O : :\n\ne 0 O e e@ O ° ° ° O° ° e O 0 e e@ O o °\nReflection",
+      "slide_type": "visual_heavy",
+      "embedded_images": [
+        {
+          "file": "simulation_package_p031_img01.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/simulation_package_p031_img01.png",
+          "width": 403,
+          "height": 1163,
+          "colorspace": 3
+        },
+        {
+          "file": "simulation_package_p031_img02.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/simulation_package_p031_img02.png",
+          "width": 403,
+          "height": 824,
+          "colorspace": 3
+        }
+      ],
+      "image_count": 2,
+      "page_render": "simulation_package_p031.png"
+    },
+    {
+      "page": 32,
+      "title": "Reminder of Expectations",
+      "body_lines": [
+        "➢",
+        "The supplied package gives you a working starting point",
+        "➢",
+        "You are not expected to use every supplied component",
+        "•",
+        "E.g., Start with 1 robot – it is not compulsory to have more than 1 robot",
+        "➢",
+        "You should change the simulation in any way relevant to your application:",
+        "•",
+        "Modify the supplied environment",
+        "•",
+        "Add/remove robots and sensors",
+        "•",
+        "Upgrade the autonomy stack",
+        "•",
+        "Create new ROS nodes",
+        "•",
+        "Use a completely different simulation setup",
+        "➢",
+        "Your goal is to create a simulation and software system that supports your proposed project",
+        "➢",
+        "Don’t make it unnecessarily complicated, since it will slow down your simulation speed",
+        "32"
+      ],
+      "all_text_native": "Reminder of Expectations\n➢\nThe supplied package gives you a working starting point\n➢\nYou are not expected to use every supplied component\n•\nE.g., Start with 1 robot – it is not compulsory to have more than 1 robot\n➢\nYou should change the simulation in any way relevant to your application:\n•\nModify the supplied environment\n•\nAdd/remove robots and sensors\n•\nUpgrade the autonomy stack\n•\nCreate new ROS nodes\n•\nUse a completely different simulation setup\n➢\nYour goal is to create a simulation and software system that supports your proposed project\n➢\nDon’t make it unnecessarily complicated, since it will slow down your simulation speed\n32\n41068 Robotics Studio 1",
+      "ocr_text": "Reminder of Expectations\n> The supplied package gives you a working starting point\n> You are not expected to use every supplied component\n¢ .g., Start with 1 robot — it is not compulsory to have more than 1 robot\n> You should change the simulation in any way relevant to your application:\n* Modify the supplied environment\n* Add/remove robots and sensors\n« Upgrade the autonomy stack\n* Create new ROS nodes\n« Use acompletely different simulation setup\n> Your goal is to create a simulation and software system that supports your proposed project\n> Don’t make it unnecessarily complicated, since it will slow down your simulation speed\n32",
+      "slide_type": "text",
+      "embedded_images": [
+        {
+          "file": "simulation_package_p032_img01.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/simulation_package_p032_img01.png",
+          "width": 114,
+          "height": 53,
+          "colorspace": 3
+        },
+        {
+          "file": "simulation_package_p032_img02.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/simulation_package_p032_img02.png",
+          "width": 89,
+          "height": 154,
+          "colorspace": 3
+        }
+      ],
+      "image_count": 2,
+      "page_render": "simulation_package_p032.png"
+    },
+    {
+      "page": 33,
+      "title": "Questions for your 41068 Project",
+      "body_lines": [
+        "➢",
+        "How will you adapt the simulation environment to support your project?",
+        "➢",
+        "How will you adapt the robots and sensors?",
+        "➢",
+        "How will you adapt and develop the autonomy?",
+        "➢",
+        "How will you test and evaluate your system?",
+        "33"
+      ],
+      "all_text_native": "Questions for your 41068 Project\n➢\nHow will you adapt the simulation environment to support your project?\n➢\nHow will you adapt the robots and sensors?\n➢\nHow will you adapt and develop the autonomy?\n➢\nHow will you test and evaluate your system?\n33\n41068 Robotics Studio 1",
+      "ocr_text": "Questions for your 41068 Project\n> How will you adapt the simulation environment to support your project?\n> How will you adapt the robots and sensors?\n> How will you adapt and develop the autonomy?\n> How will you test and evaluate your system?\n33",
+      "slide_type": "text",
+      "embedded_images": [
+        {
+          "file": "simulation_package_p033_img01.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/simulation_package_p033_img01.png",
+          "width": 114,
+          "height": 53,
+          "colorspace": 3
+        },
+        {
+          "file": "simulation_package_p033_img02.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/simulation_package_p033_img02.png",
+          "width": 89,
+          "height": 154,
+          "colorspace": 3
+        },
+        {
+          "file": "simulation_package_p033_img03.jpeg",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/simulation_package_p033_img03.jpeg",
+          "width": 722,
+          "height": 481,
+          "colorspace": 3
+        }
+      ],
+      "image_count": 3,
+      "page_render": "simulation_package_p033.png"
+    }
+  ]
+}
