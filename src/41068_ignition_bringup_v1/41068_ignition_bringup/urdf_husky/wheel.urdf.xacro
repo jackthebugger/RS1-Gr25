@@ -11,6 +11,7 @@
         <geometry>
           <mesh filename="file://$(find 41068_ignition_bringup)/urdf_husky/meshes/wheel.dae"/>
         </geometry>
+        <material name="dark"/>
       </visual>
 
       <collision>
