@@ -1,0 +1,6 @@
+Problem Definition
+
+Given the current map of the world oe Oe 6 eee
+where should a robot move to quickly Bs eee ee
+build a full map of the world? 2B Free °F ne, fi"
+UIS 24

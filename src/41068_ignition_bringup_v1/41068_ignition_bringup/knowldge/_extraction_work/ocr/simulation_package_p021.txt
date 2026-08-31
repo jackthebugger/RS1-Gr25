@@ -1,0 +1,33 @@
+gazebo reference="${prefix}base_scan
+material>Gazebo/FlatBlack</material
+Robot Models nares Fp enna Ee
+pose relative _to='"$ e base_scan'>® @ @ @ @ @</pose:
+visualize>$(arg laser_visual)</visualize
+topic>model/${gz_model_name}/scan</topic
+7 7 . update_rate>3</update_rate:
+> URDF.xacro files describe: gz_frame_id>${prefix}base_scan</gz_frame_id
+. . ny
+« Links and joints ery
+horizontal
+7 ie] samples>36@</samples.
+* Visual and collision geometry Seen
+. . CNM iy -8 abe SOA ROME) 28 a
+¢ Inertial properties erat wr sc, ar ae
+horizontal
+* Robot and sensor frames —
+. nS i
+* Reusable variables and macros max>40</max>
+resolution>@.@15</resolution:
+» Gazebo.xacro files add: bin
++ . Sey eobe Ska am
+* Simulated sensors and their parameters ree Meet
+stddev>@.01</stddev
+* Gazebo topic and model names ses
+. . uk t ik
+* Drive and controller plugins See
+f-eyd-1ele)
+gazebo reference="${pref Tae)
+sensor name="rgbd_camera" type="rgbd_camera
+camera
+horizontal_fov>2.0944</horizontal_fov:
+21

@@ -1,0 +1,7 @@
+How To Implement MCTS for My Problem?
+What is a state? —
+For each state, what actions can | do? et
+For each action, what is my next state? ts SK. i)
+For each complete sequence of actions, what is its reward?
+Scaled between roughly 0 and 1
+46

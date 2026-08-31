@@ -1,0 +1,7 @@
+or
+Outline x
+> Travelling salesman problem
+> Exploration
+>» Informative path planning
+>» Monte Carlo tree search
+> Behaviour trees

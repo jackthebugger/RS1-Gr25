@@ -1,0 +1,10 @@
+Where to Get Started: README .md
+Follow the README installation instructions
+* Build the workspace lo 5
++ Launch a simpler configuration frst (nn
+* Confirm it runs without error os ee Uo ett Ue
+* Drive the robot around oa ——
+* Try the more complicated configurations = = = Saepaeatch _ cra es
+* Preserve this state in Git ~
+* Start making changes eee peti. aoe tons —
+: > 14

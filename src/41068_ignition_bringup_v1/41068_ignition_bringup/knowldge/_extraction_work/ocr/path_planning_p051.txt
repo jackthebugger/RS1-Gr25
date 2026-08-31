@@ -1,0 +1,11 @@
+. eo
+
+RRT Algorithm x
+eS
+
+“steer” towards the random point
+
+nearest
+point random
+--@-_ point
+start e

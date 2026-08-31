@@ -1,0 +1,10 @@
+. . °
+Uncertainty: Example x
+“Ye
+> Define a random variable x
+> Let p(x;) be the probability that X = x;
+> Assume X is a Bernoulli variable: i.e. can be either “O” or “1”
+1 4 1
+1 nn al
+O"K=0 X= Ox=0 X24 O"K=0 X=
+Which has the highest uncertainty?

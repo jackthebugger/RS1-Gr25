@@ -1,0 +1,14 @@
+. . eo
+
+Solution: Nearest Neighbour x
+we
+
+> A“greedy” algorithm
+
+« Making a locally-optimal choice at each stage
+
+1. Pick a starting node
+
+2. Move to the nearest neighbour that has not yet been visited
+
+3. Repeat step 2

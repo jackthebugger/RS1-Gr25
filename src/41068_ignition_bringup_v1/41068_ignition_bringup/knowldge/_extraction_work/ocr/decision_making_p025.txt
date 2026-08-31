@@ -1,0 +1,5 @@
+Frontier-Based Exploration
+> Key idea: To gain the most new information, move to the boundary between free space
+and unknown space, i.e. “frontiers”
+Current map Frontier cells Frontier clusters
+25

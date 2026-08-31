@@ -1,0 +1,14 @@
+Probabilistic Roadmaps (PRM)
+Generate random graphs using random sampling
+1. Sample the C-space by generating a large number of samples
+2. For every sample that is collision free, create a graph node at that location
+3. Connect pairs of nodes that have a short, local path
+4. After generating the graph, it can be searched with Dijkstra’s or A*
+or te \ i e cS
+«i KR ry
+; Lhe We ost
+/ ee rs
+‘i > ar x) From 49274
+‘ ™ Space Robotics
++a —
+UE) 43

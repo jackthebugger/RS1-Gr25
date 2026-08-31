@@ -1,0 +1,17 @@
+Example Decision Making Hierarchy
+SLAM |. Map Processor Behavior Executive
+ontput 4 2 y stuck ie
+| ae ee Quan
+other |S: e ay Ral / | \ =,
+robots’ | § . Fei.. a 6-@= wets Fite
+maps a
+maps i conditions
+| ———_—_
+| I i
+communicate Global Planner Local Planner Controller
+to other ae aloe
+robots o \ trajectory commands
+Le>™ Zr pat oy . ;
+OARS 7
+ea
+4

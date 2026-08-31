@@ -1,0 +1,13 @@
+What is Path Planning?
+
+> Robot path planning is the process of figuring out how the robot moves
+from its current state to a target given its map, constraints, uncertainties.
+
+> Itincludes computing feasible, safe paths/trajectories; handling obstacles
+and dynamic objects; respecting kinematic/dynamic limits and non-
+holonomic constraints; and replanning as the world changes
+
+> Good path planning enables smooth, efficient, and safe motion, making real-
+time progress toward goals while balancing time, energy, and risk.
+
+8

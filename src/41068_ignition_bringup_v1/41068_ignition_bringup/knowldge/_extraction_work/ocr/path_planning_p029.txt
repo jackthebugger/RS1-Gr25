@@ -1,0 +1,11 @@
+C-free Space Discretisation: Cell Decomposition
+1. Create a grid
+2. Avoid any cells that intersect with an obstacle
+3. Connect a graph over the cells
+4. Plan shortest path
+5. Ifno plan exists, double the resolution and try again!
+
++ +
+
+3 3
+29

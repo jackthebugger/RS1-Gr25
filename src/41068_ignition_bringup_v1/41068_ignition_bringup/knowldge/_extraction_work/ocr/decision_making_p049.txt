@@ -1,0 +1,13 @@
+. . .
+Dec-MCTS for Multi-Robot Coordination Z,
+we
+e
+(a) Grow search tree for
+ti
+Performed asynchronously own actions
+by each robot r ,
+(c) Communicate distributions (b) Decentralised optimisation of
+with other robots probability distributions
+» & T&F
+ev f ,
+exnotnwas *% 129 ee

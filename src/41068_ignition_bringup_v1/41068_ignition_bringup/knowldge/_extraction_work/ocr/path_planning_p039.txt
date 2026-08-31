@@ -1,0 +1,14 @@
+A* cost heuristic x
+we
+Estimated path cost from —> f (x) = g(x) + h(x)
+start node to x to goal ZA \
+Path-cost: cost of the shortest Heuristic: Estimate of the
+path from start node to x distance to the goal
+S 2
+(0) 5
+a x
+I 6 |i (2) 2. h(x)
+A - 3 6 sea ~. .
+~h
+OTe ‘@)
+g(x)
