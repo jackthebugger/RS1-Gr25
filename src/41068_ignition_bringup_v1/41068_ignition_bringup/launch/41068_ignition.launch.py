@@ -95,19 +95,21 @@ def add_robot(
     ))
 
     ld.add_action(Node(
-        package='robot_localization',
-        executable='ekf_node',
+        package='41068_ignition_bringup',
+        executable='odometry_tf_broadcaster.py',
         namespace=namespace,
-        name='robot_localization',
+        name='odometry_tf_broadcaster',
         output='screen',
-        parameters=[
-            PathJoinSubstitution([config_path, localization_config]),
-            {'use_sim_time': use_sim_time},
-        ],
+        parameters=[{
+            'use_sim_time': use_sim_time,
+            'odom_topic': 'odometry',
+            'output_odom_topic': 'odom',
+            'odom_frame': frame_prefix + 'odom',
+            'base_frame': frame_prefix + 'base_link',
+        }],
         remappings=[
             ('/tf', 'tf'),
             ('/tf_static', 'tf_static'),
-            ('odometry/filtered', 'odom'),
         ],
         condition=robot_enabled,
     ))

@@ -74,7 +74,6 @@
         name="ignition::gazebo::systems::Imu">
       </plugin>
     </sensor>
-    <material>Gazebo/Grey</material>
   </gazebo>
  
   <!-- Move base directly without faffing around with diff drive controllers -->
@@ -107,7 +106,6 @@
   </gazebo>
 
   <gazebo reference="${prefix}base_scan">
-    <material>Gazebo/FlatBlack</material>
     <sensor type="gpu_lidar" name="lidar">
       <pose relative_to='${prefix}base_scan'>0 0 0 0 0 0</pose>
       <visualize>$(arg laser_visual)</visualize>
