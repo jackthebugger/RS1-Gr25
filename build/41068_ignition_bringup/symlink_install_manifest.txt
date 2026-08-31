@@ -84,6 +84,7 @@
 /home/jordan/RS1-Gr25/install/41068_ignition_bringup/local/lib/python3.10/dist-packages/rs1_nav/sim.py
 /home/jordan/RS1-Gr25/install/41068_ignition_bringup/lib/41068_ignition_bringup/dynamic_world_demo.py
 /home/jordan/RS1-Gr25/install/41068_ignition_bringup/lib/41068_ignition_bringup/basic_autonomy_demo.py
+/home/jordan/RS1-Gr25/install/41068_ignition_bringup/lib/41068_ignition_bringup/odometry_tf_broadcaster.py
 /home/jordan/RS1-Gr25/install/41068_ignition_bringup/lib/41068_ignition_bringup/obstacle_injector.py
 /home/jordan/RS1-Gr25/install/41068_ignition_bringup/share/ament_index/resource_index/package_run_dependencies/41068_ignition_bringup
 /home/jordan/RS1-Gr25/install/41068_ignition_bringup/share/ament_index/resource_index/parent_prefix_path/41068_ignition_bringup

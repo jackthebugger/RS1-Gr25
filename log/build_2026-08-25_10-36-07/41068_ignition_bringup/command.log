@@ -1,4 +1,0 @@
-Invoking command in '/home/jordan/G25_RS1/RS1-Gr25/build/41068_ignition_bringup': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake --build /home/jordan/G25_RS1/RS1-Gr25/build/41068_ignition_bringup -- -j8 -l8
-Invoked command in '/home/jordan/G25_RS1/RS1-Gr25/build/41068_ignition_bringup' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake --build /home/jordan/G25_RS1/RS1-Gr25/build/41068_ignition_bringup -- -j8 -l8
-Invoking command in '/home/jordan/G25_RS1/RS1-Gr25/build/41068_ignition_bringup': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake --install /home/jordan/G25_RS1/RS1-Gr25/build/41068_ignition_bringup
-Invoked command in '/home/jordan/G25_RS1/RS1-Gr25/build/41068_ignition_bringup' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake --install /home/jordan/G25_RS1/RS1-Gr25/build/41068_ignition_bringup

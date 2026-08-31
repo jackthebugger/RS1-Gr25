@@ -57,17 +57,10 @@ RM = /usr/bin/cmake -E rm -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-<<<<<<< HEAD
-CMAKE_SOURCE_DIR = /home/jordan/G25_RS1/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup
-
-# The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /home/jordan/G25_RS1/RS1-Gr25/build/41068_ignition_bringup
-=======
 CMAKE_SOURCE_DIR = /home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup
 
 # The top-level build directory on which CMake was run.
 CMAKE_BINARY_DIR = /home/jordan/RS1-Gr25/build/41068_ignition_bringup
->>>>>>> 0e5490223d813e908c4b26fdff6f2e093e504479
 
 #=============================================================================
 # Targets provided globally by CMake.
@@ -149,15 +142,9 @@ install/strip/fast: preinstall/fast
 
 # The main all target
 all: cmake_check_build_system
-<<<<<<< HEAD
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/jordan/G25_RS1/RS1-Gr25/build/41068_ignition_bringup/CMakeFiles /home/jordan/G25_RS1/RS1-Gr25/build/41068_ignition_bringup//CMakeFiles/progress.marks
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 all
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/jordan/G25_RS1/RS1-Gr25/build/41068_ignition_bringup/CMakeFiles 0
-=======
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/jordan/RS1-Gr25/build/41068_ignition_bringup/CMakeFiles /home/jordan/RS1-Gr25/build/41068_ignition_bringup//CMakeFiles/progress.marks
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 all
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/jordan/RS1-Gr25/build/41068_ignition_bringup/CMakeFiles 0
->>>>>>> 0e5490223d813e908c4b26fdff6f2e093e504479
 .PHONY : all
 
 # The main clean target

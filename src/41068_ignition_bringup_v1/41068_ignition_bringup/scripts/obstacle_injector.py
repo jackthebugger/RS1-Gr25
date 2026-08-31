@@ -6,7 +6,10 @@ the robot a goal, then run this while it is driving. The obstacle is a real
 Gazebo model, so the lidar detects it, the Nav2 costmaps update, the current
 path becomes invalid and Nav2 plans a new route by itself.
 
-    # drop a 3 m wide barrier across the robot's path
+    # from the package directory (no ros2 run / sourcing required):
+    python3 scripts/obstacle_injector.py --world simple_trees --x 0.0 --y -3.5 --name wall_1
+
+    # via ros2 run (source ~/RS1-Gr25/install/setup.bash first):
     ros2 run 41068_ignition_bringup obstacle_injector.py --x 1.5 --y -3.0
 
     # take it away again
@@ -17,7 +20,13 @@ never be detected; the default height of 1.5 m satisfies this.
 """
 
 import argparse
+import os
 import sys
+
+# Allow `python3 scripts/obstacle_injector.py` without sourcing the workspace.
+_PKG_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+if _PKG_ROOT not in sys.path:
+    sys.path.insert(0, _PKG_ROOT)
 
 from rs1_nav import GazeboWorld, ObstacleSpec
 
