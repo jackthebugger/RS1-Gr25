@@ -13,6 +13,7 @@ def generate_launch_description():
     slam = LaunchConfiguration('slam')
     nav2 = LaunchConfiguration('nav2')
     world = LaunchConfiguration('world')
+    gui = LaunchConfiguration('gui')
 
     ld.add_action(DeclareLaunchArgument(
         'use_sim_time',
@@ -40,6 +41,48 @@ def generate_launch_description():
         description='Which world to load',
         choices=['simple_trees', 'large_demo'],
     ))
+    ld.add_action(DeclareLaunchArgument(
+        'gui',
+        default_value='True',
+        description='Launch the Gazebo GUI. Set false for headless (useful on WSL).',
+    ))
+
+    # Starting position of the Husky, plus sensor tuning. Change these to move
+    # the start pose without editing any launch or Python implementation file.
+    passthrough_args = (
+        ('husky_x', '0.0', 'Husky spawn X position in metres'),
+        ('husky_y', '0.0', 'Husky spawn Y position in metres'),
+        ('husky_z', '0.4', 'Husky spawn Z position in metres'),
+        ('husky_yaw', '0.0', 'Husky spawn yaw in radians'),
+        ('enable_camera', 'false',
+         'Enable the Husky RGB-D camera. Known to stall Ignition on WSL/software GL; '
+         'not used by SLAM or Nav2.'),
+        ('lidar_update_rate', '10', 'Husky lidar update rate in Hz'),
+        ('lidar_samples', '360', 'Husky lidar horizontal sample count'),
+        ('camera_update_rate', '2', 'Husky RGB-D camera update rate in Hz'),
+        ('camera_width', '320', 'Husky RGB-D camera image width in pixels'),
+        ('camera_height', '240', 'Husky RGB-D camera image height in pixels'),
+        ('drive_plugin', 'diff_drive',
+         'Gazebo system used to drive the base: diff_drive or velocity_control'),
+        ('effective_wheel_separation', '0.94',
+         'Wheel separation used by DiffDrive, in metres (calibrated for skid-steer slip)'),
+        ('nav_start_delay', '15.0',
+         'Seconds after launch before starting SLAM/Nav2'),
+    )
+    for name, default, description in passthrough_args:
+        ld.add_action(DeclareLaunchArgument(name, default_value=default, description=description))
+
+    forwarded = {
+        'use_sim_time': use_sim_time,
+        'rviz': rviz,
+        'slam': slam,
+        'nav2': nav2,
+        'world': world,
+        'gui': gui,
+        'husky': 'True',
+        'parrot': 'False',
+    }
+    forwarded.update({name: LaunchConfiguration(name) for name, _d, _desc in passthrough_args})
 
     ld.add_action(IncludeLaunchDescription(
         PythonLaunchDescriptionSource(PathJoinSubstitution([
@@ -47,15 +90,7 @@ def generate_launch_description():
             'launch',
             '41068_ignition.launch.py',
         ])),
-        launch_arguments={
-            'use_sim_time': use_sim_time,
-            'rviz': rviz,
-            'slam': slam,
-            'nav2': nav2,
-            'world': world,
-            'husky': 'True',
-            'parrot': 'False',
-        }.items(),
+        launch_arguments=forwarded.items(),
     ))
 
     return ld

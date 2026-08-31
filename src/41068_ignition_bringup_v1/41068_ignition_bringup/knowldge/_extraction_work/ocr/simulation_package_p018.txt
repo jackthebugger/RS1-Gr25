@@ -1,0 +1,24 @@
+Namespaces and TF Frames
+
+> The supplied robots are always namespaced, even when running only one robot
+> Namespaces allow separate copies of nodes/topics for each robot
+
+> Multiple robots are an option — start by getting one robot working first!
+
+Husky Parrot
+
+ROS namespace: /huskyl ROS namespace: /parrotl
+
+ROS topics: /huskyl/scan ROS topics: /parrotl/scan
+/huskyl/camera/image /parrotl/camera/image
+/husky1/cmd_vel /parrotl/cmd_vel
+
+TF frame prefix: huskyl_ TF frame prefix: parrotl_
+
+TE frames: huskyl_ map TF frames: parrotl map
+huskyl_odom parrotl_odom
+huskyl_camera_link parrotl camera_link
+
+Gazebo model: huskyl Gazebo model: parrotl
+
+18

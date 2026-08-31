@@ -1,0 +1,15 @@
+Occupancy Grids a
+\ gee ‘ a eat!) *
+> Good for navigation ae a Be
+» Discretise the world into cells (2D) or Raa i La ae”
+voxels (3D) |) FR _
+. oo, fy ee es
+» Grid structure is rigid 7
+> Each cell is assumed to be occupied or HEE AE 4] TAR
+free space FEE ee A i ct _
+> Requires substantial memory resources ee po i ew
+> Created from LIDAR data using ray casting EEE Me H = :
+> Standard ROS packages Te atsccccre
+er BEEP eee a 2
+> Will discuss further in next section Rebtel Te
+UlS 18

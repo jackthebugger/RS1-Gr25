@@ -1,0 +1,12 @@
+. eo
+Tuning Parameters 7
+e
+> Planning horizon (size of tree) — Simulation —
+> Rollout policy
+* Random
+* Greedy
+> Exploration-exploitation parameter
+v2 Default
+Policy
+Y
+A

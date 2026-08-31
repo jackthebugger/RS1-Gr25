@@ -1,0 +1,16 @@
+| . For a Bernoulli (0 or 1) distribution re
+Uncertainty: Entropy ert x
+PLT AT ibe NV TT wy
+| || Z.urlcertainty \ |||
+entropy |. J
+> We need a method to quantify “uncertainty” PIAL T TT TT AT
+Rost fo i
+BTA ty
+. ET TTT TT
+> Entropy defined as: Tow! ||| tow | \
+uncertainty | | | uncertainty |
+n oh LETT
+H(X) = - > p(x; ) log, p(x: ) / ") ) \
+i=l
+Sum over all possible outcomes for X
+Fos Fos Fos

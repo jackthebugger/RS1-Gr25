@@ -1,0 +1,11 @@
+Maps for Subterranean Exploration (earlier seminar)
+Exploration maps Navigation roadmap Local planner map
+> OpenvVDB structure > Connect visited locations > Distance transform
+>» LiDAR- and camera- > Repairs for changes > Dust filtering
+
+observed labels > Shared across team > Computed on GPU
+> Shared across team
+
+ho} =e ]
+
+JIS 3

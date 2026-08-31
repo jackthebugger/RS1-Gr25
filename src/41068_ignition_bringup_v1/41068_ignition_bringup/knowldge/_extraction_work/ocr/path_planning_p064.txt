@@ -1,0 +1,15 @@
+Documentation
+
+> The documentation is very extensive, go read it!
+https://docs.nav2.orq/ aa
+
+> Overview from the developer: te a
+https://www.youtube.com/watch?v=QB7lOKp3ZDQ meee
+
+> Configuration guide: aan
+https://docs.nav2.org/configuration/index.html an
+
+> Original academic paper: —
+https://arxiv.org/pdf/2003.00368 tone
+
+64

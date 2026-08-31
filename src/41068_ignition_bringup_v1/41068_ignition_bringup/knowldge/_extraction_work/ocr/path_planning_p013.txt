@@ -1,0 +1,15 @@
+Configuration Space
+
+> Although the motion planning problem is defined in the regular world (the “workspace’”),
+it lives in another space: the configuration space
+
+> Arobot configuration q is a specification of the position of all robot points relative to a
+fixed coordinate system
+
+> Usually a configuration is expressed as a vector of positions and orientations
+
+> The configuration space (“C-space”) is the space of all possible configurations
+
+> The topology of C-space is usually not the Cartesian space
+
+13

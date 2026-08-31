@@ -1,0 +1,15 @@
+When does it go wrong?
+> Stuck in local minima
+> How to fix this?
+¢« Random walk when stuck “ 10 *10* et
+* Define potential fields without local minima (?) 2 5, _ =
+£ goal
+* Combine with global path planning : ‘
+6
+4
+X/m 2
+\ ses
+0 a ee a -2
+one 4 .
+8
+22

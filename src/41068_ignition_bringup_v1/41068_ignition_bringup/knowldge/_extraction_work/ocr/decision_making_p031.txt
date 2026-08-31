@@ -1,0 +1,13 @@
+Informative Path Planning
+> We have a quantity of interest that we wish to observe/estimate
+« Amap
+* The location of an object
+* The type of an object
+« Atemperature map of the ocean
+* Soil pH levels
+> Maintain a probabilistic belief of the quantity of interest
+Problem:
+Given the current belief of a quantity of interest,
+where should a robot move to quickly
+reduce the uncertainty of this belief?
+31

@@ -14,7 +14,7 @@ This README details:
 * How to launch the simulation with a Parrot aerial robot
 * How to launch the simulation with both the Husky and Parrot robots
 * How to run an demo involving dynamic simulation objects
-* How to launch a basic autonomy script for the Husky and Parrot that reads in a map and camera, and moves to random locations in the world
+* How to launch a basic autonomy script that sends the Husky to a configurable goal (and optionally replans around a live obstacle)
 
 ## Installation
 
@@ -117,6 +117,10 @@ Important arguments:
 * `nav2:=true/false` — launch Nav2 for each enabled robot. Nav2 also starts SLAM. Default: `false`.
 * `rviz:=true/false` — launch RViz. If multiple robots are enabled, one RViz window is opened for each robot. Default: `false`.
 * `world:=simple_trees/large_demo` — choose the Gazebo world. Default: `simple_trees`.
+* `husky_x`, `husky_y`, `husky_yaw` — Husky spawn pose in metres / radians. Default: origin, yaw 0.
+* `gui:=true/false` — Gazebo GUI. Default: `true` for the launch file; the Python demo starts headless unless you pass `--gui`.
+* `enable_camera:=true/false` — RGB-D camera. Default: `false` (can stall Ignition on WSL/software GL).
+* `drive_plugin:=diff_drive/velocity_control` — base driver. Default: `diff_drive` (required for turning).
 
 Robots are namespaced even in single-robot mode:
 
@@ -224,33 +228,33 @@ The same add-on launch can be used while running the Husky, the Parrot, or both 
 
 ## Basic autonomy demo
 
-This package also includes a small Python autonomy example. It is intended as skeleton code showing how a ROS node can read the current map, read a camera image, look up TF, send a goal to Nav2, and wait for the Nav2 action result.
-
-First, start a robot with SLAM and Nav2. For example:
+One command starts Gazebo, Nav2, and a start→goal mission. Every wait has a timeout; the simulation is torn down when the robot arrives or the mission fails.
 
 ```bash
-ros2 launch 41068_ignition_bringup 41068_ignition_husky.launch.py slam:=true nav2:=true rviz:=true world:=large_demo
+export ROS_LOCALHOST_ONLY=1
+source /opt/ros/humble/setup.bash
+source ~/RS1-Gr25/install/setup.bash   # or your workspace
+cd path/to/41068_ignition_bringup
+
+python3 scripts/basic_autonomy_demo.py
+python3 scripts/basic_autonomy_demo.py --start 0 0 0 --goal 0 -5 0 --rviz
+python3 scripts/basic_autonomy_demo.py --replan
 ```
 
-Then, in a second terminal, run the autonomy demo for that robot:
+`--replan` inserts a real Gazebo wall on the current path. Success requires the lidar to see it, Nav2 to publish a new path, and the robot to reach the goal.
+
+You can still launch the simulation yourself and click **Nav2 Goal** in RViz (`husky1_map`), or attach the demo to an already-running stack:
 
 ```bash
-ros2 launch 41068_ignition_bringup 41068_autonomy_demo.launch.py robot:=husky1
+ros2 launch 41068_ignition_bringup 41068_ignition_husky.launch.py nav2:=true rviz:=true
+# second terminal:
+ros2 launch 41068_ignition_bringup 41068_autonomy_demo.launch.py robot:=husky1 \
+  mission_mode:=single_goal goal_x:=0.0 goal_y:=-5.0 goal_yaw:=0.0
 ```
 
-For the Parrot, first launch the Parrot simulation, then run:
+`mission_mode:=random_walk` keeps the original course example (map-aware random Nav2 goals). That mode expects the simulation to already be running.
 
-```bash
-ros2 launch 41068_ignition_bringup 41068_autonomy_demo.launch.py robot:=parrot1
-```
-
-The launch file only starts the autonomy node. It does not start Gazebo, SLAM, Nav2, or RViz. The example node is here:
-
-```text
-scripts/basic_autonomy_demo.py
-```
-
-This code is provided as a starting point for your project to develop your autonomy software. It currently performs a simple map-aware random walk, with a small camera-brightness score influencing the next Nav2 goal. Read the Python code and comments rather than treating this README as the main explanation. The code is deliberately simple so that you can adapt it for your own project. You are welcome to use it how you see fit, or you could disregard it and find a different starting point. While this example is in Python, you are also very welcome to use C++ instead.
+The script is `scripts/basic_autonomy_demo.py`. See `pathplanning_and_movement_implementation.md` §51–§52 for start/goal details and §54 for presentation wording.
 
 ## Notes on namespaces and TF
 

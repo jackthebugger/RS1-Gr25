@@ -1,0 +1,6 @@
+. ; ote
+Applying Bayes’ Theorem x
+Posterior map Measurement model Prior map
+* |
+= yes’ rule
+p(m|z) rz)

@@ -1,0 +1,20 @@
+Example Decision Making Hierarchy
+Previous
+seminar [ep
+SLA Map Processor Behavior Executive
+out 4 ca e stuck
+ho ed 1
+oe a ate or a gE
+othe: {dees ae ge | \
+robot | “lacie 6-@= Seacy "ee
+map %
+maps i conditions
+| ———_—_
+| r i
+communicate Global Planner Local Planner Controller
+to other A motor
+robots o \ trajectory commands
+2 ae \ Le
+a path
+; fe 2, &
+7

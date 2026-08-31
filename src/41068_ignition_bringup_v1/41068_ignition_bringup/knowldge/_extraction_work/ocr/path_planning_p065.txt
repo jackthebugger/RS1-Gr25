@@ -1,0 +1,18 @@
+: o
+Overview <
+‘°
+wy
+aa eT e ese eeeeeeeeey
+| Waypoint Follower \ | Autonomy System '
+eT BT Plugins
+BT Navigator Server e
+TF
+All of the plugins can be
+mp Controller Planner Behavior Smoother .
+Server Server Server Server swapped and customised
+Sensor Data er ues
+Peer ee ny Global Costmap
+fer ee
+i] i] Ceo Route
+Server
+: Velocity Smoother — ! Collision Monitor —| Robot Base

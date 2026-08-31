@@ -1,0 +1,8 @@
+RRT (Rapidly-Exploring Random Trees)
+> Adifferent type of randomised algorithm for path planning
+> Conceptually simple: Incrementally grow a tree that explores the space
+> Works well in high-dimensional state space
+> Easily incorporate differential constraints
+> Applicable to a broad class of problems
+> Lots of variants, e.g. RRT* for asymptotic optimality
+47

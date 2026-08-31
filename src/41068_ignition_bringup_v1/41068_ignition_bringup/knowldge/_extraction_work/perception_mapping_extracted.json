@@ -1,0 +1,2301 @@
+{
+  "source_file": "perception_mapping.pdf",
+  "metadata": {
+    "format": "PDF 1.7",
+    "title": "Title Heading",
+    "author": "Graeme Best",
+    "subject": "",
+    "keywords": "",
+    "creator": "Microsoft® PowerPoint® for Microsoft 365",
+    "producer": "Microsoft® PowerPoint® for Microsoft 365",
+    "creationDate": "D:20260813123239+10'00'",
+    "modDate": "D:20260813123239+10'00'",
+    "trapped": "",
+    "encryption": null
+  },
+  "page_count": 43,
+  "extraction_date": "2026-08-28T15:37:13.640400",
+  "slides": [
+    {
+      "page": 1,
+      "title": "Perception and Mapping",
+      "body_lines": [
+        "Graeme Best",
+        "Faculty of Engineering and Information Technology",
+        "University of Technology Sydney"
+      ],
+      "all_text_native": "Perception and Mapping\nGraeme Best\n41068 Robotics Studio 1\nFaculty of Engineering and Information Technology\nUniversity of Technology Sydney",
+      "ocr_text": "e @ e @\n_ yet\nD of Vb 3 \" + +  @ @\n5 ki e@\nWl =.\nwide °\nPerception and Mapping ae | Bai, =\n; eB :\nat ‘il\nGraeme Best : 45. e e\n41068 Robotics Studio 1 >\nPEGE itn Seana\nFaculty of Engineering and Information Technology ~\nUniversity of Technology Sydney . “4 . | ee i\n== | ae\ne we A Peaks\neo\n. e e a",
+      "slide_type": "text",
+      "embedded_images": [
+        {
+          "file": "perception_mapping_p001_img01.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p001_img01.png",
+          "width": 163,
+          "height": 155,
+          "colorspace": 3
+        },
+        {
+          "file": "perception_mapping_p001_img02.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p001_img02.png",
+          "width": 884,
+          "height": 1163,
+          "colorspace": 3
+        },
+        {
+          "file": "perception_mapping_p001_img03.jpeg",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p001_img03.jpeg",
+          "width": 581,
+          "height": 557,
+          "colorspace": 3
+        },
+        {
+          "file": "perception_mapping_p001_img04.jpeg",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p001_img04.jpeg",
+          "width": 645,
+          "height": 546,
+          "colorspace": 3
+        },
+        {
+          "file": "perception_mapping_p001_img05.jpeg",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p001_img05.jpeg",
+          "width": 642,
+          "height": 520,
+          "colorspace": 3
+        },
+        {
+          "file": "perception_mapping_p001_img06.jpeg",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p001_img06.jpeg",
+          "width": 581,
+          "height": 625,
+          "colorspace": 3
+        }
+      ],
+      "image_count": 6,
+      "page_render": "perception_mapping_p001.png"
+    },
+    {
+      "page": 2,
+      "title": "Robot Perception Tasks",
+      "body_lines": [
+        "Fruit tree modelling",
+        "Ocean monitoring",
+        "Subterranean mapping",
+        "2"
+      ],
+      "all_text_native": "Robot Perception Tasks\nFruit tree modelling\nOcean monitoring\nSubterranean mapping\n2\n41068 Robotics Studio 1",
+      "ocr_text": "Robot Perception Tasks\nFruit tree modelling Ocean monitoring Subterranean mapping\n, it al\ne ee ee ec\nBA\not et LZ: bs ‘\nere ~~ > we",
+      "slide_type": "mixed",
+      "embedded_images": [
+        {
+          "file": "perception_mapping_p002_img01.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p002_img01.png",
+          "width": 114,
+          "height": 53,
+          "colorspace": 3
+        },
+        {
+          "file": "perception_mapping_p002_img02.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p002_img02.png",
+          "width": 89,
+          "height": 154,
+          "colorspace": 3
+        },
+        {
+          "file": "perception_mapping_p002_img03.jpeg",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p002_img03.jpeg",
+          "width": 1099,
+          "height": 622,
+          "colorspace": 3
+        },
+        {
+          "file": "perception_mapping_p002_img04.jpeg",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p002_img04.jpeg",
+          "width": 628,
+          "height": 419,
+          "colorspace": 3
+        },
+        {
+          "file": "perception_mapping_p002_img05.jpeg",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p002_img05.jpeg",
+          "width": 337,
+          "height": 394,
+          "colorspace": 3
+        },
+        {
+          "file": "perception_mapping_p002_img06.jpeg",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p002_img06.jpeg",
+          "width": 307,
+          "height": 355,
+          "colorspace": 3
+        },
+        {
+          "file": "perception_mapping_p002_img07.jpeg",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p002_img07.jpeg",
+          "width": 205,
+          "height": 165,
+          "colorspace": 3
+        },
+        {
+          "file": "perception_mapping_p002_img08.jpeg",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p002_img08.jpeg",
+          "width": 496,
+          "height": 400,
+          "colorspace": 3
+        },
+        {
+          "file": "perception_mapping_p002_img09.jpeg",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p002_img09.jpeg",
+          "width": 540,
+          "height": 351,
+          "colorspace": 3
+        },
+        {
+          "file": "perception_mapping_p002_img10.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p002_img10.png",
+          "width": 176,
+          "height": 273,
+          "colorspace": 3
+        },
+        {
+          "file": "perception_mapping_p002_img11.jpeg",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p002_img11.jpeg",
+          "width": 313,
+          "height": 520,
+          "colorspace": 3
+        }
+      ],
+      "image_count": 11,
+      "page_render": "perception_mapping_p002.png"
+    },
+    {
+      "page": 3,
+      "title": "Maps for Subterranean Exploration (earlier seminar)",
+      "body_lines": [
+        "Exploration maps",
+        "Navigation roadmap",
+        "Local planner map",
+        "➢",
+        "OpenVDB structure",
+        "➢",
+        "Connect visited locations",
+        "➢",
+        "Distance transform",
+        "➢",
+        "LiDAR- and camera-",
+        "➢",
+        "Repairs for changes",
+        "➢",
+        "Dust filtering",
+        "observed labels",
+        "Shared across team",
+        "Computed on GPU",
+        "➢",
+        "➢",
+        "➢",
+        "Shared across team",
+        "3"
+      ],
+      "all_text_native": "Maps for Subterranean Exploration (earlier seminar)\nExploration maps\nNavigation roadmap\nLocal planner map\n➢\nOpenVDB structure\n➢\nConnect visited locations\n➢\nDistance transform\n➢\nLiDAR- and camera-\n➢\nRepairs for changes\n➢\nDust filtering\nobserved labels\nShared across team\nComputed on GPU\n➢\n➢\n➢\nShared across team\n3\n41068 Robotics Studio 1",
+      "ocr_text": "Maps for Subterranean Exploration (earlier seminar)\nExploration maps Navigation roadmap Local planner map\n> OpenvVDB structure > Connect visited locations > Distance transform\n>» LiDAR- and camera- > Repairs for changes > Dust filtering\n\nobserved labels > Shared across team > Computed on GPU\n> Shared across team\n\nho} =e ]\n\nJIS 3",
+      "slide_type": "text",
+      "embedded_images": [
+        {
+          "file": "perception_mapping_p003_img01.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p003_img01.png",
+          "width": 114,
+          "height": 53,
+          "colorspace": 3
+        },
+        {
+          "file": "perception_mapping_p003_img02.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p003_img02.png",
+          "width": 89,
+          "height": 154,
+          "colorspace": 3
+        },
+        {
+          "file": "perception_mapping_p003_img03.jpeg",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p003_img03.jpeg",
+          "width": 412,
+          "height": 541,
+          "colorspace": 3
+        },
+        {
+          "file": "perception_mapping_p003_img04.jpeg",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p003_img04.jpeg",
+          "width": 847,
+          "height": 607,
+          "colorspace": 3
+        },
+        {
+          "file": "perception_mapping_p003_img05.jpeg",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p003_img05.jpeg",
+          "width": 622,
+          "height": 443,
+          "colorspace": 3
+        }
+      ],
+      "image_count": 5,
+      "page_render": "perception_mapping_p003.png"
+    },
+    {
+      "page": 4,
+      "title": "",
+      "body_lines": [
+        "4"
+      ],
+      "all_text_native": "4\n41068 Robotics Studio 1",
+      "ocr_text": "— Sa\nSix. so, ao) 5\n. - : & =—>.~\n— - — ~~,\nom ? Se\n° Bs : *s,\n| aa .\n, a — aa -< m “4 >\nmy 7 SS.\n= | os\nbk | _\nDa ie »\n4",
+      "slide_type": "visual_heavy",
+      "embedded_images": [
+        {
+          "file": "perception_mapping_p004_img01.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p004_img01.png",
+          "width": 114,
+          "height": 53,
+          "colorspace": 3
+        },
+        {
+          "file": "perception_mapping_p004_img02.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p004_img02.png",
+          "width": 89,
+          "height": 154,
+          "colorspace": 3
+        },
+        {
+          "file": "perception_mapping_p004_img03.jpeg",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p004_img03.jpeg",
+          "width": 1280,
+          "height": 720,
+          "colorspace": 3
+        }
+      ],
+      "image_count": 3,
+      "page_render": "perception_mapping_p004.png"
+    },
+    {
+      "page": 5,
+      "title": "",
+      "body_lines": [
+        "5"
+      ],
+      "all_text_native": "5\n41068 Robotics Studio 1",
+      "ocr_text": "le aa\nMapping\nPe |\n3 4 a a >\nms —— |\n: -",
+      "slide_type": "visual_heavy",
+      "embedded_images": [
+        {
+          "file": "perception_mapping_p005_img01.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p005_img01.png",
+          "width": 114,
+          "height": 53,
+          "colorspace": 3
+        },
+        {
+          "file": "perception_mapping_p005_img02.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p005_img02.png",
+          "width": 89,
+          "height": 154,
+          "colorspace": 3
+        },
+        {
+          "file": "perception_mapping_p005_img03.jpeg",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p005_img03.jpeg",
+          "width": 1200,
+          "height": 678,
+          "colorspace": 3
+        }
+      ],
+      "image_count": 3,
+      "page_render": "perception_mapping_p005.png"
+    },
+    {
+      "page": 6,
+      "title": "Questions for your 41068 Project",
+      "body_lines": [
+        "➢",
+        "Ideas for different types of maps",
+        "➢",
+        "Your project must have some perception/mapping",
+        "➢",
+        "Your project must have a user interface",
+        "➢",
+        "What types of maps will your robot produce?",
+        "•",
+        "For primary task",
+        "•",
+        "For autonomy",
+        "➢",
+        "What information will these maps contain?",
+        "➢",
+        "How will you show these maps in your User Interface?",
+        "6"
+      ],
+      "all_text_native": "Questions for your 41068 Project\n➢\nIdeas for different types of maps\n➢\nYour project must have some perception/mapping\n➢\nYour project must have a user interface\n➢\nWhat types of maps will your robot produce?\n•\nFor primary task\n•\nFor autonomy\n➢\nWhat information will these maps contain?\n➢\nHow will you show these maps in your User Interface?\n6\n41068 Robotics Studio 1",
+      "ocr_text": "Questions for your 41068 Project\n> Ideas for different types of maps\n> Your project must have some perception/mapping\n> Your project must have a user interface\n> What types of maps will your robot produce?\n\n* For primary task i\n\n* For autonomy var\n>» What information will these maps contain? Pr.\n> How will you show these maps in your User Interface? a z\n\n6",
+      "slide_type": "text",
+      "embedded_images": [
+        {
+          "file": "perception_mapping_p006_img01.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p006_img01.png",
+          "width": 114,
+          "height": 53,
+          "colorspace": 3
+        },
+        {
+          "file": "perception_mapping_p006_img02.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p006_img02.png",
+          "width": 89,
+          "height": 154,
+          "colorspace": 3
+        },
+        {
+          "file": "perception_mapping_p006_img03.jpeg",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p006_img03.jpeg",
+          "width": 722,
+          "height": 481,
+          "colorspace": 3
+        }
+      ],
+      "image_count": 3,
+      "page_render": "perception_mapping_p006.png"
+    },
+    {
+      "page": 7,
+      "title": "Outline",
+      "body_lines": [
+        "➢",
+        "Sensors for mapping",
+        "➢",
+        "Map representations – many examples",
+        "➢",
+        "Occupancy grids",
+        "➢",
+        "Reflection",
+        "7"
+      ],
+      "all_text_native": "Outline\n➢\nSensors for mapping\n➢\nMap representations – many examples\n➢\nOccupancy grids\n➢\nReflection\n7\n41068 Robotics Studio 1",
+      "ocr_text": "oe\nOutline %\n> Sensors for mapping\n>» Map representations — many examples\n> Occupancy grids\n> Reflection",
+      "slide_type": "text",
+      "embedded_images": [
+        {
+          "file": "perception_mapping_p007_img01.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p007_img01.png",
+          "width": 114,
+          "height": 53,
+          "colorspace": 3
+        },
+        {
+          "file": "perception_mapping_p007_img02.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p007_img02.png",
+          "width": 89,
+          "height": 154,
+          "colorspace": 3
+        }
+      ],
+      "image_count": 2,
+      "page_render": "perception_mapping_p007.png"
+    },
+    {
+      "page": 8,
+      "title": "",
+      "body_lines": [
+        "Sensors for Mapping"
+      ],
+      "all_text_native": "Sensors for Mapping",
+      "ocr_text": "S . ° ° Oo e@ e O O e e cS . : 9 OC e@ e oO\n\n@ e@ © e e e 0 : . ° : OO C e e e ° :\n\n@ C) O) e@ e@ O . : . O ° e@ @ CO @ @ OC . :\n\ne Oo OQ e e O ° ° . ° ° e O O e e © ° °\nSensors for Mapping",
+      "slide_type": "visual_heavy",
+      "embedded_images": [
+        {
+          "file": "perception_mapping_p008_img01.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p008_img01.png",
+          "width": 403,
+          "height": 1163,
+          "colorspace": 3
+        },
+        {
+          "file": "perception_mapping_p008_img02.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p008_img02.png",
+          "width": 403,
+          "height": 824,
+          "colorspace": 3
+        }
+      ],
+      "image_count": 2,
+      "page_render": "perception_mapping_p008.png"
+    },
+    {
+      "page": 9,
+      "title": "Sensors",
+      "body_lines": [
+        "➢",
+        "A device for measuring some physical quantity",
+        "➢",
+        "The sensor usually converts from the measurement space to an electrical",
+        "signal",
+        "Temperature",
+        "Distance",
+        "Force",
+        "SENSOR",
+        "Electrical Signal",
+        "Speed",
+        "Sound",
+        "Light",
+        "9"
+      ],
+      "all_text_native": "Sensors\n➢\nA device for measuring some physical quantity\n➢\nThe sensor usually converts from the measurement space to an electrical\nsignal\nTemperature\nDistance\nForce\nSENSOR\nElectrical Signal\nSpeed\nSound\nLight\n9\n41068 Robotics Studio 1",
+      "ocr_text": "Sensors\n> Adevice for measuring some physical quantity\n>» The sensor usually converts from the measurement space to an electrical\nsignal\nSENSOR Electrical Signal\nLight\n9",
+      "slide_type": "text",
+      "embedded_images": [
+        {
+          "file": "perception_mapping_p009_img01.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p009_img01.png",
+          "width": 114,
+          "height": 53,
+          "colorspace": 3
+        },
+        {
+          "file": "perception_mapping_p009_img02.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p009_img02.png",
+          "width": 89,
+          "height": 154,
+          "colorspace": 3
+        }
+      ],
+      "image_count": 2,
+      "page_render": "perception_mapping_p009.png"
+    },
+    {
+      "page": 10,
+      "title": "Sensors on Autonomous Cars",
+      "body_lines": [
+        "machinedesign.com",
+        "10"
+      ],
+      "all_text_native": "Sensors on Autonomous Cars\nmachinedesign.com\n10\n41068 Robotics Studio 1",
+      "ocr_text": "Velodyne .\nf B GPS antenna ene\nFf 2&2 . -_ wae\nSteering ‘amera Le INS solution dz mi ry\naaa : ee FA=) ||) rey\n- © 7 ee | =a\nee. o | eZ Z Av sss no\n71 | « i - i <=>» > ¥\nradar - = on ee ae\nie apy ae: } lay), Sane\nWS ae J A 1 =\nulti-layer y/\nlaser scanner ad ‘ a Ce g ah\n_ v XQ ff /\nJ /\nBrake APS signal Gear shift DMI 2D laser V\nactuator actuator scanner\n: a ie\none > & recog pi |\nos Se irr —— 7\ntN @ eS\nmm ; a aay =\nal L L SITGANTE Tg! — * =\nBes: § Jae a, —\n— ee i ~\n: a sf S i 4 ——— -\ntse miro = \"3 6 gm Se 3 9 9\noa oot, pe E) E\nis cami “@): {Oy May ~N i\ner —— 7\nmachinedesign.com\n10",
+      "slide_type": "visual_heavy",
+      "embedded_images": [
+        {
+          "file": "perception_mapping_p010_img01.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p010_img01.png",
+          "width": 114,
+          "height": 53,
+          "colorspace": 3
+        },
+        {
+          "file": "perception_mapping_p010_img02.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p010_img02.png",
+          "width": 89,
+          "height": 154,
+          "colorspace": 3
+        },
+        {
+          "file": "perception_mapping_p010_img03.jpeg",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p010_img03.jpeg",
+          "width": 770,
+          "height": 482,
+          "colorspace": 3
+        },
+        {
+          "file": "perception_mapping_p010_img04.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p010_img04.png",
+          "width": 989,
+          "height": 705,
+          "colorspace": 1
+        },
+        {
+          "file": "perception_mapping_p010_img05.jpeg",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p010_img05.jpeg",
+          "width": 1024,
+          "height": 596,
+          "colorspace": 3
+        },
+        {
+          "file": "perception_mapping_p010_img06.jpeg",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p010_img06.jpeg",
+          "width": 700,
+          "height": 401,
+          "colorspace": 3
+        }
+      ],
+      "image_count": 6,
+      "page_render": "perception_mapping_p010.png"
+    },
+    {
+      "page": 11,
+      "title": "Sensors on Mobile Robots",
+      "body_lines": [
+        "100m",
+        "11"
+      ],
+      "all_text_native": "Sensors on Mobile Robots\n100m\n11\n41068 Robotics Studio 1",
+      "ocr_text": "Sensors on Mobile Robots\nv | rT er\nEthernet Antenna ———_ | q ——— AN Yi ;\nEmergency Stop —______ Ao. a siareeeuee\nConsole 7] ‘ - -\nexis / te gil Se a vo -s\nDoor Arc — Le > ay a > a - y:\nt a f\nsonar Sensor H00OKO © O O00) ee \" Pal i\nEnclosure — Gane Site. ay i | Bee\nDoo es Per 1 ie i a Dom\nIR Sensor soofeo co o olooos cee . —\" oS A b | ay he I Z ee : ‘\nSa a ii. \\ ce A { of }\nBase | tn! ‘ po Ma ow : i g: 3, i] f\nWeel 7 a ee Pia a *\n== 100m\n11",
+      "slide_type": "visual_heavy",
+      "embedded_images": [
+        {
+          "file": "perception_mapping_p011_img01.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p011_img01.png",
+          "width": 114,
+          "height": 53,
+          "colorspace": 3
+        },
+        {
+          "file": "perception_mapping_p011_img02.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p011_img02.png",
+          "width": 89,
+          "height": 154,
+          "colorspace": 3
+        },
+        {
+          "file": "perception_mapping_p011_img03.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p011_img03.png",
+          "width": 434,
+          "height": 678,
+          "colorspace": 3
+        },
+        {
+          "file": "perception_mapping_p011_img04.jpeg",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p011_img04.jpeg",
+          "width": 682,
+          "height": 682,
+          "colorspace": 3
+        },
+        {
+          "file": "perception_mapping_p011_img05.jpeg",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p011_img05.jpeg",
+          "width": 532,
+          "height": 384,
+          "colorspace": 3
+        },
+        {
+          "file": "perception_mapping_p011_img06.jpeg",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p011_img06.jpeg",
+          "width": 470,
+          "height": 247,
+          "colorspace": 3
+        },
+        {
+          "file": "perception_mapping_p011_img07.jpeg",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p011_img07.jpeg",
+          "width": 612,
+          "height": 347,
+          "colorspace": 3
+        }
+      ],
+      "image_count": 7,
+      "page_render": "perception_mapping_p011.png"
+    },
+    {
+      "page": 12,
+      "title": "Sensors on Mars Rover Perseverance",
+      "body_lines": [
+        "See",
+        "https://science.nasa.gov/mission/mars-2020-perseverance/science-instruments/",
+        "https://science.nasa.gov/mission/mars-2020-perseverance/rover-components/",
+        "12"
+      ],
+      "all_text_native": "Sensors on Mars Rover Perseverance\nSee\nhttps://science.nasa.gov/mission/mars-2020-perseverance/science-instruments/\nhttps://science.nasa.gov/mission/mars-2020-perseverance/rover-components/\n12\n41068 Robotics Studio 1",
+      "ocr_text": "Mars 2020 (Roma ermager\nMastcamz Mastcam2\nnavn ( J) Nevcom sien\nKee J 7 ATES\nKe 7 —\nRear Hazcams nN Suge i “i <i Cs ees = me\n2 a ae a 1 — = a ~\n§ ae hah: as ely (ec Car) Ea == fo eal ES oe\n< By Sees, pe) eT ee ee os =< = = VS.\nbe ele, xa ates ie Ne ee Pe Sg pt ag SS\nON ey ae Ee Oe nee Re .\n: tS bc ne Se\nBs, 5 x =] wa\n3 Front Hazcems: Total cameras: 23 J]\nve Engineering cameras: 9\nScience cameras: 7\nEntry, descent and landing cameras: 7\nee oe J\nAMPAKEeet Pe ee ete of maa Pyle?\nSe NO < a Peed ce ies\n— w\\, TY C rie een eae : — s+, le\n“eer ES ais 4 ot sensor Z ae od poe SS ete Me yg ena\nPer Se tt he Se hk s Pn ae\nPerea yy SS ioe 4 Aang S . i, . =~ »! Pais Pee\nea sy s MWS | aah any ad y x Bes a Ss\n7 } 7 A So od Bas Mpa ct ==\nmea a af Rl Spey pe Pip Calton Target = Bye eee ee\not Brae ay ee a fee , Ce ZZZ=m\noe 7d OT a a oe ae EP sd E es Zz ee i ze\nsi a mee ea = , < ZZ Ze 5\nBRP siren } A = sy EE E Se\n> tir a “ws en ZA Ze a Zz =\nas cae Dea 7 EZ 53 — | ee SI\n(# a era eee es eee eos ae 5 <\n9) co —— - — 2 SE fs om ee\nFee ‘. - i EDaESE:\nPeace\nSee https://science.nasa.gov/mission/mars-2020-perseverance/science-instruments/\nhttps://science.nasa.gov/mission/mars-2020-perseverance/rover-components/\n12",
+      "slide_type": "text",
+      "embedded_images": [
+        {
+          "file": "perception_mapping_p012_img01.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p012_img01.png",
+          "width": 114,
+          "height": 53,
+          "colorspace": 3
+        },
+        {
+          "file": "perception_mapping_p012_img02.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p012_img02.png",
+          "width": 89,
+          "height": 154,
+          "colorspace": 3
+        },
+        {
+          "file": "perception_mapping_p012_img03.jpeg",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p012_img03.jpeg",
+          "width": 1086,
+          "height": 601,
+          "colorspace": 3
+        },
+        {
+          "file": "perception_mapping_p012_img04.jpeg",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p012_img04.jpeg",
+          "width": 991,
+          "height": 615,
+          "colorspace": 3
+        },
+        {
+          "file": "perception_mapping_p012_img05.jpeg",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p012_img05.jpeg",
+          "width": 714,
+          "height": 156,
+          "colorspace": 3
+        },
+        {
+          "file": "perception_mapping_p012_img06.jpeg",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p012_img06.jpeg",
+          "width": 601,
+          "height": 449,
+          "colorspace": 3
+        },
+        {
+          "file": "perception_mapping_p012_img07.jpeg",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p012_img07.jpeg",
+          "width": 798,
+          "height": 443,
+          "colorspace": 3
+        }
+      ],
+      "image_count": 7,
+      "page_render": "perception_mapping_p012.png"
+    },
+    {
+      "page": 13,
+      "title": "LIDAR: LI ght D etection A nd R anging",
+      "body_lines": [
+        "➢",
+        "Measure the time of flight of laser light pulses",
+        "➢",
+        "The pulsed laser beam is deflected by an internal",
+        "rotating mirror",
+        "➢",
+        "The measurement data is available in real time via an",
+        "interface",
+        "13"
+      ],
+      "all_text_native": "LIDAR:\nLI\nght\nD\netection\nA\nnd\nR\nanging\n➢\nMeasure the time of flight of laser light pulses\n➢\nThe pulsed laser beam is deflected by an internal\nrotating mirror\n➢\nThe measurement data is available in real time via an\ninterface\n13\n41068 Robotics Studio 1",
+      "ocr_text": "LIDAR: Light Detection And Ranging ,\n> Measure the time of flight of laser light pulses SS\n> The pulsed laser beam is deflected by an internal ———\nrotating mirror\n> The measurement data is available in real time via an\ninterface @®\nB object i °\n——_ Ns wy & ,\n13",
+      "slide_type": "text",
+      "embedded_images": [
+        {
+          "file": "perception_mapping_p013_img01.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p013_img01.png",
+          "width": 114,
+          "height": 53,
+          "colorspace": 3
+        },
+        {
+          "file": "perception_mapping_p013_img02.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p013_img02.png",
+          "width": 89,
+          "height": 154,
+          "colorspace": 3
+        },
+        {
+          "file": "perception_mapping_p013_img03.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p013_img03.png",
+          "width": 461,
+          "height": 133,
+          "colorspace": 3
+        },
+        {
+          "file": "perception_mapping_p013_img04.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p013_img04.png",
+          "width": 641,
+          "height": 1391,
+          "colorspace": 3
+        },
+        {
+          "file": "perception_mapping_p013_img05.jpeg",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p013_img05.jpeg",
+          "width": 700,
+          "height": 502,
+          "colorspace": 3
+        },
+        {
+          "file": "perception_mapping_p013_img06.jpeg",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p013_img06.jpeg",
+          "width": 240,
+          "height": 237,
+          "colorspace": 3
+        },
+        {
+          "file": "perception_mapping_p013_img07.jpeg",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p013_img07.jpeg",
+          "width": 476,
+          "height": 314,
+          "colorspace": 3
+        },
+        {
+          "file": "perception_mapping_p013_img08.jpeg",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p013_img08.jpeg",
+          "width": 280,
+          "height": 280,
+          "colorspace": 3
+        },
+        {
+          "file": "perception_mapping_p013_img09.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p013_img09.png",
+          "width": 117,
+          "height": 169,
+          "colorspace": 3
+        }
+      ],
+      "image_count": 9,
+      "page_render": "perception_mapping_p013.png"
+    },
+    {
+      "page": 14,
+      "title": "",
+      "body_lines": [
+        "Map Representations"
+      ],
+      "all_text_native": "Map Representations",
+      "ocr_text": "o ° ° ° Oo e e Oo © e e Co ° 5 o Oo e e Oo\n\n@ e@ © e e e 0 : . ° : OO C e e e ° :\n\n@ C) O e@ e O . : . O ° e@ CO) CO @ @ OC . :\n\ne Oo OQ e e O ° ° . ° ° e O O e e © ° °\nMap Representations",
+      "slide_type": "visual_heavy",
+      "embedded_images": [
+        {
+          "file": "perception_mapping_p014_img01.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p014_img01.png",
+          "width": 403,
+          "height": 1163,
+          "colorspace": 3
+        },
+        {
+          "file": "perception_mapping_p014_img02.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p014_img02.png",
+          "width": 403,
+          "height": 824,
+          "colorspace": 3
+        }
+      ],
+      "image_count": 2,
+      "page_render": "perception_mapping_p014.png"
+    },
+    {
+      "page": 15,
+      "title": "What is Mapping?",
+      "body_lines": [
+        "➢",
+        "Robot mapping",
+        "is the process by which a robot builds a representation of",
+        "its environment using data from its sensors (and prior information).",
+        "➢",
+        "This representation – often called a",
+        "map",
+        "– captures spatial information",
+        "about the surroundings.",
+        "➢",
+        "Useful for:",
+        "•",
+        "Enabling autonomy",
+        ": Understand location of obstacles, landmarks, traversability,",
+        "navigable areas.",
+        "•",
+        "Primary tasks",
+        ": Provide information to humans and other robots that is specific to",
+        "the task. May be displayed in a",
+        "user interface",
+        ".",
+        "15"
+      ],
+      "all_text_native": "What is Mapping?\n➢\nRobot mapping\nis the process by which a robot builds a representation of\nits environment using data from its sensors (and prior information).\n➢\nThis representation – often called a\nmap\n– captures spatial information\nabout the surroundings.\n➢\nUseful for:\n•\nEnabling autonomy\n: Understand location of obstacles, landmarks, traversability,\nnavigable areas.\n•\nPrimary tasks\n: Provide information to humans and other robots that is specific to\nthe task. May be displayed in a\nuser interface\n.\n15\n41068 Robotics Studio 1",
+      "ocr_text": "What is Mapping?\n> Robot mapping is the process by which a robot builds a representation of\nits environment using data from its sensors (and prior information).\n> This representation — often called a map — captures spatial information\nabout the surroundings.\n> Useful for:\n¢ Enabling autonomy: Understand location of obstacles, landmarks, traversability,\nnavigable areas.\n* Primary tasks: Provide information to humans and other robots that is specific to\nthe task. May be displayed in a user interface.\n15",
+      "slide_type": "text",
+      "embedded_images": [
+        {
+          "file": "perception_mapping_p015_img01.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p015_img01.png",
+          "width": 114,
+          "height": 53,
+          "colorspace": 3
+        },
+        {
+          "file": "perception_mapping_p015_img02.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p015_img02.png",
+          "width": 89,
+          "height": 154,
+          "colorspace": 3
+        }
+      ],
+      "image_count": 2,
+      "page_render": "perception_mapping_p015.png"
+    },
+    {
+      "page": 16,
+      "title": "Why is Mapping Challenging?",
+      "body_lines": [
+        "➢",
+        "Perception challenge: Relying on sensors to understand the world",
+        "➢",
+        "Noisy sensors",
+        "➢",
+        "Local coordinates to global coordinates (transforms)",
+        "➢",
+        "Motion involved",
+        "➢",
+        "May change over time",
+        "➢",
+        "Many different representations, each with advantages/disadvantages",
+        "16"
+      ],
+      "all_text_native": "Why is Mapping Challenging?\n➢\nPerception challenge: Relying on sensors to understand the world\n➢\nNoisy sensors\n➢\nLocal coordinates to global coordinates (transforms)\n➢\nMotion involved\n➢\nMay change over time\n➢\nMany different representations, each with advantages/disadvantages\n16\n41068 Robotics Studio 1",
+      "ocr_text": "Why is Mapping Challenging?\n\n>» Perception challenge: Relying on sensors to understand the world\n\n>» Noisy sensors\n\n> Local coordinates to global coordinates (transforms)\n\n> Motion involved\n\n>» May change over time\n\n>» Many different representations, each with advantages/disadvantages\n16",
+      "slide_type": "text",
+      "embedded_images": [
+        {
+          "file": "perception_mapping_p016_img01.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p016_img01.png",
+          "width": 114,
+          "height": 53,
+          "colorspace": 3
+        },
+        {
+          "file": "perception_mapping_p016_img02.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p016_img02.png",
+          "width": 89,
+          "height": 154,
+          "colorspace": 3
+        }
+      ],
+      "image_count": 2,
+      "page_render": "perception_mapping_p016.png"
+    },
+    {
+      "page": 17,
+      "title": "Map Categories",
+      "body_lines": [
+        "➢",
+        "Typical maps are loosely categorised as:",
+        "•",
+        "Metric:",
+        "Accurately represents distance",
+        "•",
+        "Topological:",
+        "Accurately represents connectivity",
+        "•",
+        "Semantic:",
+        "Additionally associates “descriptive meaning” with locations",
+        "•",
+        "Some maps contain all of the above",
+        "17"
+      ],
+      "all_text_native": "Map Categories\n➢\nTypical maps are loosely categorised as:\n•\nMetric:\nAccurately represents distance\n•\nTopological:\nAccurately represents connectivity\n•\nSemantic:\nAdditionally associates “descriptive meaning” with locations\n•\nSome maps contain all of the above\n17\n41068 Robotics Studio 1",
+      "ocr_text": "Map Categories\n> Typical maps are loosely categorised as:\n* Metric: Accurately represents distance\n* Topological: Accurately represents connectivity\n* Semantic: Additionally associates “descriptive meaning” with locations\n* Some maps contain all of the above\n17",
+      "slide_type": "text",
+      "embedded_images": [
+        {
+          "file": "perception_mapping_p017_img01.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p017_img01.png",
+          "width": 114,
+          "height": 53,
+          "colorspace": 3
+        },
+        {
+          "file": "perception_mapping_p017_img02.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p017_img02.png",
+          "width": 89,
+          "height": 154,
+          "colorspace": 3
+        }
+      ],
+      "image_count": 2,
+      "page_render": "perception_mapping_p017.png"
+    },
+    {
+      "page": 18,
+      "title": "Occupancy Grids",
+      "body_lines": [
+        "➢",
+        "Good for navigation",
+        "➢",
+        "Discretise the world into cells (2D) or",
+        "voxels (3D)",
+        "➢",
+        "Grid structure is rigid",
+        "➢",
+        "Each cell is assumed to be occupied or",
+        "free space",
+        "➢",
+        "Requires substantial memory resources",
+        "➢",
+        "Created from LIDAR data using ray casting",
+        "➢",
+        "Standard ROS packages",
+        "➢",
+        "Will discuss further in next section",
+        "18"
+      ],
+      "all_text_native": "Occupancy Grids\n➢\nGood for navigation\n➢\nDiscretise the world into cells (2D) or\nvoxels (3D)\n➢\nGrid structure is rigid\n➢\nEach cell is assumed to be occupied or\nfree space\n➢\nRequires substantial memory resources\n➢\nCreated from LIDAR data using ray casting\n➢\nStandard ROS packages\n➢\nWill discuss further in next section\n18\n41068 Robotics Studio 1",
+      "ocr_text": "Occupancy Grids a\n\\ gee ‘ a eat!) *\n> Good for navigation ae a Be\n» Discretise the world into cells (2D) or Raa i La ae”\nvoxels (3D) |) FR _\n. oo, fy ee es\n» Grid structure is rigid 7\n> Each cell is assumed to be occupied or HEE AE 4] TAR\nfree space FEE ee A i ct _\n> Requires substantial memory resources ee po i ew\n> Created from LIDAR data using ray casting EEE Me H = :\n> Standard ROS packages Te atsccccre\ner BEEP eee a 2\n> Will discuss further in next section Rebtel Te\nUlS 18",
+      "slide_type": "text",
+      "embedded_images": [
+        {
+          "file": "perception_mapping_p018_img01.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p018_img01.png",
+          "width": 114,
+          "height": 53,
+          "colorspace": 3
+        },
+        {
+          "file": "perception_mapping_p018_img02.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p018_img02.png",
+          "width": 89,
+          "height": 154,
+          "colorspace": 3
+        },
+        {
+          "file": "perception_mapping_p018_img03.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p018_img03.png",
+          "width": 485,
+          "height": 444,
+          "colorspace": 3
+        },
+        {
+          "file": "perception_mapping_p018_img04.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p018_img04.png",
+          "width": 591,
+          "height": 589,
+          "colorspace": 3
+        },
+        {
+          "file": "perception_mapping_p018_img05.jpeg",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p018_img05.jpeg",
+          "width": 1029,
+          "height": 477,
+          "colorspace": 3
+        }
+      ],
+      "image_count": 5,
+      "page_render": "perception_mapping_p018.png"
+    },
+    {
+      "page": 19,
+      "title": "Terrain Map",
+      "body_lines": [
+        "➢",
+        "Good for navigating complex terrain",
+        "➢",
+        "Similar to occupancy grid, but describes properties of the terrain, such as elevation or",
+        "surface type",
+        "➢",
+        "Good for modelling complex 3D terrains",
+        "➢",
+        "Elevation often represented as a contour map",
+        "19"
+      ],
+      "all_text_native": "Terrain Map\n➢\nGood for navigating complex terrain\n➢\nSimilar to occupancy grid, but describes properties of the terrain, such as elevation or\nsurface type\n➢\nGood for modelling complex 3D terrains\n➢\nElevation often represented as a contour map\n19\n41068 Robotics Studio 1",
+      "ocr_text": "Terrain Map\n> Good for navigating complex terrain\n> Similar to occupancy grid, but describes properties of the terrain, such as elevation or\nsurface type\n> Good for modelling complex 3D terrains\n> Elevation often represented as a contour map\nOe:\no rz» = ears)\naw MBS, iy —_- [= <tirteter,\n—— ja nx wn { — = Im / | 7 Lower confidence boun\n= 2 ge = Se eo GF\nMa Jaa |b al On et i eo\nyr ~ o | f f \\) a ape a E ips a> oa twp 1 Ay\nil Dp) Wm wae” fy | iy\na a x \\ — WS y be 6 ry § field of fiew\n: ¥ Vy > xg 4 Confidence interval\n— WEF Pane ae\nUTS 19",
+      "slide_type": "text",
+      "embedded_images": [
+        {
+          "file": "perception_mapping_p019_img01.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p019_img01.png",
+          "width": 114,
+          "height": 53,
+          "colorspace": 3
+        },
+        {
+          "file": "perception_mapping_p019_img02.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p019_img02.png",
+          "width": 89,
+          "height": 154,
+          "colorspace": 3
+        },
+        {
+          "file": "perception_mapping_p019_img03.jpeg",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p019_img03.jpeg",
+          "width": 427,
+          "height": 343,
+          "colorspace": 3
+        },
+        {
+          "file": "perception_mapping_p019_img04.jpeg",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p019_img04.jpeg",
+          "width": 731,
+          "height": 558,
+          "colorspace": 3
+        },
+        {
+          "file": "perception_mapping_p019_img05.jpeg",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p019_img05.jpeg",
+          "width": 640,
+          "height": 422,
+          "colorspace": 3
+        },
+        {
+          "file": "perception_mapping_p019_img06.jpeg",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p019_img06.jpeg",
+          "width": 355,
+          "height": 310,
+          "colorspace": 3
+        }
+      ],
+      "image_count": 6,
+      "page_render": "perception_mapping_p019.png"
+    },
+    {
+      "page": 20,
+      "title": "Distance Function Maps",
+      "body_lines": [
+        "➢",
+        "Defines the",
+        "distance",
+        "to occupied space",
+        "➢",
+        "Useful for safe navigation",
+        "➢",
+        "Useful for fast ray tracing",
+        "➢",
+        "Dense representation, grid (2D) or voxels (3D)",
+        "➢",
+        "Expensive to compute",
+        "20"
+      ],
+      "all_text_native": "Distance Function Maps\n➢\nDefines the\ndistance\nto occupied space\n➢\nUseful for safe navigation\n➢\nUseful for fast ray tracing\n➢\nDense representation, grid (2D) or voxels (3D)\n➢\nExpensive to compute\n20\n41068 Robotics Studio 1",
+      "ocr_text": "Distance Function Maps\n> Defines the distance to occupied space 4\n> Useful for safe navigation 35\n> Useful for fast ray tracing 3\n> Dense representation, grid (2D) or voxels (3D) 25\n> Expensive to compute 2\n15\nty :\n= 2 05\noye\n20",
+      "slide_type": "text",
+      "embedded_images": [
+        {
+          "file": "perception_mapping_p020_img01.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p020_img01.png",
+          "width": 114,
+          "height": 53,
+          "colorspace": 3
+        },
+        {
+          "file": "perception_mapping_p020_img02.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p020_img02.png",
+          "width": 89,
+          "height": 154,
+          "colorspace": 3
+        },
+        {
+          "file": "perception_mapping_p020_img03.jpeg",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p020_img03.jpeg",
+          "width": 432,
+          "height": 334,
+          "colorspace": 3
+        },
+        {
+          "file": "perception_mapping_p020_img04.jpeg",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p020_img04.jpeg",
+          "width": 622,
+          "height": 443,
+          "colorspace": 3
+        }
+      ],
+      "image_count": 4,
+      "page_render": "perception_mapping_p020.png"
+    },
+    {
+      "page": 21,
+      "title": "Feature Maps",
+      "body_lines": [
+        "➢",
+        "Good for localisation",
+        "➢",
+        "Landmark Based",
+        "➢",
+        "Kalman filter or optimisation systems (SLAM)",
+        "Map of trees in a park:",
+        "jillhubley.com/project/prospectparktrees/",
+        "➢",
+        "Compact representation",
+        "➢",
+        "Multiple feature observations to improve position",
+        "estimates",
+        "Landmarks on",
+        "Mars",
+        "Victoria Park dataset",
+        "21"
+      ],
+      "all_text_native": "Feature Maps\n➢\nGood for localisation\n➢\nLandmark Based\n➢\nKalman filter or optimisation systems (SLAM)\nMap of trees in a park:\njillhubley.com/project/prospectparktrees/\n➢\nCompact representation\n➢\nMultiple feature observations to improve position\nestimates\nLandmarks on\nMars\nVictoria Park dataset\n21\n41068 Robotics Studio 1",
+      "ocr_text": "y |\nL | \\\nCe i\nFeature Maps ali rE\nrl\n. . so} “\n» Good for localisation Wea Si\ny ASA\n> Landmark Based One 3\n>» Kalman filter or optimisation systems (SLAM) Map of trees in a park:\n> Compact representation ns\nwep oN & 48 eh\n> Multiple feature observations to improve position - tee a.’ ei \\\nestimates ae ; » 25 . 1.\nW=( 7 : or ae We BY ee: oe Be\nio cea STi hed ee a £¢ ae\n: Ry ets Ay why i ‘ me ‘2 4 - oes 3) mB fa\nhas dae ew Wee as ae ogee Ta\nWR Fo cea } pk |S ee a\nnad OY oe ey bars SS e —_\n2 sem Va Landmarks on AS | at aod eee\naN ‘ iam = ars ch ea ewe\nWS cence QM ae ane\nee anal i hte <4 OR Nea — aD =\nen Bicone Victoria Park dataset\nUS 21",
+      "slide_type": "text",
+      "embedded_images": [
+        {
+          "file": "perception_mapping_p021_img01.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p021_img01.png",
+          "width": 114,
+          "height": 53,
+          "colorspace": 3
+        },
+        {
+          "file": "perception_mapping_p021_img02.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p021_img02.png",
+          "width": 89,
+          "height": 154,
+          "colorspace": 3
+        },
+        {
+          "file": "perception_mapping_p021_img03.jpeg",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p021_img03.jpeg",
+          "width": 497,
+          "height": 476,
+          "colorspace": 3
+        },
+        {
+          "file": "perception_mapping_p021_img04.jpeg",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p021_img04.jpeg",
+          "width": 947,
+          "height": 549,
+          "colorspace": 3
+        },
+        {
+          "file": "perception_mapping_p021_img05.jpeg",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p021_img05.jpeg",
+          "width": 695,
+          "height": 519,
+          "colorspace": 3
+        }
+      ],
+      "image_count": 5,
+      "page_render": "perception_mapping_p021.png"
+    },
+    {
+      "page": 22,
+      "title": "Trajectory Tracking",
+      "body_lines": [
+        "➢",
+        "Movements of objects of interest",
+        "➢",
+        "Similar to feature map, but the",
+        "landmarks are moving over time",
+        "GPS tracks of whales in",
+        "Atlantic Ocean",
+        "Tracking pedestrians in a",
+        "train station",
+        "22"
+      ],
+      "all_text_native": "Trajectory Tracking\n➢\nMovements of objects of interest\n➢\nSimilar to feature map, but the\nlandmarks are moving over time\nGPS tracks of whales in\nAtlantic Ocean\nTracking pedestrians in a\ntrain station\n22\n41068 Robotics Studio 1",
+      "ocr_text": "Trajectory Tracking\n>» Movements of objects of interest — Eg\n. . Brainy, see 7 1 eee —\n» Similar to feature map, but the  @ Pegs aE \\ 5\nlandmarks are moving over time SC es\nNig ee |\n. 4 he eas Al\nPy Ge eis TARE rE or ssi Sere\nSay ge Ing SS ena. (is ad me tt gee -s\ni occa Niles, ee: 5 on ena’ ie % |\n. rs b iF a Nees, ees OS aT in Is |\nFr 3 ‘ i tepend OR ‘s Pes pes? Ab ge * NE eee 2 in ‘ |\nps ms a ee” “en\nuz Pi Ge ae ee ee\nf vet s GPS tracks of whales in\neae Atlantic Ocean\nTracking pedestrians in a\ntrain station\nUTS 22",
+      "slide_type": "text",
+      "embedded_images": [
+        {
+          "file": "perception_mapping_p022_img01.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p022_img01.png",
+          "width": 114,
+          "height": 53,
+          "colorspace": 3
+        },
+        {
+          "file": "perception_mapping_p022_img02.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p022_img02.png",
+          "width": 89,
+          "height": 154,
+          "colorspace": 3
+        },
+        {
+          "file": "perception_mapping_p022_img03.jpeg",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p022_img03.jpeg",
+          "width": 690,
+          "height": 485,
+          "colorspace": 3
+        },
+        {
+          "file": "perception_mapping_p022_img04.jpeg",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p022_img04.jpeg",
+          "width": 850,
+          "height": 476,
+          "colorspace": 3
+        }
+      ],
+      "image_count": 4,
+      "page_render": "perception_mapping_p022.png"
+    },
+    {
+      "page": 23,
+      "title": "Topological Maps",
+      "body_lines": [
+        "➢",
+        "Explains connectivity between locations",
+        "Sydney train network",
+        "➢",
+        "May have descriptions associated with places or paths",
+        "➢",
+        "Represented as a",
+        "graph",
+        "of vertices and edges",
+        "➢",
+        "Doesn’t",
+        "necessarily",
+        "preserve distances, scale, or directions",
+        "Sydney Botanic Gardens",
+        "Robot navigation graphs,",
+        "e.g. Probabilistic Roadmap (PRM)",
+        "Royal National Park",
+        "23"
+      ],
+      "all_text_native": "Topological Maps\n➢\nExplains connectivity between locations\nSydney train network\n➢\nMay have descriptions associated with places or paths\n➢\nRepresented as a\ngraph\nof vertices and edges\n➢\nDoesn’t\nnecessarily\npreserve distances, scale, or directions\nSydney Botanic Gardens\nRobot navigation graphs,\ne.g. Probabilistic Roadmap (PRM)\nRoyal National Park\n23\n41068 Robotics Studio 1",
+      "ocr_text": "Topological Maps 8 cuales Se.\nEX. FIPS\nMiGel pe SL S| ==, /\ni Qa 2BxX\n>» Explains connectivity between locations DSS\nog : : Syd trai ‘twork\n> May have descriptions associated with places or paths pa er\n. /\n> Represented as a graph of vertices and edges Se a, Z\n——\n> Doesn't necessarily preserve distances, scale, or directions ai CY\ntj\n=O)\nRiba silk sf 8 ieeceeeeeat eee Re ES i omen a SS,\na iH rn Yd Sydney Botanic Gardens\n| ee 1 = ag ae ge aes? eh\n— om eee s RES, { p A Re Ve ae s\naoe LE —_/ Oe Ar\nae ee PAD Bl IRE Jf\nE- i i A aa ne Robot navigation graphs, Yo if eee a we $y JZ\nee ee | .g. Probabilistic Road PRM . ee\neye ial &-9: Probabilistic Roadmap ( ) Royal National Park\nUS 23",
+      "slide_type": "text",
+      "embedded_images": [
+        {
+          "file": "perception_mapping_p023_img01.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p023_img01.png",
+          "width": 114,
+          "height": 53,
+          "colorspace": 3
+        },
+        {
+          "file": "perception_mapping_p023_img02.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p023_img02.png",
+          "width": 89,
+          "height": 154,
+          "colorspace": 3
+        },
+        {
+          "file": "perception_mapping_p023_img03.jpeg",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p023_img03.jpeg",
+          "width": 414,
+          "height": 225,
+          "colorspace": 3
+        },
+        {
+          "file": "perception_mapping_p023_img04.jpeg",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p023_img04.jpeg",
+          "width": 847,
+          "height": 607,
+          "colorspace": 3
+        },
+        {
+          "file": "perception_mapping_p023_img05.jpeg",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p023_img05.jpeg",
+          "width": 800,
+          "height": 450,
+          "colorspace": 3
+        },
+        {
+          "file": "perception_mapping_p023_img06.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p023_img06.png",
+          "width": 588,
+          "height": 286,
+          "colorspace": 3
+        },
+        {
+          "file": "perception_mapping_p023_img07.jpeg",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p023_img07.jpeg",
+          "width": 823,
+          "height": 382,
+          "colorspace": 3
+        }
+      ],
+      "image_count": 7,
+      "page_render": "perception_mapping_p023.png"
+    },
+    {
+      "page": 24,
+      "title": "Semantic Maps",
+      "body_lines": [
+        "➢",
+        "Adds descriptions to a map that are “meaningful”",
+        "➢",
+        "High level robot commands, e.g. “go to office”",
+        "➢",
+        "Human-robot interaction",
+        "Map of trees in a park:",
+        "jillhubley.com/project/prospectparktrees/",
+        "Royal national park",
+        "24"
+      ],
+      "all_text_native": "Semantic Maps\n➢\nAdds descriptions to a map that are “meaningful”\n➢\nHigh level robot commands, e.g. “go to office”\n➢\nHuman-robot interaction\nMap of trees in a park:\njillhubley.com/project/prospectparktrees/\nRoyal national park\n24\n41068 Robotics Studio 1",
+      "ocr_text": "® “eo bp ee)\n| Lake -\n° ‘eh GS fo}\n> Adds descriptions to a map that are “meaningful” e' -3 an [fr aria\n. “ . ” POLS waar. ence\n» High level robot commands, e.g. “go to office O21 2\" Soon\ni : LoS\n. . x vy) » 5 a Ces\n> Human-robot interaction Pwo . Enki \\iea\n~ eo} CD > een\n>... oni j Se cd Map of trees in a park:\naye ir Fs i, jillhubley.com/project/prospectparktrees/\n7 Ja\na ane: l Cath \\ an : -\nry J fa a fs» oe os Een Ge OG P heon rhs Lass y Syed cian Legend\nve ie eee == ee ee “TA i QI YEP? SE: Om Omi\nat 5 F a —F eer a 3 pay | PY — X/ Py igh @ viewpoint Restaurant\ni * - hulectie | ae Bh a See SN iw Ne ‘~ y ( ‘nripber TE Nneud 9 Atraction > cate\n~ office SE office a ay eee SS » PS Sas a % AE) © Accommodation Picnic area\n» E Nie oe a AS A 8. ae A his ie giieitinsng OS eae  aalifios © Sheer Toilets\na. Vie PRN gece MOT ALY) Sg cme etn\nSl sak TT ORE) 3 5 oo Sema Soot eda same VOM vic , Dy FE estates hating route\n4 fe teow. Peete 5 cae t= ote SM 5 5 778 y rs ere g =e fe vee\nee } al WE os Gee ae foc vey \\ 26 aN oy mint (© FrlDher walking ute 1 Cycling route\nean Y SS Sc oe. eles - Royal national park\n= win 2\n24",
+      "slide_type": "text",
+      "embedded_images": [
+        {
+          "file": "perception_mapping_p024_img01.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p024_img01.png",
+          "width": 114,
+          "height": 53,
+          "colorspace": 3
+        },
+        {
+          "file": "perception_mapping_p024_img02.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p024_img02.png",
+          "width": 89,
+          "height": 154,
+          "colorspace": 3
+        },
+        {
+          "file": "perception_mapping_p024_img03.jpeg",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p024_img03.jpeg",
+          "width": 695,
+          "height": 519,
+          "colorspace": 3
+        },
+        {
+          "file": "perception_mapping_p024_img04.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p024_img04.png",
+          "width": 239,
+          "height": 360,
+          "colorspace": 3
+        },
+        {
+          "file": "perception_mapping_p024_img05.jpeg",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p024_img05.jpeg",
+          "width": 823,
+          "height": 382,
+          "colorspace": 3
+        },
+        {
+          "file": "perception_mapping_p024_img06.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p024_img06.png",
+          "width": 172,
+          "height": 173,
+          "colorspace": 3
+        },
+        {
+          "file": "perception_mapping_p024_img07.jpeg",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p024_img07.jpeg",
+          "width": 376,
+          "height": 404,
+          "colorspace": 3
+        },
+        {
+          "file": "perception_mapping_p024_img08.jpeg",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p024_img08.jpeg",
+          "width": 829,
+          "height": 298,
+          "colorspace": 3
+        },
+        {
+          "file": "perception_mapping_p024_img09.jpeg",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p024_img09.jpeg",
+          "width": 694,
+          "height": 358,
+          "colorspace": 3
+        }
+      ],
+      "image_count": 9,
+      "page_render": "perception_mapping_p024.png"
+    },
+    {
+      "page": 25,
+      "title": "Environmental Phenomena",
+      "body_lines": [
+        "Gaussian Process regression",
+        "➢",
+        "Quantities described as a continuous field:",
+        "•",
+        "Temperature",
+        "3 possible",
+        "Quantity of",
+        "•",
+        "Elevation",
+        "functions",
+        "interest",
+        "•",
+        "Soil type",
+        "Observations",
+        "•",
+        "Sound volume",
+        "Uncertainty",
+        "•",
+        "Communication bandwidth",
+        "Location",
+        "Ground water",
+        "salinity",
+        "Wireless signal strength",
+        "Soil pH level",
+        "25"
+      ],
+      "all_text_native": "Environmental Phenomena\nGaussian Process regression\n➢\nQuantities described as a continuous field:\n•\nTemperature\n3 possible\nQuantity of\n•\nElevation\nfunctions\ninterest\n•\nSoil type\nObservations\n•\nSound volume\nUncertainty\n•\nCommunication bandwidth\nLocation\nGround water\nsalinity\nWireless signal strength\nSoil pH level\n25\n41068 Robotics Studio 1",
+      "ocr_text": "Environmental Phenomena Gaussian Process regression\n2\n> Quantities described as a continuous field:\n1\n* Temperature = ES,\n. Quantity of Z 0 3 possible\n* Elevation interest 3 \\ Y functions\n* Soil type ™ a\nbe Observations ;\n* Sound volume ~2\\\\ Uncertainty\n* Communication bandwidth ™ Hit Location ©\nmy Predicted Wireless Signal Strength (dBm)\nniooooo 4 (a) depth=50\nGround water \"°° [@ingdee ee ee eta 2] 0\n7040000 -\\iibs PF ay og % fame Oba Ay £ 94\nsalinity Pin to terete le on a 1s ie Lk:\nWireless signal strength Soil pH level\nURS) 25",
+      "slide_type": "text",
+      "embedded_images": [
+        {
+          "file": "perception_mapping_p025_img01.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p025_img01.png",
+          "width": 114,
+          "height": 53,
+          "colorspace": 3
+        },
+        {
+          "file": "perception_mapping_p025_img02.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p025_img02.png",
+          "width": 89,
+          "height": 154,
+          "colorspace": 3
+        },
+        {
+          "file": "perception_mapping_p025_img03.jpeg",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p025_img03.jpeg",
+          "width": 532,
+          "height": 420,
+          "colorspace": 3
+        },
+        {
+          "file": "perception_mapping_p025_img04.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p025_img04.png",
+          "width": 83,
+          "height": 34,
+          "colorspace": 3
+        },
+        {
+          "file": "perception_mapping_p025_img05.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p025_img05.png",
+          "width": 89,
+          "height": 45,
+          "colorspace": 3
+        },
+        {
+          "file": "perception_mapping_p025_img06.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p025_img06.png",
+          "width": 34,
+          "height": 120,
+          "colorspace": 3
+        },
+        {
+          "file": "perception_mapping_p025_img07.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p025_img07.png",
+          "width": 44,
+          "height": 81,
+          "colorspace": 3
+        },
+        {
+          "file": "perception_mapping_p025_img08.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p025_img08.png",
+          "width": 61,
+          "height": 39,
+          "colorspace": 3
+        },
+        {
+          "file": "perception_mapping_p025_img09.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p025_img09.png",
+          "width": 56,
+          "height": 37,
+          "colorspace": 3
+        },
+        {
+          "file": "perception_mapping_p025_img10.jpeg",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p025_img10.jpeg",
+          "width": 354,
+          "height": 291,
+          "colorspace": 3
+        },
+        {
+          "file": "perception_mapping_p025_img11.jpeg",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p025_img11.jpeg",
+          "width": 778,
+          "height": 440,
+          "colorspace": 3
+        },
+        {
+          "file": "perception_mapping_p025_img12.jpeg",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p025_img12.jpeg",
+          "width": 681,
+          "height": 434,
+          "colorspace": 3
+        }
+      ],
+      "image_count": 12,
+      "page_render": "perception_mapping_p025.png"
+    },
+    {
+      "page": 26,
+      "title": "Which are most meaningful for your project?",
+      "body_lines": [
+        "26"
+      ],
+      "all_text_native": "Which are most meaningful for your project?\n26\n41068 Robotics Studio 1",
+      "ocr_text": "Which are most meaningful for your project?\nWao Pe\nfon Se fa i i) -\na 4 eee Cee\na a ag is .\nf \"] ree ys a\n: disc 1 : i at pe\nNaa a ad i\n2°83 e) Wwe — reer\nFy SS . fi ‘Ca Rw a i legend\nwe ie ; wnt ee ae Yee fo, S, \"Staton Ie a 3\noS \\ ae a 9\na 7; Ea 7 FANE, wt & SMTA Onmann Orn ‘\noe - ih ° reer, al Sits, - en . ’ ‘i © Sheer O Woiters eS = iy %, a:\nS Tome) ae 4 DG # a | 7\nf : pl 4 f Le ; Ne © campsite La Patking een a Es\nas Crea y) Mes ys 4 Yea a Bpociontethtng ue . ae\nLae YW, Samm! 4 Gt a sm Dither walking route *2 Cycling rou a\nLEG ae oA & 24 aft i - ss i * “ see Gases =\n26",
+      "slide_type": "visual_heavy",
+      "embedded_images": [
+        {
+          "file": "perception_mapping_p026_img01.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p026_img01.png",
+          "width": 114,
+          "height": 53,
+          "colorspace": 3
+        },
+        {
+          "file": "perception_mapping_p026_img02.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p026_img02.png",
+          "width": 89,
+          "height": 154,
+          "colorspace": 3
+        },
+        {
+          "file": "perception_mapping_p026_img03.jpeg",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p026_img03.jpeg",
+          "width": 1029,
+          "height": 477,
+          "colorspace": 3
+        },
+        {
+          "file": "perception_mapping_p026_img04.jpeg",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p026_img04.jpeg",
+          "width": 355,
+          "height": 310,
+          "colorspace": 3
+        },
+        {
+          "file": "perception_mapping_p026_img05.jpeg",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p026_img05.jpeg",
+          "width": 695,
+          "height": 519,
+          "colorspace": 3
+        },
+        {
+          "file": "perception_mapping_p026_img06.jpeg",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p026_img06.jpeg",
+          "width": 823,
+          "height": 382,
+          "colorspace": 3
+        },
+        {
+          "file": "perception_mapping_p026_img07.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p026_img07.png",
+          "width": 172,
+          "height": 173,
+          "colorspace": 3
+        },
+        {
+          "file": "perception_mapping_p026_img08.jpeg",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p026_img08.jpeg",
+          "width": 681,
+          "height": 434,
+          "colorspace": 3
+        },
+        {
+          "file": "perception_mapping_p026_img09.jpeg",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p026_img09.jpeg",
+          "width": 362,
+          "height": 356,
+          "colorspace": 3
+        }
+      ],
+      "image_count": 9,
+      "page_render": "perception_mapping_p026.png"
+    },
+    {
+      "page": 27,
+      "title": "",
+      "body_lines": [
+        "Occupancy Grids"
+      ],
+      "all_text_native": "Occupancy Grids",
+      "ocr_text": "S . ° ° oO e e O O ° e cS . : 5 OC e@ e oO\n\nOO 0 e e e ° : . ° [> © © e e e e 2 :\n\ne O OD e @ O : : . O : e OO) C e @ O . :\n\ne 0 O e e@ O ° ° ° O° ° e O 0 e e@ O o °\nOccupancy Grids",
+      "slide_type": "visual_heavy",
+      "embedded_images": [
+        {
+          "file": "perception_mapping_p027_img01.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p027_img01.png",
+          "width": 403,
+          "height": 1163,
+          "colorspace": 3
+        },
+        {
+          "file": "perception_mapping_p027_img02.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p027_img02.png",
+          "width": 403,
+          "height": 824,
+          "colorspace": 3
+        }
+      ],
+      "image_count": 2,
+      "page_render": "perception_mapping_p027.png"
+    },
+    {
+      "page": 28,
+      "title": "Occupancy Grid",
+      "body_lines": [
+        "➢",
+        "Originally developed for very noisy sensors (sonar)",
+        "➢",
+        "Create on-the-fly as a robot moves through an environment",
+        "➢",
+        "Need a way to model uncertainty",
+        "28"
+      ],
+      "all_text_native": "Occupancy Grid\n➢\nOriginally developed for very noisy sensors (sonar)\n➢\nCreate on-the-fly as a robot moves through an environment\n➢\nNeed a way to model uncertainty\n28\n41068 Robotics Studio 1",
+      "ocr_text": "Occupancy Grid\n> Originally developed for very noisy sensors (sonar)\n> Create on-the-fly as a robot moves through an environment\n> Need a way to model uncertainty\nL se q ns\n= 5 | ae.\nJIS 28",
+      "slide_type": "text",
+      "embedded_images": [
+        {
+          "file": "perception_mapping_p028_img01.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p028_img01.png",
+          "width": 114,
+          "height": 53,
+          "colorspace": 3
+        },
+        {
+          "file": "perception_mapping_p028_img02.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p028_img02.png",
+          "width": 89,
+          "height": 154,
+          "colorspace": 3
+        },
+        {
+          "file": "perception_mapping_p028_img03.jpeg",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p028_img03.jpeg",
+          "width": 247,
+          "height": 182,
+          "colorspace": 3
+        }
+      ],
+      "image_count": 3,
+      "page_render": "perception_mapping_p028.png"
+    },
+    {
+      "page": 29,
+      "title": "Occupancy Probability",
+      "body_lines": [
+        "➢",
+        "Each cell is a binary random variable that models occupancy",
+        "•",
+        "Cell is occupied",
+        "p(m) = 1",
+        "•",
+        "Cell is not occupied",
+        "p(m) = 0",
+        "•",
+        "No knowledge",
+        "p(m) = 0.5",
+        "29"
+      ],
+      "all_text_native": "Occupancy Probability\n➢\nEach cell is a binary random variable that models occupancy\n•\nCell is occupied\np(m) = 1\n•\nCell is not occupied\np(m) = 0\n•\nNo knowledge\np(m) = 0.5\n29\n41068 Robotics Studio 1",
+      "ocr_text": "Occupancy Probability\n> Each cell is a binary random variable that models occupancy\n¢ Cell is occupied p(m) = 1\n¢ Cell is not occupied p(m) = 0\n« No knowledge p(m) = 0.5 08\n3\n06.\na\nSs ee ees >\n28\n- . 29",
+      "slide_type": "text",
+      "embedded_images": [
+        {
+          "file": "perception_mapping_p029_img01.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p029_img01.png",
+          "width": 114,
+          "height": 53,
+          "colorspace": 3
+        },
+        {
+          "file": "perception_mapping_p029_img02.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p029_img02.png",
+          "width": 89,
+          "height": 154,
+          "colorspace": 3
+        },
+        {
+          "file": "perception_mapping_p029_img03.jpeg",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p029_img03.jpeg",
+          "width": 342,
+          "height": 340,
+          "colorspace": 3
+        },
+        {
+          "file": "perception_mapping_p029_img04.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p029_img04.png",
+          "width": 64,
+          "height": 356,
+          "colorspace": 3
+        },
+        {
+          "file": "perception_mapping_p029_img05.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p029_img05.png",
+          "width": 966,
+          "height": 732,
+          "colorspace": 3
+        }
+      ],
+      "image_count": 5,
+      "page_render": "perception_mapping_p029.png"
+    },
+    {
+      "page": 30,
+      "title": "Occupancy Grid Map",
+      "body_lines": [
+        "➢",
+        "Discrete array of cells, each with an occupancy variable",
+        "•",
+        "m",
+        "- > {free, occupied} ->",
+        "{0,1}",
+        "x",
+        "y",
+        "m",
+        "m",
+        "1,1",
+        "1,2",
+        "m",
+        "m",
+        "2,1",
+        "2,2",
+        "30"
+      ],
+      "all_text_native": "Occupancy Grid Map\n➢\nDiscrete array of cells, each with an occupancy variable\n•\nm\n- > {free, occupied} ->\n{0,1}\nx\ny\nm\nm\n1,1\n1,2\nm\nm\n2,1\n2,2\n30\n41068 Robotics Studio 1",
+      "ocr_text": "Occupancy Grid Map\n> Discrete array of cells, each with an occupancy variable\n* m-> {free, occupied} -> {0,1}\nx\n\nP| |\n\nPt |\n\nPt ty\n\n30",
+      "slide_type": "text",
+      "embedded_images": [
+        {
+          "file": "perception_mapping_p030_img01.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p030_img01.png",
+          "width": 114,
+          "height": 53,
+          "colorspace": 3
+        },
+        {
+          "file": "perception_mapping_p030_img02.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p030_img02.png",
+          "width": 89,
+          "height": 154,
+          "colorspace": 3
+        }
+      ],
+      "image_count": 2,
+      "page_render": "perception_mapping_p030.png"
+    },
+    {
+      "page": 31,
+      "title": "Problem: Estimate Map from Sensor Data",
+      "body_lines": [
+        "31"
+      ],
+      "all_text_native": "Problem: Estimate Map from Sensor Data\n31\n41068 Robotics Studio 1",
+      "ocr_text": "Problem: Estimate Map from Sensor Data\n\nGiven sensor data z1., and the poses\nX14 Of the sensor, estimate the map\np(m | Z14,01:) = [[o™ | 214,01)\n\nbinary random variable\n\n==> Binary Bayes filter\n\n(for a static state)\n\n31",
+      "slide_type": "visual_heavy",
+      "embedded_images": [
+        {
+          "file": "perception_mapping_p031_img01.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p031_img01.png",
+          "width": 114,
+          "height": 53,
+          "colorspace": 3
+        },
+        {
+          "file": "perception_mapping_p031_img02.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p031_img02.png",
+          "width": 89,
+          "height": 154,
+          "colorspace": 3
+        },
+        {
+          "file": "perception_mapping_p031_img03.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p031_img03.png",
+          "width": 782,
+          "height": 528,
+          "colorspace": 3
+        }
+      ],
+      "image_count": 3,
+      "page_render": "perception_mapping_p031.png"
+    },
+    {
+      "page": 32,
+      "title": "Bayesian Filtering",
+      "body_lines": [
+        "➢",
+        "Recursively update",
+        "p(m)",
+        "for each cell",
+        "y",
+        "p(m",
+        ")",
+        "1,1",
+        "p(m",
+        "1,2",
+        ")",
+        "p(m",
+        ")",
+        "p(m",
+        ")",
+        "p(m",
+        ")",
+        "x,y",
+        "2,1",
+        "2,2",
+        "0  1",
+        "p(m",
+        "x,y",
+        ")",
+        "32"
+      ],
+      "all_text_native": "Bayesian Filtering\n➢\nRecursively update\np(m)\nfor each cell\ny\np(m\n)\n1,1\np(m\n1,2\n)\np(m\n)\np(m\n)\np(m\n)\nx,y\n2,1\n2,2\n0  1\np(m\nx,y\n)\n32\n41068 Robotics Studio 1",
+      "ocr_text": "Bayesian Filtering x\n> Recursively update p(m) for each cell\n\npoof] [| Dy,\n\ney\n\nPt tf",
+      "slide_type": "text",
+      "embedded_images": [
+        {
+          "file": "perception_mapping_p032_img01.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p032_img01.png",
+          "width": 114,
+          "height": 53,
+          "colorspace": 3
+        },
+        {
+          "file": "perception_mapping_p032_img02.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p032_img02.png",
+          "width": 89,
+          "height": 154,
+          "colorspace": 3
+        }
+      ],
+      "image_count": 2,
+      "page_render": "perception_mapping_p032.png"
+    },
+    {
+      "page": 33,
+      "title": "Incorporating an Observation",
+      "body_lines": [
+        "➢",
+        "Let’s say our range-finder reports a reading of 5m",
+        "Before",
+        "After",
+        "there isn’t",
+        "something here",
+        "there is",
+        "something",
+        "somewhere",
+        "5 m",
+        "5 m",
+        "around here",
+        "unoccupied",
+        "no information",
+        "occupied",
+        "33"
+      ],
+      "all_text_native": "Incorporating an Observation\n➢\nLet’s say our range-finder reports a reading of 5m\nBefore\nAfter\nthere isn’t\nsomething here\nthere is\nsomething\nsomewhere\n5 m\n5 m\naround here\nunoccupied\nno information\noccupied\n33\n41068 Robotics Studio 1",
+      "ocr_text": "Incorporating an Observation\n> Let’s say our range-finder reports a reading of 5m\nBefore After\nthere isn’t\nsomething here there is\noz=m o> Ee\nsomewhere\nPCP Pt tte\nMi unoccupied L_] no information\noccupied\n33",
+      "slide_type": "text",
+      "embedded_images": [
+        {
+          "file": "perception_mapping_p033_img01.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p033_img01.png",
+          "width": 114,
+          "height": 53,
+          "colorspace": 3
+        },
+        {
+          "file": "perception_mapping_p033_img02.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p033_img02.png",
+          "width": 89,
+          "height": 154,
+          "colorspace": 3
+        }
+      ],
+      "image_count": 2,
+      "page_render": "perception_mapping_p033.png"
+    },
+    {
+      "page": 34,
+      "title": "Noisy Observations",
+      "body_lines": [
+        "➢",
+        "Measurement model for a sonar",
+        "34"
+      ],
+      "all_text_native": "Noisy Observations\n➢\nMeasurement model for a sonar\n34\n41068 Robotics Studio 1",
+      "ocr_text": ". . °\nNoisy Observations >\n44\nCee\n~~\n>» Measurement model for a sonar ~~»\nI\nOccupancy probability ——\n08\nz+d, zd,\n0.6\nP prior\n04 Zz z+d,\no> z-d,\nmeasured dist.\n0\n0 0.5 1 1.5 2 2.5 3\ndistance between the cell and the sensor",
+      "slide_type": "mixed",
+      "embedded_images": [
+        {
+          "file": "perception_mapping_p034_img01.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p034_img01.png",
+          "width": 114,
+          "height": 53,
+          "colorspace": 3
+        },
+        {
+          "file": "perception_mapping_p034_img02.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p034_img02.png",
+          "width": 89,
+          "height": 154,
+          "colorspace": 3
+        },
+        {
+          "file": "perception_mapping_p034_img03.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p034_img03.png",
+          "width": 821,
+          "height": 490,
+          "colorspace": 3
+        },
+        {
+          "file": "perception_mapping_p034_img04.jpeg",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p034_img04.jpeg",
+          "width": 740,
+          "height": 232,
+          "colorspace": 3
+        }
+      ],
+      "image_count": 4,
+      "page_render": "perception_mapping_p034.png"
+    },
+    {
+      "page": 35,
+      "title": "Applying Bayes’ Theorem",
+      "body_lines": [
+        "Posterior map",
+        "Measurement model",
+        "Prior map",
+        "p( z | m )",
+        "p( m | z )",
+        "p( m )",
+        "p( z | m ) p( m )",
+        "p( m | z )  =",
+        "Bayes’ rule",
+        "p( z )",
+        "35"
+      ],
+      "all_text_native": "Applying Bayes’ Theorem\nPosterior map\nMeasurement model\nPrior map\np( z | m )\np( m | z )\np( m )\np( z | m ) p( m )\np( m | z )  =\nBayes’ rule\np( z )\n35\n41068 Robotics Studio 1",
+      "ocr_text": ". ; ote\nApplying Bayes’ Theorem x\nPosterior map Measurement model Prior map\n* |\n= yes’ rule\np(m|z) rz)",
+      "slide_type": "text",
+      "embedded_images": [
+        {
+          "file": "perception_mapping_p035_img01.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p035_img01.png",
+          "width": 114,
+          "height": 53,
+          "colorspace": 3
+        },
+        {
+          "file": "perception_mapping_p035_img02.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p035_img02.png",
+          "width": 89,
+          "height": 154,
+          "colorspace": 3
+        }
+      ],
+      "image_count": 2,
+      "page_render": "perception_mapping_p035.png"
+    },
+    {
+      "page": 36,
+      "title": "Recursive Bayes’ Filter",
+      "body_lines": [
+        "36"
+      ],
+      "all_text_native": "Recursive Bayes’ Filter\n36\n41068 Robotics Studio 1",
+      "ocr_text": "Recursive Bayes’ Filter x\na = [ | | _\nMeasu ent | a wg",
+      "slide_type": "visual_heavy",
+      "embedded_images": [
+        {
+          "file": "perception_mapping_p036_img01.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p036_img01.png",
+          "width": 114,
+          "height": 53,
+          "colorspace": 3
+        },
+        {
+          "file": "perception_mapping_p036_img02.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p036_img02.png",
+          "width": 89,
+          "height": 154,
+          "colorspace": 3
+        },
+        {
+          "file": "perception_mapping_p036_img03.jpeg",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p036_img03.jpeg",
+          "width": 747,
+          "height": 1091,
+          "colorspace": 3
+        }
+      ],
+      "image_count": 3,
+      "page_render": "perception_mapping_p036.png"
+    },
+    {
+      "page": 37,
+      "title": "Recursive Bayes’ Filter",
+      "body_lines": [
+        "37"
+      ],
+      "all_text_native": "Recursive Bayes’ Filter\n37\n41068 Robotics Studio 1",
+      "ocr_text": ". J . @\nRecursive Bayes’ Filter +\n%\nCe\n~~\n* * *\n2\n* * *\n* * * ~",
+      "slide_type": "visual_heavy",
+      "embedded_images": [
+        {
+          "file": "perception_mapping_p037_img01.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p037_img01.png",
+          "width": 114,
+          "height": 53,
+          "colorspace": 3
+        },
+        {
+          "file": "perception_mapping_p037_img02.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p037_img02.png",
+          "width": 89,
+          "height": 154,
+          "colorspace": 3
+        },
+        {
+          "file": "perception_mapping_p037_img03.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p037_img03.png",
+          "width": 840,
+          "height": 487,
+          "colorspace": 3
+        }
+      ],
+      "image_count": 3,
+      "page_render": "perception_mapping_p037.png"
+    },
+    {
+      "page": 38,
+      "title": "ROS2 Packages",
+      "body_lines": [
+        "➢",
+        "Occupancy grids are very common on robots, especially for enabling path planning",
+        "➢",
+        "Many common packages, for example see the nav2 package:",
+        "https://docs.nav2.org/setup_guides/sensors/mapping_localization.html",
+        "➢",
+        "This is used in the 41068 starter package",
+        "➢",
+        "This enables basic occupancy grid mapping",
+        "➢",
+        "But does",
+        "not",
+        "provide other types of maps we",
+        "discussed earlier – for these you will need to",
+        "look elsewhere, or create them yourself!",
+        "38"
+      ],
+      "all_text_native": "ROS2 Packages\n➢\nOccupancy grids are very common on robots, especially for enabling path planning\n➢\nMany common packages, for example see the nav2 package:\nhttps://docs.nav2.org/setup_guides/sensors/mapping_localization.html\n➢\nThis is used in the 41068 starter package\n➢\nThis enables basic occupancy grid mapping\n➢\nBut does\nnot\nprovide other types of maps we\ndiscussed earlier – for these you will need to\nlook elsewhere, or create them yourself!\n38\n41068 Robotics Studio 1",
+      "ocr_text": "ROS2 Packages\n\n> Occupancy grids are very common on robots, especially for enabling path planning\n\n> Many common packages, for example see the nav2 package:\nhttps://docs.nav2.org/setup_guides/sensors/mapping_localization.html\n\n> This is used in the 41068 starter package\n\n>» This enables basic occupancy grid mapping I\n\n> But does not provide other types of maps we f= * asf\ndiscussed earlier — for these you will need to =f i as\nlook elsewhere, or create them yourself! ——\n\n38",
+      "slide_type": "text",
+      "embedded_images": [
+        {
+          "file": "perception_mapping_p038_img01.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p038_img01.png",
+          "width": 114,
+          "height": 53,
+          "colorspace": 3
+        },
+        {
+          "file": "perception_mapping_p038_img02.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p038_img02.png",
+          "width": 89,
+          "height": 154,
+          "colorspace": 3
+        },
+        {
+          "file": "perception_mapping_p038_img03.jpeg",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p038_img03.jpeg",
+          "width": 893,
+          "height": 536,
+          "colorspace": 3
+        }
+      ],
+      "image_count": 3,
+      "page_render": "perception_mapping_p038.png"
+    },
+    {
+      "page": 39,
+      "title": "Hierarchical Data Structures",
+      "body_lines": [
+        "➢",
+        "OctoMap 3D mapping library",
+        "Tree data structure",
+        "Multi-resolution queries",
+        "39"
+      ],
+      "all_text_native": "Hierarchical Data Structures\n➢\nOctoMap 3D mapping library\nTree data structure\nMulti-resolution queries\n39\n41068 Robotics Studio 1",
+      "ocr_text": "Hierarchical Data Structures\na er.\n> OctoMap 3D mapping library Ee roa\nTree data structure Ge 4 42\nL Vo\nae es\" * zi ie\nee ee\n<p et a ae Pie\nMulti-resolution queries ae ae oR a oe oa\n7 . = Bo Bet rae ra\nSoo *\" S\nUS 39",
+      "slide_type": "mixed",
+      "embedded_images": [
+        {
+          "file": "perception_mapping_p039_img01.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p039_img01.png",
+          "width": 114,
+          "height": 53,
+          "colorspace": 3
+        },
+        {
+          "file": "perception_mapping_p039_img02.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p039_img02.png",
+          "width": 89,
+          "height": 154,
+          "colorspace": 3
+        },
+        {
+          "file": "perception_mapping_p039_img03.jpeg",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p039_img03.jpeg",
+          "width": 1062,
+          "height": 996,
+          "colorspace": 3
+        },
+        {
+          "file": "perception_mapping_p039_img04.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p039_img04.png",
+          "width": 571,
+          "height": 206,
+          "colorspace": 3
+        },
+        {
+          "file": "perception_mapping_p039_img05.jpeg",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p039_img05.jpeg",
+          "width": 548,
+          "height": 186,
+          "colorspace": 3
+        }
+      ],
+      "image_count": 5,
+      "page_render": "perception_mapping_p039.png"
+    },
+    {
+      "page": 40,
+      "title": "Simultaneous Localisation and Mapping (SLAM)",
+      "body_lines": [
+        "If we have a map:",
+        "We can localise!",
+        "NOT THAT SIMPLE!",
+        "If we can localise:",
+        "We can make a map!",
+        "40"
+      ],
+      "all_text_native": "Simultaneous Localisation and Mapping (SLAM)\nIf we have a map:\nWe can localise!\nNOT THAT SIMPLE!\nIf we can localise:\nWe can make a map!\n40\n41068 Robotics Studio 1",
+      "ocr_text": "Simultaneous Localisation and Mapping (SLAM) x\nIf we have a map: <&7\nWe can localise!\nNOT THAT SIMPLE!\nIf we can localise:\n% We can make a map!",
+      "slide_type": "text",
+      "embedded_images": [
+        {
+          "file": "perception_mapping_p040_img01.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p040_img01.png",
+          "width": 114,
+          "height": 53,
+          "colorspace": 3
+        },
+        {
+          "file": "perception_mapping_p040_img02.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p040_img02.png",
+          "width": 89,
+          "height": 154,
+          "colorspace": 3
+        },
+        {
+          "file": "perception_mapping_p040_img03.jpeg",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p040_img03.jpeg",
+          "width": 312,
+          "height": 243,
+          "colorspace": 3
+        },
+        {
+          "file": "perception_mapping_p040_img04.jpeg",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p040_img04.jpeg",
+          "width": 160,
+          "height": 202,
+          "colorspace": 3
+        }
+      ],
+      "image_count": 4,
+      "page_render": "perception_mapping_p040.png"
+    },
+    {
+      "page": 41,
+      "title": "",
+      "body_lines": [
+        "Reflection"
+      ],
+      "all_text_native": "Reflection",
+      "ocr_text": "0 . ° ° oO e e O Oo e e 5 ° 5 5 oO e@ e Oo\n\nOO 0 e e e ° 0 ° ° 9 OO C e e e ° :\n\ne O OD e @ O . 0 . O o @ OO) C e @ O : :\n\ne 0 O e e@ O ° ° ° O° ° e O 0 e e@ O o °\nReflection",
+      "slide_type": "visual_heavy",
+      "embedded_images": [
+        {
+          "file": "perception_mapping_p041_img01.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p041_img01.png",
+          "width": 403,
+          "height": 1163,
+          "colorspace": 3
+        },
+        {
+          "file": "perception_mapping_p041_img02.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p041_img02.png",
+          "width": 403,
+          "height": 824,
+          "colorspace": 3
+        }
+      ],
+      "image_count": 2,
+      "page_render": "perception_mapping_p041.png"
+    },
+    {
+      "page": 42,
+      "title": "Conclusions",
+      "body_lines": [
+        "➢",
+        "Robots typically have many different sensors",
+        "➢",
+        "Robot mapping",
+        "is the process by which a robot builds a representation of its environment",
+        "using data from its sensors (and prior information).",
+        "➢",
+        "Sensors and maps are useful for:",
+        "•",
+        "Enabling autonomy",
+        ": Understand location of obstacles, landmarks, traversability, navigable areas",
+        "•",
+        "Primary tasks",
+        ": Provide information to humans and other robots that is specific to the task. May be",
+        "provided in a",
+        "user interface",
+        ".",
+        "➢",
+        "Many different types of maps for different purposes:",
+        "•",
+        "Occupancy, terrain, feature, topological, semantic, environmental, … maps",
+        "➢",
+        "Occupancy grid mapping fuses data from multiple noisy observations",
+        "42"
+      ],
+      "all_text_native": "Conclusions\n➢\nRobots typically have many different sensors\n➢\nRobot mapping\nis the process by which a robot builds a representation of its environment\nusing data from its sensors (and prior information).\n➢\nSensors and maps are useful for:\n•\nEnabling autonomy\n: Understand location of obstacles, landmarks, traversability, navigable areas\n•\nPrimary tasks\n: Provide information to humans and other robots that is specific to the task. May be\nprovided in a\nuser interface\n.\n➢\nMany different types of maps for different purposes:\n•\nOccupancy, terrain, feature, topological, semantic, environmental, … maps\n➢\nOccupancy grid mapping fuses data from multiple noisy observations\n42\n41068 Robotics Studio 1",
+      "ocr_text": "Conclusions\n> Robots typically have many different sensors\n> Robot mapping is the process by which a robot builds a representation of its environment\nusing data from its sensors (and prior information).\n> Sensors and maps are useful for:\n¢ Enabling autonomy: Understand location of obstacles, landmarks, traversability, navigable areas\n« Primary tasks: Provide information to humans and other robots that is specific to the task. May be\nprovided in a user interface.\n> Many different types of maps for different purposes:\n* Occupancy, terrain, feature, topological, semantic, environmental, ... maps\n> Occupancy grid mapping fuses data from multiple noisy observations\n42",
+      "slide_type": "text",
+      "embedded_images": [
+        {
+          "file": "perception_mapping_p042_img01.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p042_img01.png",
+          "width": 114,
+          "height": 53,
+          "colorspace": 3
+        },
+        {
+          "file": "perception_mapping_p042_img02.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p042_img02.png",
+          "width": 89,
+          "height": 154,
+          "colorspace": 3
+        }
+      ],
+      "image_count": 2,
+      "page_render": "perception_mapping_p042.png"
+    },
+    {
+      "page": 43,
+      "title": "Questions for your 41068 Project",
+      "body_lines": [
+        "➢",
+        "Ideas for different types of maps",
+        "➢",
+        "Your project must have some perception/mapping",
+        "➢",
+        "Your project must have a user interface",
+        "➢",
+        "What types of maps will your robot produce?",
+        "•",
+        "For primary task",
+        "•",
+        "For autonomy",
+        "➢",
+        "What information will these maps contain?",
+        "➢",
+        "How will you show these maps in your User Interface?",
+        "43"
+      ],
+      "all_text_native": "Questions for your 41068 Project\n➢\nIdeas for different types of maps\n➢\nYour project must have some perception/mapping\n➢\nYour project must have a user interface\n➢\nWhat types of maps will your robot produce?\n•\nFor primary task\n•\nFor autonomy\n➢\nWhat information will these maps contain?\n➢\nHow will you show these maps in your User Interface?\n43\n41068 Robotics Studio 1",
+      "ocr_text": "Questions for your 41068 Project\n> Ideas for different types of maps\n> Your project must have some perception/mapping\n> Your project must have a user interface\n> What types of maps will your robot produce?\n\n* For primary task i\n\n* For autonomy var\n>» What information will these maps contain? Pr.\n> How will you show these maps in your User Interface? a z\n\n43",
+      "slide_type": "text",
+      "embedded_images": [
+        {
+          "file": "perception_mapping_p043_img01.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p043_img01.png",
+          "width": 114,
+          "height": 53,
+          "colorspace": 3
+        },
+        {
+          "file": "perception_mapping_p043_img02.png",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p043_img02.png",
+          "width": 89,
+          "height": 154,
+          "colorspace": 3
+        },
+        {
+          "file": "perception_mapping_p043_img03.jpeg",
+          "path": "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/knowldge/_extraction_work/images/perception_mapping_p043_img03.jpeg",
+          "width": 722,
+          "height": 481,
+          "colorspace": 3
+        }
+      ],
+      "image_count": 3,
+      "page_render": "perception_mapping_p043.png"
+    }
+  ]
+}

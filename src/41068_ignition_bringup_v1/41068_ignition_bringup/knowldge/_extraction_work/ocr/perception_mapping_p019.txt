@@ -1,0 +1,18 @@
+Terrain Map
+> Good for navigating complex terrain
+> Similar to occupancy grid, but describes properties of the terrain, such as elevation or
+surface type
+> Good for modelling complex 3D terrains
+> Elevation often represented as a contour map
+Oe:
+o rz» = ears)
+aw MBS, iy —_- [= <tirteter,
+—— ja nx wn { — = Im / | 7 Lower confidence boun
+= 2 ge = Se eo GF
+Ma Jaa |b al On et i eo
+yr ~ o | f f \) a ape a E ips a> oa twp 1 Ay
+il Dp) Wm wae” fy | iy
+a a x \ — WS y be 6 ry § field of fiew
+: ¥ Vy > xg 4 Confidence interval
+— WEF Pane ae
+UTS 19

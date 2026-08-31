@@ -1,0 +1,13 @@
+Behaviour Tree Definitions x
+
+Ce
+
+Activate recursively, Sequence: -
+
+from left to right Up to first failure
+Fallback:
+Up to first success
+Conditions:
+Success or failure
+Actions: ... and other
+Success or failure types of nodes

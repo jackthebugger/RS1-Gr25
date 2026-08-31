@@ -57,10 +57,17 @@ RM = /usr/bin/cmake -E rm -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
+<<<<<<< HEAD
 CMAKE_SOURCE_DIR = /home/jordan/G25_RS1/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup
 
 # The top-level build directory on which CMake was run.
 CMAKE_BINARY_DIR = /home/jordan/G25_RS1/RS1-Gr25/build/41068_ignition_bringup
+=======
+CMAKE_SOURCE_DIR = /home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup
+
+# The top-level build directory on which CMake was run.
+CMAKE_BINARY_DIR = /home/jordan/RS1-Gr25/build/41068_ignition_bringup
+>>>>>>> 0e5490223d813e908c4b26fdff6f2e093e504479
 
 #=============================================================================
 # Targets provided globally by CMake.
@@ -142,9 +149,15 @@ install/strip/fast: preinstall/fast
 
 # The main all target
 all: cmake_check_build_system
+<<<<<<< HEAD
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/jordan/G25_RS1/RS1-Gr25/build/41068_ignition_bringup/CMakeFiles /home/jordan/G25_RS1/RS1-Gr25/build/41068_ignition_bringup//CMakeFiles/progress.marks
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 all
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/jordan/G25_RS1/RS1-Gr25/build/41068_ignition_bringup/CMakeFiles 0
+=======
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/jordan/RS1-Gr25/build/41068_ignition_bringup/CMakeFiles /home/jordan/RS1-Gr25/build/41068_ignition_bringup//CMakeFiles/progress.marks
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 all
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/jordan/RS1-Gr25/build/41068_ignition_bringup/CMakeFiles 0
+>>>>>>> 0e5490223d813e908c4b26fdff6f2e093e504479
 .PHONY : all
 
 # The main clean target
@@ -197,6 +210,32 @@ uninstall/fast:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/41068_ignition_bringup_uninstall.dir/build.make CMakeFiles/41068_ignition_bringup_uninstall.dir/build
 .PHONY : 41068_ignition_bringup_uninstall/fast
 
+#=============================================================================
+# Target rules for targets named ament_cmake_python_symlink_rs1_nav
+
+# Build rule for target.
+ament_cmake_python_symlink_rs1_nav: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 ament_cmake_python_symlink_rs1_nav
+.PHONY : ament_cmake_python_symlink_rs1_nav
+
+# fast build rule for target.
+ament_cmake_python_symlink_rs1_nav/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/ament_cmake_python_symlink_rs1_nav.dir/build.make CMakeFiles/ament_cmake_python_symlink_rs1_nav.dir/build
+.PHONY : ament_cmake_python_symlink_rs1_nav/fast
+
+#=============================================================================
+# Target rules for targets named ament_cmake_python_build_rs1_nav_egg
+
+# Build rule for target.
+ament_cmake_python_build_rs1_nav_egg: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 ament_cmake_python_build_rs1_nav_egg
+.PHONY : ament_cmake_python_build_rs1_nav_egg
+
+# fast build rule for target.
+ament_cmake_python_build_rs1_nav_egg/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/ament_cmake_python_build_rs1_nav_egg.dir/build.make CMakeFiles/ament_cmake_python_build_rs1_nav_egg.dir/build
+.PHONY : ament_cmake_python_build_rs1_nav_egg/fast
+
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -211,6 +250,8 @@ help:
 	@echo "... rebuild_cache"
 	@echo "... test"
 	@echo "... 41068_ignition_bringup_uninstall"
+	@echo "... ament_cmake_python_build_rs1_nav_egg"
+	@echo "... ament_cmake_python_symlink_rs1_nav"
 	@echo "... uninstall"
 .PHONY : help
 

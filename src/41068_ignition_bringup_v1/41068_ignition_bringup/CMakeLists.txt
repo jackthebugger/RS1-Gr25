@@ -7,6 +7,7 @@ endif()
 
 # find dependencies
 find_package(ament_cmake REQUIRED)
+find_package(ament_cmake_python REQUIRED)
 
 find_package(ros_ign_interfaces REQUIRED)
 
@@ -15,11 +16,20 @@ install(
   DESTINATION share/${PROJECT_NAME}
 )
 
+# Shared Python helpers used by the demo scripts and the test suite. The ROS
+# package name starts with a digit and so cannot be a Python module name; the
+# module is therefore called rs1_nav.
+ament_python_install_package(rs1_nav)
+
 install(
   PROGRAMS
     scripts/dynamic_world_demo.py
     scripts/basic_autonomy_demo.py
+<<<<<<< HEAD
     scripts/odometry_tf_broadcaster.py
+=======
+    scripts/obstacle_injector.py
+>>>>>>> 0e5490223d813e908c4b26fdff6f2e093e504479
   DESTINATION lib/${PROJECT_NAME}
 )
 

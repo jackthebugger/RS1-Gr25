@@ -1,8 +1,16 @@
+<<<<<<< HEAD
 # Install script for directory: /home/jordan/G25_RS1/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
   set(CMAKE_INSTALL_PREFIX "/home/jordan/G25_RS1/RS1-Gr25/install/41068_ignition_bringup")
+=======
+# Install script for directory: /home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup
+
+# Set the install prefix
+if(NOT DEFINED CMAKE_INSTALL_PREFIX)
+  set(CMAKE_INSTALL_PREFIX "/home/jordan/RS1-Gr25/install/41068_ignition_bringup")
+>>>>>>> 0e5490223d813e908c4b26fdff6f2e093e504479
 endif()
 string(REGEX REPLACE "/$" "" CMAKE_INSTALL_PREFIX "${CMAKE_INSTALL_PREFIX}")
 
@@ -43,6 +51,7 @@ if(NOT DEFINED CMAKE_OBJDUMP)
 endif()
 
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
+<<<<<<< HEAD
   file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/41068_ignition_bringup" TYPE DIRECTORY FILES
     "/home/jordan/G25_RS1/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/config"
     "/home/jordan/G25_RS1/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/launch"
@@ -118,6 +127,17 @@ endif()
 
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
   file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/41068_ignition_bringup" TYPE FILE FILES "/home/jordan/G25_RS1/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/package.xml")
+=======
+  include("/home/jordan/RS1-Gr25/build/41068_ignition_bringup/ament_cmake_symlink_install/ament_cmake_symlink_install.cmake")
+endif()
+
+if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
+  execute_process(
+        COMMAND
+        "/usr/bin/python3" "-m" "compileall"
+        "/home/jordan/RS1-Gr25/install/41068_ignition_bringup/local/lib/python3.10/dist-packages/rs1_nav"
+      )
+>>>>>>> 0e5490223d813e908c4b26fdff6f2e093e504479
 endif()
 
 if(CMAKE_INSTALL_COMPONENT)
@@ -128,5 +148,9 @@ endif()
 
 string(REPLACE ";" "\n" CMAKE_INSTALL_MANIFEST_CONTENT
        "${CMAKE_INSTALL_MANIFEST_FILES}")
+<<<<<<< HEAD
 file(WRITE "/home/jordan/G25_RS1/RS1-Gr25/build/41068_ignition_bringup/${CMAKE_INSTALL_MANIFEST}"
+=======
+file(WRITE "/home/jordan/RS1-Gr25/build/41068_ignition_bringup/${CMAKE_INSTALL_MANIFEST}"
+>>>>>>> 0e5490223d813e908c4b26fdff6f2e093e504479
      "${CMAKE_INSTALL_MANIFEST_CONTENT}")

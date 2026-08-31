@@ -1,0 +1,36 @@
+[Py enel Meee ay
+. . ros__parameters:
+C fi F | use_sim time:
+ontig Files controller. frequency: 5.0
+min_x_velocity threshold: @.001
+min_y velocity threshold: @.5
+rt Mee (eM Celera vane a Cait ELSE
+. failure_tolerance: 0.3
+» Gazebo-ROS bridges Peres go Ges orpse deren
+goal_checker_plugins:
+* Global clock ~ general_goal_checker
+controller_plugins:
+. FollowPath
+* Husky/Parrot topics Re ALE
+. . USO Melee Bret Sala eee tte <i
+» Robot localisation alana chap Paneer
+. . general_goal_ checker:
+*« Parameters for the localisation node Seen
+plugin: nav2_controller: :SimpleGoalChecker
+» SLAM toolbox Sone see oe
+FollowPath:
+. Parameters for the SLAM node plugin: dwb_core: :DWBLocalPlanner
+Cal ee nace ea ae a e
+vel x: 0.0
+> Nav2 min.vel_y: 0.0
+ae AC
+« Parameters for navigation, planning, and control CEE ae ie OO
+. min_speed_xy: 0.0
+> Rviz eGneeiwe 1G
+min_speed_theta: 0.
+*  RViz visualisation configuration a ta oq
+acc_lim theta: 3.2
+* Best edited directly in rviz then saved EPs is Ete cee ac
+decel lim y: 0.0
+Cem cree ey)
+19

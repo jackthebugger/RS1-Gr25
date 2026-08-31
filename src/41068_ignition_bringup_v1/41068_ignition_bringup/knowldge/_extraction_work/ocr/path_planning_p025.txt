@@ -1,0 +1,18 @@
+eo
+Graph Data Structure +
+44
+Ce
+o
+¢ Graph G = (V, E) where V is a set of vertices and E is a set of edges.
+Each edge e € E is a 2-tuple of the form (v, w) where v, w € V, and e is called an incident on v and w.
+©) o V = (0, 1, 2, 3, 4}
+@)  E=(0,0,0,2),0,9), 0.4),
+(2, 3), (3, 4), (4, 9}
+O—®
+¢ An edge may be directed or undirected.
+« An edge may also have a weight.
+2
+(0)—*"0) (1).
+Q) 1 1 @)
+wid 5 ;
+Directed, unweighted Directed, weighted
