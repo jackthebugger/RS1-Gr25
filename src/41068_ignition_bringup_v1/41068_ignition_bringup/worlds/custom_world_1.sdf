@@ -43,8 +43,8 @@
     <!-- Large ground planes with forest floor texture -->
     <include>
       <uri>
-        model://custom_ground_plane
-        <!--model://flat_custom_ground_plane -->
+        <!--model://custom_ground_plane -->
+        model://flat_custom_ground_plane
       </uri>
       <name>custom_map</name>
       <pose>0 0 0 0 0 0</pose>
@@ -236,52 +236,40 @@
       <uri>
         https://fuel.gazebosim.org/1.0/OpenRobotics/models/Oak%20tree
       </uri>
-      <name>oak8</name>
+      <name>oak1</name>
       <pose>3.54698 5 -0.3 0 -0 0.1</pose>
     </include>
 
-    <!-- Rocks -->
     <include>
       <uri>
-        https://fuel.gazebosim.org/1.0/OpenRobotics/models/Falling%20Rock%201
+        https://fuel.gazebosim.org/1.0/OpenRobotics/models/Oak%20tree
       </uri>
-      <name>rock1</name>
-      <pose>-6.30926 -8.38159 0 0 0 0</pose>
+      <name>oak2</name>
+      <pose>25 10 -0.3 0 -0 0.1</pose>
     </include>
+
     <include>
       <uri>
-        https://fuel.gazebosim.org/1.0/OpenRobotics/models/Falling%20Rock%202
+        https://fuel.gazebosim.org/1.0/OpenRobotics/models/Oak%20tree
       </uri>
-      <name>rock2</name>
-      <pose>-8.27162 -6.19647 0 0 0 0</pose>
+      <name>oak3</name>
+      <pose>10 -7 -0.3 0 -0 0.1</pose>
     </include>
+
     <include>
       <uri>
-        https://fuel.gazebosim.org/1.0/OpenRobotics/models/Falling%20Rock%203
+        https://fuel.gazebosim.org/1.0/OpenRobotics/models/Oak%20tree
       </uri>
-      <name>rock3</name>
-      <pose>-9.2841 -4.61803 0 0 0 0</pose>
+      <name>oak4</name>
+      <pose>4 -3 -0.3 0 -0 0.1</pose>
     </include>
+
     <include>
       <uri>
-        https://fuel.gazebosim.org/1.0/OpenRobotics/models/Falling%20Rock%204
+        https://fuel.gazebosim.org/1.0/OpenRobotics/models/Oak%20tree
       </uri>
-      <name>rock4</name>
-      <pose>-10 -12 0 0 0 0</pose>
-    </include>
-    <include>
-      <uri>
-        https://fuel.gazebosim.org/1.0/OpenRobotics/models/Falling%20Rock%205
-      </uri>
-      <name>rock5</name>
-      <pose>-12 -12 0 0 0 0</pose>
-    </include>
-    <include>
-      <uri>
-        https://fuel.gazebosim.org/1.0/OpenRobotics/models/Falling%20Rock%206
-      </uri>
-      <name>rock6</name>
-      <pose>-14 -12 0 0 0 0</pose>
+      <name>oak5</name>
+      <pose>13 5 -0.3 0 -0 0.1</pose>
     </include>
 
   </world>
