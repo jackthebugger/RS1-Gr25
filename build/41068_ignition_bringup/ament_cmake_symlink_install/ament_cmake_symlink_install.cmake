@@ -330,8 +330,8 @@ ament_cmake_symlink_install_directory("/home/jordan/RS1-Gr25/src/41068_ignition_
 # install(DIRECTORY "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/rs1_nav/" "DESTINATION" "local/lib/python3.10/dist-packages/rs1_nav" "PATTERN_EXCLUDE" "*.pyc" "PATTERN_EXCLUDE" "__pycache__")
 ament_cmake_symlink_install_directory("/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup" DIRECTORY "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/rs1_nav/" "DESTINATION" "local/lib/python3.10/dist-packages/rs1_nav" "PATTERN_EXCLUDE" "*.pyc" "PATTERN_EXCLUDE" "__pycache__")
 
-# install(PROGRAMS "scripts/dynamic_world_demo.py" "scripts/basic_autonomy_demo.py" "scripts/obstacle_injector.py" "DESTINATION" "lib/41068_ignition_bringup")
-ament_cmake_symlink_install_programs("/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup" PROGRAMS "scripts/dynamic_world_demo.py" "scripts/basic_autonomy_demo.py" "scripts/obstacle_injector.py" "DESTINATION" "lib/41068_ignition_bringup")
+# install(PROGRAMS "scripts/dynamic_world_demo.py" "scripts/basic_autonomy_demo.py" "scripts/odometry_tf_broadcaster.py" "scripts/obstacle_injector.py" "DESTINATION" "lib/41068_ignition_bringup")
+ament_cmake_symlink_install_programs("/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup" PROGRAMS "scripts/dynamic_world_demo.py" "scripts/basic_autonomy_demo.py" "scripts/odometry_tf_broadcaster.py" "scripts/obstacle_injector.py" "DESTINATION" "lib/41068_ignition_bringup")
 
 # install(FILES "/home/jordan/RS1-Gr25/build/41068_ignition_bringup/ament_cmake_index/share/ament_index/resource_index/package_run_dependencies/41068_ignition_bringup" "DESTINATION" "share/ament_index/resource_index/package_run_dependencies")
 ament_cmake_symlink_install_files("/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup" FILES "/home/jordan/RS1-Gr25/build/41068_ignition_bringup/ament_cmake_index/share/ament_index/resource_index/package_run_dependencies/41068_ignition_bringup" "DESTINATION" "share/ament_index/resource_index/package_run_dependencies")

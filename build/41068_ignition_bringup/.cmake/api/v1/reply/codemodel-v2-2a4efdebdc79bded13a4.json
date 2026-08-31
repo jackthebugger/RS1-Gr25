@@ -7,11 +7,7 @@
 				{
 					"build" : ".",
 					"hasInstallRule" : true,
-<<<<<<<< HEAD:build/41068_ignition_bringup/.cmake/api/v1/reply/codemodel-v2-3c67d7749df6805a40cf.json
-					"jsonFile" : "directory-.-cecb3f433bcd77641348.json",
-========
 					"jsonFile" : "directory-.-86a7425c239be269dfec.json",
->>>>>>>> 0e5490223d813e908c4b26fdff6f2e093e504479:build/41068_ignition_bringup/.cmake/api/v1/reply/codemodel-v2-2a4efdebdc79bded13a4.json
 					"minimumCMakeVersion" : 
 					{
 						"string" : "3.12"
@@ -50,11 +46,7 @@
 				{
 					"directoryIndex" : 0,
 					"id" : "41068_ignition_bringup_uninstall::@6890427a1f51a3e7e1df",
-<<<<<<<< HEAD:build/41068_ignition_bringup/.cmake/api/v1/reply/codemodel-v2-3c67d7749df6805a40cf.json
-					"jsonFile" : "target-41068_ignition_bringup_uninstall-19ced5f40a64e2d00211.json",
-========
 					"jsonFile" : "target-41068_ignition_bringup_uninstall-0386cbfd1273a23ce385.json",
->>>>>>>> 0e5490223d813e908c4b26fdff6f2e093e504479:build/41068_ignition_bringup/.cmake/api/v1/reply/codemodel-v2-2a4efdebdc79bded13a4.json
 					"name" : "41068_ignition_bringup_uninstall",
 					"projectIndex" : 0
 				},
@@ -85,13 +77,8 @@
 	"kind" : "codemodel",
 	"paths" : 
 	{
-<<<<<<<< HEAD:build/41068_ignition_bringup/.cmake/api/v1/reply/codemodel-v2-3c67d7749df6805a40cf.json
-		"build" : "/home/jordan/G25_RS1/RS1-Gr25/build/41068_ignition_bringup",
-		"source" : "/home/jordan/G25_RS1/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup"
-========
 		"build" : "/home/jordan/RS1-Gr25/build/41068_ignition_bringup",
 		"source" : "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup"
->>>>>>>> 0e5490223d813e908c4b26fdff6f2e093e504479:build/41068_ignition_bringup/.cmake/api/v1/reply/codemodel-v2-2a4efdebdc79bded13a4.json
 	},
 	"version" : 
 	{

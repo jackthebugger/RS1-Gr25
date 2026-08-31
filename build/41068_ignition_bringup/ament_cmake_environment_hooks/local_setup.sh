@@ -2,11 +2,7 @@
 
 # since this file is sourced use either the provided AMENT_CURRENT_PREFIX
 # or fall back to the destination set at configure time
-<<<<<<< HEAD
-: ${AMENT_CURRENT_PREFIX:="/home/jordan/G25_RS1/RS1-Gr25/install/41068_ignition_bringup"}
-=======
 : ${AMENT_CURRENT_PREFIX:="/home/jordan/RS1-Gr25/install/41068_ignition_bringup"}
->>>>>>> 0e5490223d813e908c4b26fdff6f2e093e504479
 if [ ! -d "$AMENT_CURRENT_PREFIX" ]; then
   if [ -z "$COLCON_CURRENT_PREFIX" ]; then
     echo "The compile time prefix path '$AMENT_CURRENT_PREFIX' doesn't " \

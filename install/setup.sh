@@ -7,11 +7,7 @@
 # since a plain shell script can't determine its own path when being sourced
 # either use the provided COLCON_CURRENT_PREFIX
 # or fall back to the build time prefix (if it exists)
-<<<<<<< HEAD
-_colcon_prefix_chain_sh_COLCON_CURRENT_PREFIX=/home/jordan/G25_RS1/RS1-Gr25/install
-=======
 _colcon_prefix_chain_sh_COLCON_CURRENT_PREFIX=/home/jordan/RS1-Gr25/install
->>>>>>> 0e5490223d813e908c4b26fdff6f2e093e504479
 if [ ! -z "$COLCON_CURRENT_PREFIX" ]; then
   _colcon_prefix_chain_sh_COLCON_CURRENT_PREFIX="$COLCON_CURRENT_PREFIX"
 elif [ ! -d "$_colcon_prefix_chain_sh_COLCON_CURRENT_PREFIX" ]; then
@@ -40,13 +36,6 @@ _colcon_prefix_chain_sh_source_script "$COLCON_CURRENT_PREFIX/local_setup.sh"
 
 # setting COLCON_CURRENT_PREFIX avoids relying on the build time prefix of the sourced script
 COLCON_CURRENT_PREFIX="/home/jordan/ros2_ws/install"
-<<<<<<< HEAD
-_colcon_prefix_chain_sh_source_script "$COLCON_CURRENT_PREFIX/local_setup.sh"
-
-# setting COLCON_CURRENT_PREFIX avoids relying on the build time prefix of the sourced script
-COLCON_CURRENT_PREFIX="/home/jordan/41068_ws/install"
-=======
->>>>>>> 0e5490223d813e908c4b26fdff6f2e093e504479
 _colcon_prefix_chain_sh_source_script "$COLCON_CURRENT_PREFIX/local_setup.sh"
 
 

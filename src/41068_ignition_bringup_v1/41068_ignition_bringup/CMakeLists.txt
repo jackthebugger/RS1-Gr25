@@ -25,11 +25,8 @@ install(
   PROGRAMS
     scripts/dynamic_world_demo.py
     scripts/basic_autonomy_demo.py
-<<<<<<< HEAD
     scripts/odometry_tf_broadcaster.py
-=======
     scripts/obstacle_injector.py
->>>>>>> 0e5490223d813e908c4b26fdff6f2e093e504479
   DESTINATION lib/${PROJECT_NAME}
 )
 

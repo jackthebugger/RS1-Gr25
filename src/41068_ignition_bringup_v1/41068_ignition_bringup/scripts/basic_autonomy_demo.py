@@ -443,7 +443,15 @@ def _run_structured_mission(args: argparse.Namespace) -> int:
             if not world.wait_until_available(max_wait=30.0):
                 log('FAIL  Gazebo world services unavailable; cannot inject an obstacle')
                 return 1
-            blocker = PathBlocker(observer, world, logger=lambda m: log(f'  {m}'))
+            blocker = PathBlocker(
+                observer, world,
+                width=4.0,        # longer wall
+                thickness=0.6,
+                height=2.0,
+                min_travel=1.0,   # wait until robot has moved 2 m
+                look_ahead=3.0,   # place wall 3 m ahead on path
+                logger=lambda m: log(f'  {m}'),
+            )
 
         def on_tick(elapsed: float, report) -> None:
             remaining = observer.distance_remaining()
