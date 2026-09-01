@@ -53,10 +53,10 @@ RM = /usr/bin/cmake -E rm -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /home/jordan/G25_RS1/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup
+CMAKE_SOURCE_DIR = /home/tajw/git/team25_rs1/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /home/jordan/G25_RS1/RS1-Gr25/build/41068_ignition_bringup
+CMAKE_BINARY_DIR = /home/tajw/git/team25_rs1/RS1-Gr25/build/41068_ignition_bringup
 
 # Utility rule file for ament_cmake_python_build_rs1_nav_egg.
 
@@ -67,7 +67,7 @@ include CMakeFiles/ament_cmake_python_build_rs1_nav_egg.dir/compiler_depend.make
 include CMakeFiles/ament_cmake_python_build_rs1_nav_egg.dir/progress.make
 
 CMakeFiles/ament_cmake_python_build_rs1_nav_egg:
-	cd /home/jordan/G25_RS1/RS1-Gr25/build/41068_ignition_bringup/ament_cmake_python/rs1_nav && /usr/bin/python3 setup.py egg_info
+	cd /home/tajw/git/team25_rs1/RS1-Gr25/build/41068_ignition_bringup/ament_cmake_python/rs1_nav && /usr/bin/python3 setup.py egg_info
 
 ament_cmake_python_build_rs1_nav_egg: CMakeFiles/ament_cmake_python_build_rs1_nav_egg
 ament_cmake_python_build_rs1_nav_egg: CMakeFiles/ament_cmake_python_build_rs1_nav_egg.dir/build.make
@@ -82,6 +82,6 @@ CMakeFiles/ament_cmake_python_build_rs1_nav_egg.dir/clean:
 .PHONY : CMakeFiles/ament_cmake_python_build_rs1_nav_egg.dir/clean
 
 CMakeFiles/ament_cmake_python_build_rs1_nav_egg.dir/depend:
-	cd /home/jordan/G25_RS1/RS1-Gr25/build/41068_ignition_bringup && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/jordan/G25_RS1/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup /home/jordan/G25_RS1/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup /home/jordan/G25_RS1/RS1-Gr25/build/41068_ignition_bringup /home/jordan/G25_RS1/RS1-Gr25/build/41068_ignition_bringup /home/jordan/G25_RS1/RS1-Gr25/build/41068_ignition_bringup/CMakeFiles/ament_cmake_python_build_rs1_nav_egg.dir/DependInfo.cmake --color=$(COLOR)
+	cd /home/tajw/git/team25_rs1/RS1-Gr25/build/41068_ignition_bringup && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/tajw/git/team25_rs1/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup /home/tajw/git/team25_rs1/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup /home/tajw/git/team25_rs1/RS1-Gr25/build/41068_ignition_bringup /home/tajw/git/team25_rs1/RS1-Gr25/build/41068_ignition_bringup /home/tajw/git/team25_rs1/RS1-Gr25/build/41068_ignition_bringup/CMakeFiles/ament_cmake_python_build_rs1_nav_egg.dir/DependInfo.cmake --color=$(COLOR)
 .PHONY : CMakeFiles/ament_cmake_python_build_rs1_nav_egg.dir/depend
 

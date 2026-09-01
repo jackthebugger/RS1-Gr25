@@ -1,1 +1,6 @@
-/home/jordan/G25_RS1/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/config/gazebo_bridge_clock.yaml
+# Timing consistency
+- ros_topic_name: '/clock'
+  gz_topic_name: '/clock'
+  ros_type_name: 'rosgraph_msgs/msg/Clock'
+  gz_type_name: 'gz.msgs.Clock'
+  direction: GZ_TO_ROS

@@ -21,6 +21,7 @@
                 </heightmap>
             </geometry>
         </collision>
+        
         <visual name="visual">
             <cast_shadows>false</cast_shadows>
             <geometry>
