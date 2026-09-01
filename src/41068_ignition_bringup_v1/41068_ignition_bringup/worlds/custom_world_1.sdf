@@ -43,8 +43,8 @@
     <!-- Large ground planes with forest floor texture -->
     <include>
       <uri>
-        <!--model://custom_ground_plane -->
-        model://flat_custom_ground_plane
+        model://custom_ground_plane
+        <!--model://flat_custom_ground_plane -->
       </uri>
       <name>custom_map</name>
       <pose>0 0 0 0 0 0</pose>
