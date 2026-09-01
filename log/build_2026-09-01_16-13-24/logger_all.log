@@ -1,0 +1,221 @@
+[0.236s] DEBUG:colcon:Command line arguments: ['/usr/bin/colcon', 'build', '--packages-select', '41068_ignition_bringup']
+[0.237s] DEBUG:colcon:Parsed command line arguments: Namespace(log_base=None, log_level=None, verb_name='build', build_base='build', install_base='install', merge_install=False, symlink_install=False, test_result_base=None, continue_on_error=False, executor='parallel', parallel_workers=8, event_handlers=None, ignore_user_meta=False, metas=['./colcon.meta'], base_paths=['.'], packages_ignore=None, packages_ignore_regex=None, paths=None, packages_up_to=None, packages_up_to_regex=None, packages_above=None, packages_above_and_dependencies=None, packages_above_depth=None, packages_select_by_dep=None, packages_skip_by_dep=None, packages_skip_up_to=None, packages_select_build_failed=False, packages_skip_build_finished=False, packages_select_test_failures=False, packages_skip_test_passed=False, packages_select=['41068_ignition_bringup'], packages_skip=None, packages_select_regex=None, packages_skip_regex=None, packages_start=None, packages_end=None, allow_overriding=[], cmake_args=None, cmake_target=None, cmake_target_skip_unavailable=False, cmake_clean_cache=False, cmake_clean_first=False, cmake_force_configure=False, ament_cmake_args=None, catkin_cmake_args=None, catkin_skip_building_tests=False, mixin_files=None, mixin=None, verb_parser=<colcon_mixin.mixin.mixin_argument.MixinArgumentDecorator object at 0x78beedc45f90>, verb_extension=<colcon_core.verb.build.BuildVerb object at 0x78beeddc7700>, main=<bound method BuildVerb.main of <colcon_core.verb.build.BuildVerb object at 0x78beeddc7700>>, mixin_verb=('build',))
+[0.438s] Level 1:colcon.colcon_core.package_discovery:discover_packages(colcon_meta) check parameters
+[0.438s] Level 1:colcon.colcon_core.package_discovery:discover_packages(recursive) check parameters
+[0.438s] Level 1:colcon.colcon_core.package_discovery:discover_packages(ignore) check parameters
+[0.438s] Level 1:colcon.colcon_core.package_discovery:discover_packages(path) check parameters
+[0.438s] Level 1:colcon.colcon_core.package_discovery:discover_packages(colcon_meta) discover
+[0.438s] Level 1:colcon.colcon_core.package_discovery:discover_packages(recursive) discover
+[0.439s] INFO:colcon.colcon_core.package_discovery:Crawling recursively for packages in '/home/tajw/git/team25_rs1/RS1-Gr25'
+[0.439s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extensions ['ignore', 'ignore_ament_install']
+[0.439s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extension 'ignore'
+[0.439s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extension 'ignore_ament_install'
+[0.439s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extensions ['colcon_pkg']
+[0.439s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extension 'colcon_pkg'
+[0.439s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extensions ['colcon_meta']
+[0.439s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extension 'colcon_meta'
+[0.439s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extensions ['ros']
+[0.439s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extension 'ros'
+[0.466s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extensions ['cmake', 'python']
+[0.467s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extension 'cmake'
+[0.467s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extension 'python'
+[0.467s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extensions ['python_setup_py']
+[0.467s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extension 'python_setup_py'
+[0.467s] Level 1:colcon.colcon_core.package_identification:_identify(build) by extensions ['ignore', 'ignore_ament_install']
+[0.468s] Level 1:colcon.colcon_core.package_identification:_identify(build) by extension 'ignore'
+[0.468s] Level 1:colcon.colcon_core.package_identification:_identify(build) ignored
+[0.468s] Level 1:colcon.colcon_core.package_identification:_identify(install) by extensions ['ignore', 'ignore_ament_install']
+[0.468s] Level 1:colcon.colcon_core.package_identification:_identify(install) by extension 'ignore'
+[0.468s] Level 1:colcon.colcon_core.package_identification:_identify(install) ignored
+[0.468s] Level 1:colcon.colcon_core.package_identification:_identify(log) by extensions ['ignore', 'ignore_ament_install']
+[0.469s] Level 1:colcon.colcon_core.package_identification:_identify(log) by extension 'ignore'
+[0.469s] Level 1:colcon.colcon_core.package_identification:_identify(log) ignored
+[0.469s] Level 1:colcon.colcon_core.package_identification:_identify(src) by extensions ['ignore', 'ignore_ament_install']
+[0.469s] Level 1:colcon.colcon_core.package_identification:_identify(src) by extension 'ignore'
+[0.469s] Level 1:colcon.colcon_core.package_identification:_identify(src) by extension 'ignore_ament_install'
+[0.469s] Level 1:colcon.colcon_core.package_identification:_identify(src) by extensions ['colcon_pkg']
+[0.469s] Level 1:colcon.colcon_core.package_identification:_identify(src) by extension 'colcon_pkg'
+[0.469s] Level 1:colcon.colcon_core.package_identification:_identify(src) by extensions ['colcon_meta']
+[0.469s] Level 1:colcon.colcon_core.package_identification:_identify(src) by extension 'colcon_meta'
+[0.469s] Level 1:colcon.colcon_core.package_identification:_identify(src) by extensions ['ros']
+[0.469s] Level 1:colcon.colcon_core.package_identification:_identify(src) by extension 'ros'
+[0.469s] Level 1:colcon.colcon_core.package_identification:_identify(src) by extensions ['cmake', 'python']
+[0.469s] Level 1:colcon.colcon_core.package_identification:_identify(src) by extension 'cmake'
+[0.469s] Level 1:colcon.colcon_core.package_identification:_identify(src) by extension 'python'
+[0.469s] Level 1:colcon.colcon_core.package_identification:_identify(src) by extensions ['python_setup_py']
+[0.469s] Level 1:colcon.colcon_core.package_identification:_identify(src) by extension 'python_setup_py'
+[0.470s] Level 1:colcon.colcon_core.package_identification:_identify(src/41068_ignition_bringup_v1) by extensions ['ignore', 'ignore_ament_install']
+[0.470s] Level 1:colcon.colcon_core.package_identification:_identify(src/41068_ignition_bringup_v1) by extension 'ignore'
+[0.470s] Level 1:colcon.colcon_core.package_identification:_identify(src/41068_ignition_bringup_v1) by extension 'ignore_ament_install'
+[0.470s] Level 1:colcon.colcon_core.package_identification:_identify(src/41068_ignition_bringup_v1) by extensions ['colcon_pkg']
+[0.470s] Level 1:colcon.colcon_core.package_identification:_identify(src/41068_ignition_bringup_v1) by extension 'colcon_pkg'
+[0.470s] Level 1:colcon.colcon_core.package_identification:_identify(src/41068_ignition_bringup_v1) by extensions ['colcon_meta']
+[0.470s] Level 1:colcon.colcon_core.package_identification:_identify(src/41068_ignition_bringup_v1) by extension 'colcon_meta'
+[0.470s] Level 1:colcon.colcon_core.package_identification:_identify(src/41068_ignition_bringup_v1) by extensions ['ros']
+[0.470s] Level 1:colcon.colcon_core.package_identification:_identify(src/41068_ignition_bringup_v1) by extension 'ros'
+[0.470s] Level 1:colcon.colcon_core.package_identification:_identify(src/41068_ignition_bringup_v1) by extensions ['cmake', 'python']
+[0.470s] Level 1:colcon.colcon_core.package_identification:_identify(src/41068_ignition_bringup_v1) by extension 'cmake'
+[0.470s] Level 1:colcon.colcon_core.package_identification:_identify(src/41068_ignition_bringup_v1) by extension 'python'
+[0.470s] Level 1:colcon.colcon_core.package_identification:_identify(src/41068_ignition_bringup_v1) by extensions ['python_setup_py']
+[0.470s] Level 1:colcon.colcon_core.package_identification:_identify(src/41068_ignition_bringup_v1) by extension 'python_setup_py'
+[0.470s] Level 1:colcon.colcon_core.package_identification:_identify(src/41068_ignition_bringup_v1/41068_ignition_bringup) by extensions ['ignore', 'ignore_ament_install']
+[0.470s] Level 1:colcon.colcon_core.package_identification:_identify(src/41068_ignition_bringup_v1/41068_ignition_bringup) by extension 'ignore'
+[0.470s] Level 1:colcon.colcon_core.package_identification:_identify(src/41068_ignition_bringup_v1/41068_ignition_bringup) by extension 'ignore_ament_install'
+[0.471s] Level 1:colcon.colcon_core.package_identification:_identify(src/41068_ignition_bringup_v1/41068_ignition_bringup) by extensions ['colcon_pkg']
+[0.471s] Level 1:colcon.colcon_core.package_identification:_identify(src/41068_ignition_bringup_v1/41068_ignition_bringup) by extension 'colcon_pkg'
+[0.471s] Level 1:colcon.colcon_core.package_identification:_identify(src/41068_ignition_bringup_v1/41068_ignition_bringup) by extensions ['colcon_meta']
+[0.471s] Level 1:colcon.colcon_core.package_identification:_identify(src/41068_ignition_bringup_v1/41068_ignition_bringup) by extension 'colcon_meta'
+[0.471s] Level 1:colcon.colcon_core.package_identification:_identify(src/41068_ignition_bringup_v1/41068_ignition_bringup) by extensions ['ros']
+[0.471s] Level 1:colcon.colcon_core.package_identification:_identify(src/41068_ignition_bringup_v1/41068_ignition_bringup) by extension 'ros'
+[0.476s] DEBUG:colcon.colcon_core.package_identification:Package 'src/41068_ignition_bringup_v1/41068_ignition_bringup' with type 'ros.ament_cmake' and name '41068_ignition_bringup'
+[0.477s] Level 1:colcon.colcon_core.package_identification:_identify(src/beer_fire_detection) by extensions ['ignore', 'ignore_ament_install']
+[0.477s] Level 1:colcon.colcon_core.package_identification:_identify(src/beer_fire_detection) by extension 'ignore'
+[0.477s] Level 1:colcon.colcon_core.package_identification:_identify(src/beer_fire_detection) by extension 'ignore_ament_install'
+[0.477s] Level 1:colcon.colcon_core.package_identification:_identify(src/beer_fire_detection) by extensions ['colcon_pkg']
+[0.477s] Level 1:colcon.colcon_core.package_identification:_identify(src/beer_fire_detection) by extension 'colcon_pkg'
+[0.477s] Level 1:colcon.colcon_core.package_identification:_identify(src/beer_fire_detection) by extensions ['colcon_meta']
+[0.477s] Level 1:colcon.colcon_core.package_identification:_identify(src/beer_fire_detection) by extension 'colcon_meta'
+[0.477s] Level 1:colcon.colcon_core.package_identification:_identify(src/beer_fire_detection) by extensions ['ros']
+[0.477s] Level 1:colcon.colcon_core.package_identification:_identify(src/beer_fire_detection) by extension 'ros'
+[0.479s] DEBUG:colcon.colcon_core.package_identification:Failed to parse potential ROS package manifest in'src/beer_fire_detection': Error(s) in package 'src/beer_fire_detection/package.xml':
+Error(s):
+- The manifest of package "beer_fire_detection" (with format version 3) must not contain the following tags: build_type
+[0.479s] Level 1:colcon.colcon_core.package_identification:_identify(src/beer_fire_detection) by extensions ['cmake', 'python']
+[0.479s] Level 1:colcon.colcon_core.package_identification:_identify(src/beer_fire_detection) by extension 'cmake'
+[0.479s] Level 1:colcon.colcon_core.package_identification:_identify(src/beer_fire_detection) by extension 'python'
+[0.479s] DEBUG:colcon.colcon_core.package_identification:Python package in 'src/beer_fire_detection' passes arguments to the setup() function which requires a different identification extension than 'python'
+[0.479s] Level 1:colcon.colcon_core.package_identification:_identify(src/beer_fire_detection) by extensions ['python_setup_py']
+[0.479s] Level 1:colcon.colcon_core.package_identification:_identify(src/beer_fire_detection) by extension 'python_setup_py'
+[0.897s] DEBUG:colcon.colcon_core.package_identification:Package 'src/beer_fire_detection' with type 'python' and name 'beer_fire_detection'
+[0.897s] Level 1:colcon.colcon_core.package_identification:_identify(src/build) by extensions ['ignore', 'ignore_ament_install']
+[0.897s] Level 1:colcon.colcon_core.package_identification:_identify(src/build) by extension 'ignore'
+[0.897s] Level 1:colcon.colcon_core.package_identification:_identify(src/build) ignored
+[0.898s] Level 1:colcon.colcon_core.package_identification:_identify(src/install) by extensions ['ignore', 'ignore_ament_install']
+[0.898s] Level 1:colcon.colcon_core.package_identification:_identify(src/install) by extension 'ignore'
+[0.898s] Level 1:colcon.colcon_core.package_identification:_identify(src/install) ignored
+[0.898s] Level 1:colcon.colcon_core.package_identification:_identify(src/log) by extensions ['ignore', 'ignore_ament_install']
+[0.898s] Level 1:colcon.colcon_core.package_identification:_identify(src/log) by extension 'ignore'
+[0.898s] Level 1:colcon.colcon_core.package_identification:_identify(src/log) ignored
+[0.898s] Level 1:colcon.colcon_core.package_identification:_identify(test) by extensions ['ignore', 'ignore_ament_install']
+[0.898s] Level 1:colcon.colcon_core.package_identification:_identify(test) by extension 'ignore'
+[0.898s] Level 1:colcon.colcon_core.package_identification:_identify(test) by extension 'ignore_ament_install'
+[0.898s] Level 1:colcon.colcon_core.package_identification:_identify(test) by extensions ['colcon_pkg']
+[0.898s] Level 1:colcon.colcon_core.package_identification:_identify(test) by extension 'colcon_pkg'
+[0.898s] Level 1:colcon.colcon_core.package_identification:_identify(test) by extensions ['colcon_meta']
+[0.898s] Level 1:colcon.colcon_core.package_identification:_identify(test) by extension 'colcon_meta'
+[0.899s] Level 1:colcon.colcon_core.package_identification:_identify(test) by extensions ['ros']
+[0.899s] Level 1:colcon.colcon_core.package_identification:_identify(test) by extension 'ros'
+[0.899s] Level 1:colcon.colcon_core.package_identification:_identify(test) by extensions ['cmake', 'python']
+[0.899s] Level 1:colcon.colcon_core.package_identification:_identify(test) by extension 'cmake'
+[0.899s] Level 1:colcon.colcon_core.package_identification:_identify(test) by extension 'python'
+[0.899s] Level 1:colcon.colcon_core.package_identification:_identify(test) by extensions ['python_setup_py']
+[0.899s] Level 1:colcon.colcon_core.package_identification:_identify(test) by extension 'python_setup_py'
+[0.899s] Level 1:colcon.colcon_core.package_identification:_identify(test/__pycache__) by extensions ['ignore', 'ignore_ament_install']
+[0.899s] Level 1:colcon.colcon_core.package_identification:_identify(test/__pycache__) by extension 'ignore'
+[0.899s] Level 1:colcon.colcon_core.package_identification:_identify(test/__pycache__) by extension 'ignore_ament_install'
+[0.899s] Level 1:colcon.colcon_core.package_identification:_identify(test/__pycache__) by extensions ['colcon_pkg']
+[0.899s] Level 1:colcon.colcon_core.package_identification:_identify(test/__pycache__) by extension 'colcon_pkg'
+[0.899s] Level 1:colcon.colcon_core.package_identification:_identify(test/__pycache__) by extensions ['colcon_meta']
+[0.900s] Level 1:colcon.colcon_core.package_identification:_identify(test/__pycache__) by extension 'colcon_meta'
+[0.900s] Level 1:colcon.colcon_core.package_identification:_identify(test/__pycache__) by extensions ['ros']
+[0.900s] Level 1:colcon.colcon_core.package_identification:_identify(test/__pycache__) by extension 'ros'
+[0.900s] Level 1:colcon.colcon_core.package_identification:_identify(test/__pycache__) by extensions ['cmake', 'python']
+[0.900s] Level 1:colcon.colcon_core.package_identification:_identify(test/__pycache__) by extension 'cmake'
+[0.900s] Level 1:colcon.colcon_core.package_identification:_identify(test/__pycache__) by extension 'python'
+[0.900s] Level 1:colcon.colcon_core.package_identification:_identify(test/__pycache__) by extensions ['python_setup_py']
+[0.900s] Level 1:colcon.colcon_core.package_identification:_identify(test/__pycache__) by extension 'python_setup_py'
+[0.900s] Level 1:colcon.colcon_core.package_discovery:discover_packages(recursive) using defaults
+[0.900s] Level 1:colcon.colcon_core.package_discovery:discover_packages(ignore) discover
+[0.900s] Level 1:colcon.colcon_core.package_discovery:discover_packages(ignore) using defaults
+[0.900s] Level 1:colcon.colcon_core.package_discovery:discover_packages(path) discover
+[0.900s] Level 1:colcon.colcon_core.package_discovery:discover_packages(path) using defaults
+[0.940s] INFO:colcon.colcon_core.package_selection:Skipping not selected package 'beer_fire_detection' in 'src/beer_fire_detection'
+[0.941s] Level 1:colcon.colcon_core.package_discovery:discover_packages(prefix_path) check parameters
+[0.941s] Level 1:colcon.colcon_core.package_discovery:discover_packages(prefix_path) discover
+[0.942s] WARNING:colcon.colcon_ros.prefix_path.ament:The path '/home/tajw/git/team25_rs1/RS1-Gr25/install/41068_ignition_bringup' in the environment variable AMENT_PREFIX_PATH doesn't exist
+[0.942s] WARNING:colcon.colcon_ros.prefix_path.catkin:The path '/home/tajw/git/team25_rs1/RS1-Gr25/install/41068_ignition_bringup' in the environment variable CMAKE_PREFIX_PATH doesn't exist
+[0.943s] DEBUG:colcon.colcon_installed_package_information.package_discovery:Found 1 installed packages in /home/tajw/41068_ws/install
+[0.943s] DEBUG:colcon.colcon_installed_package_information.package_discovery:Found 1 installed packages in /home/tajw/rs1_ros2_ws/install
+[0.944s] DEBUG:colcon.colcon_installed_package_information.package_discovery:Found 3 installed packages in /home/tajw/ros2_ws/install
+[0.944s] DEBUG:colcon.colcon_installed_package_information.package_discovery:Found 0 installed packages in /home/tajw/git/team25_rs1/RS1-Gr25/install
+[0.946s] DEBUG:colcon.colcon_installed_package_information.package_discovery:Found 417 installed packages in /opt/ros/humble
+[0.948s] Level 1:colcon.colcon_core.package_discovery:discover_packages(prefix_path) using defaults
+[1.011s] Level 5:colcon.colcon_core.verb:set package '41068_ignition_bringup' build argument 'cmake_args' from command line to 'None'
+[1.011s] Level 5:colcon.colcon_core.verb:set package '41068_ignition_bringup' build argument 'cmake_target' from command line to 'None'
+[1.011s] Level 5:colcon.colcon_core.verb:set package '41068_ignition_bringup' build argument 'cmake_target_skip_unavailable' from command line to 'False'
+[1.012s] Level 5:colcon.colcon_core.verb:set package '41068_ignition_bringup' build argument 'cmake_clean_cache' from command line to 'False'
+[1.012s] Level 5:colcon.colcon_core.verb:set package '41068_ignition_bringup' build argument 'cmake_clean_first' from command line to 'False'
+[1.012s] Level 5:colcon.colcon_core.verb:set package '41068_ignition_bringup' build argument 'cmake_force_configure' from command line to 'False'
+[1.012s] Level 5:colcon.colcon_core.verb:set package '41068_ignition_bringup' build argument 'ament_cmake_args' from command line to 'None'
+[1.012s] Level 5:colcon.colcon_core.verb:set package '41068_ignition_bringup' build argument 'catkin_cmake_args' from command line to 'None'
+[1.012s] Level 5:colcon.colcon_core.verb:set package '41068_ignition_bringup' build argument 'catkin_skip_building_tests' from command line to 'False'
+[1.012s] DEBUG:colcon.colcon_core.verb:Building package '41068_ignition_bringup' with the following arguments: {'ament_cmake_args': None, 'build_base': '/home/tajw/git/team25_rs1/RS1-Gr25/build/41068_ignition_bringup', 'catkin_cmake_args': None, 'catkin_skip_building_tests': False, 'cmake_args': None, 'cmake_clean_cache': False, 'cmake_clean_first': False, 'cmake_force_configure': False, 'cmake_target': None, 'cmake_target_skip_unavailable': False, 'install_base': '/home/tajw/git/team25_rs1/RS1-Gr25/install/41068_ignition_bringup', 'merge_install': False, 'path': '/home/tajw/git/team25_rs1/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup', 'symlink_install': False, 'test_result_base': None}
+[1.012s] INFO:colcon.colcon_core.executor:Executing jobs using 'parallel' executor
+[1.013s] DEBUG:colcon.colcon_parallel_executor.executor.parallel:run_until_complete
+[1.014s] INFO:colcon.colcon_ros.task.ament_cmake.build:Building ROS package in '/home/tajw/git/team25_rs1/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup' with build type 'ament_cmake'
+[1.014s] INFO:colcon.colcon_cmake.task.cmake.build:Building CMake package in '/home/tajw/git/team25_rs1/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup'
+[1.018s] INFO:colcon.colcon_core.plugin_system:Skipping extension 'colcon_core.shell.bat': Not used on non-Windows systems
+[1.018s] INFO:colcon.colcon_core.shell:Skip shell extension 'powershell' for command environment: Not usable outside of PowerShell
+[1.018s] DEBUG:colcon.colcon_core.shell:Skip shell extension 'dsv' for command environment
+[1.036s] DEBUG:colcon.colcon_core.event_handler.log_command:Invoking command in '/home/tajw/git/team25_rs1/RS1-Gr25/build/41068_ignition_bringup': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake /home/tajw/git/team25_rs1/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup -DCMAKE_INSTALL_PREFIX=/home/tajw/git/team25_rs1/RS1-Gr25/install/41068_ignition_bringup
+[3.530s] DEBUG:colcon.colcon_core.event_handler.log_command:Invoked command in '/home/tajw/git/team25_rs1/RS1-Gr25/build/41068_ignition_bringup' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake /home/tajw/git/team25_rs1/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup -DCMAKE_INSTALL_PREFIX=/home/tajw/git/team25_rs1/RS1-Gr25/install/41068_ignition_bringup
+[3.531s] DEBUG:colcon.colcon_core.event_handler.log_command:Invoking command in '/home/tajw/git/team25_rs1/RS1-Gr25/build/41068_ignition_bringup': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake --build /home/tajw/git/team25_rs1/RS1-Gr25/build/41068_ignition_bringup -- -j8 -l8
+[3.887s] DEBUG:colcon.colcon_core.event_handler.log_command:Invoked command in '/home/tajw/git/team25_rs1/RS1-Gr25/build/41068_ignition_bringup' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake --build /home/tajw/git/team25_rs1/RS1-Gr25/build/41068_ignition_bringup -- -j8 -l8
+[3.923s] DEBUG:colcon.colcon_core.event_handler.log_command:Invoking command in '/home/tajw/git/team25_rs1/RS1-Gr25/build/41068_ignition_bringup': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake --install /home/tajw/git/team25_rs1/RS1-Gr25/build/41068_ignition_bringup
+[4.304s] Level 1:colcon.colcon_core.environment:create_environment_scripts_only(41068_ignition_bringup)
+[4.305s] DEBUG:colcon.colcon_core.event_handler.log_command:Invoked command in '/home/tajw/git/team25_rs1/RS1-Gr25/build/41068_ignition_bringup' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake --install /home/tajw/git/team25_rs1/RS1-Gr25/build/41068_ignition_bringup
+[4.307s] Level 1:colcon.colcon_core.environment:checking '/home/tajw/git/team25_rs1/RS1-Gr25/install/41068_ignition_bringup' for CMake module files
+[4.308s] Level 1:colcon.colcon_core.environment:checking '/home/tajw/git/team25_rs1/RS1-Gr25/install/41068_ignition_bringup' for CMake config files
+[4.308s] Level 1:colcon.colcon_core.shell:create_environment_hook('41068_ignition_bringup', 'cmake_prefix_path')
+[4.309s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/tajw/git/team25_rs1/RS1-Gr25/install/41068_ignition_bringup/share/41068_ignition_bringup/hook/cmake_prefix_path.ps1'
+[4.311s] INFO:colcon.colcon_core.shell:Creating environment descriptor '/home/tajw/git/team25_rs1/RS1-Gr25/install/41068_ignition_bringup/share/41068_ignition_bringup/hook/cmake_prefix_path.dsv'
+[4.311s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/tajw/git/team25_rs1/RS1-Gr25/install/41068_ignition_bringup/share/41068_ignition_bringup/hook/cmake_prefix_path.sh'
+[4.313s] Level 1:colcon.colcon_core.environment:checking '/home/tajw/git/team25_rs1/RS1-Gr25/install/41068_ignition_bringup/lib'
+[4.313s] Level 1:colcon.colcon_core.environment:checking '/home/tajw/git/team25_rs1/RS1-Gr25/install/41068_ignition_bringup/bin'
+[4.313s] Level 1:colcon.colcon_core.environment:checking '/home/tajw/git/team25_rs1/RS1-Gr25/install/41068_ignition_bringup/lib/pkgconfig/41068_ignition_bringup.pc'
+[4.313s] Level 1:colcon.colcon_core.environment:checking '/home/tajw/git/team25_rs1/RS1-Gr25/install/41068_ignition_bringup/lib/python3.10/site-packages'
+[4.314s] Level 1:colcon.colcon_core.environment:checking '/home/tajw/git/team25_rs1/RS1-Gr25/install/41068_ignition_bringup/bin'
+[4.314s] INFO:colcon.colcon_core.shell:Creating package script '/home/tajw/git/team25_rs1/RS1-Gr25/install/41068_ignition_bringup/share/41068_ignition_bringup/package.ps1'
+[4.316s] INFO:colcon.colcon_core.shell:Creating package descriptor '/home/tajw/git/team25_rs1/RS1-Gr25/install/41068_ignition_bringup/share/41068_ignition_bringup/package.dsv'
+[4.317s] INFO:colcon.colcon_core.shell:Creating package script '/home/tajw/git/team25_rs1/RS1-Gr25/install/41068_ignition_bringup/share/41068_ignition_bringup/package.sh'
+[4.318s] INFO:colcon.colcon_core.shell:Creating package script '/home/tajw/git/team25_rs1/RS1-Gr25/install/41068_ignition_bringup/share/41068_ignition_bringup/package.bash'
+[4.319s] INFO:colcon.colcon_core.shell:Creating package script '/home/tajw/git/team25_rs1/RS1-Gr25/install/41068_ignition_bringup/share/41068_ignition_bringup/package.zsh'
+[4.320s] Level 1:colcon.colcon_core.environment:create_file_with_runtime_dependencies(/home/tajw/git/team25_rs1/RS1-Gr25/install/41068_ignition_bringup/share/colcon-core/packages/41068_ignition_bringup)
+[4.321s] Level 1:colcon.colcon_core.environment:create_environment_scripts_only(41068_ignition_bringup)
+[4.321s] Level 1:colcon.colcon_core.environment:checking '/home/tajw/git/team25_rs1/RS1-Gr25/install/41068_ignition_bringup' for CMake module files
+[4.322s] Level 1:colcon.colcon_core.environment:checking '/home/tajw/git/team25_rs1/RS1-Gr25/install/41068_ignition_bringup' for CMake config files
+[4.322s] Level 1:colcon.colcon_core.shell:create_environment_hook('41068_ignition_bringup', 'cmake_prefix_path')
+[4.323s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/tajw/git/team25_rs1/RS1-Gr25/install/41068_ignition_bringup/share/41068_ignition_bringup/hook/cmake_prefix_path.ps1'
+[4.323s] INFO:colcon.colcon_core.shell:Creating environment descriptor '/home/tajw/git/team25_rs1/RS1-Gr25/install/41068_ignition_bringup/share/41068_ignition_bringup/hook/cmake_prefix_path.dsv'
+[4.324s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/tajw/git/team25_rs1/RS1-Gr25/install/41068_ignition_bringup/share/41068_ignition_bringup/hook/cmake_prefix_path.sh'
+[4.324s] Level 1:colcon.colcon_core.environment:checking '/home/tajw/git/team25_rs1/RS1-Gr25/install/41068_ignition_bringup/lib'
+[4.324s] Level 1:colcon.colcon_core.environment:checking '/home/tajw/git/team25_rs1/RS1-Gr25/install/41068_ignition_bringup/bin'
+[4.324s] Level 1:colcon.colcon_core.environment:checking '/home/tajw/git/team25_rs1/RS1-Gr25/install/41068_ignition_bringup/lib/pkgconfig/41068_ignition_bringup.pc'
+[4.325s] Level 1:colcon.colcon_core.environment:checking '/home/tajw/git/team25_rs1/RS1-Gr25/install/41068_ignition_bringup/lib/python3.10/site-packages'
+[4.325s] Level 1:colcon.colcon_core.environment:checking '/home/tajw/git/team25_rs1/RS1-Gr25/install/41068_ignition_bringup/bin'
+[4.325s] INFO:colcon.colcon_core.shell:Creating package script '/home/tajw/git/team25_rs1/RS1-Gr25/install/41068_ignition_bringup/share/41068_ignition_bringup/package.ps1'
+[4.327s] INFO:colcon.colcon_core.shell:Creating package descriptor '/home/tajw/git/team25_rs1/RS1-Gr25/install/41068_ignition_bringup/share/41068_ignition_bringup/package.dsv'
+[4.328s] INFO:colcon.colcon_core.shell:Creating package script '/home/tajw/git/team25_rs1/RS1-Gr25/install/41068_ignition_bringup/share/41068_ignition_bringup/package.sh'
+[4.329s] INFO:colcon.colcon_core.shell:Creating package script '/home/tajw/git/team25_rs1/RS1-Gr25/install/41068_ignition_bringup/share/41068_ignition_bringup/package.bash'
+[4.329s] INFO:colcon.colcon_core.shell:Creating package script '/home/tajw/git/team25_rs1/RS1-Gr25/install/41068_ignition_bringup/share/41068_ignition_bringup/package.zsh'
+[4.330s] Level 1:colcon.colcon_core.environment:create_file_with_runtime_dependencies(/home/tajw/git/team25_rs1/RS1-Gr25/install/41068_ignition_bringup/share/colcon-core/packages/41068_ignition_bringup)
+[4.330s] DEBUG:colcon.colcon_parallel_executor.executor.parallel:closing loop
+[4.331s] DEBUG:colcon.colcon_parallel_executor.executor.parallel:loop closed
+[4.331s] DEBUG:colcon.colcon_parallel_executor.executor.parallel:run_until_complete finished with '0'
+[4.331s] DEBUG:colcon.colcon_core.event_reactor:joining thread
+[4.360s] INFO:colcon.colcon_core.plugin_system:Skipping extension 'colcon_notification.desktop_notification.notify_send': Could not find 'notify-send'
+[4.360s] INFO:colcon.colcon_core.plugin_system:Skipping extension 'colcon_notification.desktop_notification.terminal_notifier': Not used on non-Darwin systems
+[4.361s] INFO:colcon.colcon_core.plugin_system:Skipping extension 'colcon_notification.desktop_notification.win32': Not used on non-Windows systems
+[4.361s] INFO:colcon.colcon_notification.desktop_notification:Sending desktop notification using 'notify2'
+[4.362s] DEBUG:colcon.colcon_notification.desktop_notification.notify2:Failed to initialize notify2: org.freedesktop.DBus.Error.ServiceUnknown: The name org.freedesktop.Notifications was not provided by any .service files
+[4.363s] DEBUG:colcon.colcon_core.event_reactor:joined thread
+[4.363s] INFO:colcon.colcon_core.shell:Creating prefix script '/home/tajw/git/team25_rs1/RS1-Gr25/install/local_setup.ps1'
+[4.364s] INFO:colcon.colcon_core.shell:Creating prefix util module '/home/tajw/git/team25_rs1/RS1-Gr25/install/_local_setup_util_ps1.py'
+[4.366s] INFO:colcon.colcon_core.shell:Creating prefix chain script '/home/tajw/git/team25_rs1/RS1-Gr25/install/setup.ps1'
+[4.368s] INFO:colcon.colcon_core.shell:Creating prefix script '/home/tajw/git/team25_rs1/RS1-Gr25/install/local_setup.sh'
+[4.369s] INFO:colcon.colcon_core.shell:Creating prefix util module '/home/tajw/git/team25_rs1/RS1-Gr25/install/_local_setup_util_sh.py'
+[4.370s] INFO:colcon.colcon_core.shell:Creating prefix chain script '/home/tajw/git/team25_rs1/RS1-Gr25/install/setup.sh'
+[4.372s] INFO:colcon.colcon_core.shell:Creating prefix script '/home/tajw/git/team25_rs1/RS1-Gr25/install/local_setup.bash'
+[4.373s] INFO:colcon.colcon_core.shell:Creating prefix chain script '/home/tajw/git/team25_rs1/RS1-Gr25/install/setup.bash'
+[4.376s] INFO:colcon.colcon_core.shell:Creating prefix script '/home/tajw/git/team25_rs1/RS1-Gr25/install/local_setup.zsh'
+[4.377s] INFO:colcon.colcon_core.shell:Creating prefix chain script '/home/tajw/git/team25_rs1/RS1-Gr25/install/setup.zsh'

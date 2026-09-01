@@ -1,8 +1,8 @@
-# Install script for directory: /home/jhavranek/git/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup
+# Install script for directory: /home/tajw/git/team25_rs1/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
-  set(CMAKE_INSTALL_PREFIX "/home/jhavranek/git/RS1-Gr25/install/41068_ignition_bringup")
+  set(CMAKE_INSTALL_PREFIX "/home/tajw/git/team25_rs1/RS1-Gr25/install/41068_ignition_bringup")
 endif()
 string(REGEX REPLACE "/$" "" CMAKE_INSTALL_PREFIX "${CMAKE_INSTALL_PREFIX}")
 
@@ -43,7 +43,107 @@ if(NOT DEFINED CMAKE_OBJDUMP)
 endif()
 
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
-  include("/home/jhavranek/git/RS1-Gr25/build/41068_ignition_bringup/ament_cmake_symlink_install/ament_cmake_symlink_install.cmake")
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/41068_ignition_bringup" TYPE DIRECTORY FILES
+    "/home/tajw/git/team25_rs1/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/config"
+    "/home/tajw/git/team25_rs1/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/launch"
+    "/home/tajw/git/team25_rs1/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/models"
+    "/home/tajw/git/team25_rs1/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/urdf_husky"
+    "/home/tajw/git/team25_rs1/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/worlds"
+    "/home/tajw/git/team25_rs1/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/urdf_parrot"
+    )
+endif()
+
+if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/41068_ignition_bringup/environment" TYPE FILE FILES "/home/tajw/git/team25_rs1/RS1-Gr25/build/41068_ignition_bringup/ament_cmake_environment_hooks/pythonpath.sh")
+endif()
+
+if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/41068_ignition_bringup/environment" TYPE FILE FILES "/home/tajw/git/team25_rs1/RS1-Gr25/build/41068_ignition_bringup/ament_cmake_environment_hooks/pythonpath.dsv")
+endif()
+
+if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/local/lib/python3.10/dist-packages/rs1_nav-1.0.5-py3.10.egg-info" TYPE DIRECTORY FILES "/home/tajw/git/team25_rs1/RS1-Gr25/build/41068_ignition_bringup/ament_cmake_python/rs1_nav/rs1_nav.egg-info/")
+endif()
+
+if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/local/lib/python3.10/dist-packages/rs1_nav" TYPE DIRECTORY FILES "/home/tajw/git/team25_rs1/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/rs1_nav/" REGEX "/[^/]*\\.pyc$" EXCLUDE REGEX "/\\_\\_pycache\\_\\_$" EXCLUDE)
+endif()
+
+if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
+  execute_process(
+        COMMAND
+        "/usr/bin/python3" "-m" "compileall"
+        "/home/tajw/git/team25_rs1/RS1-Gr25/install/41068_ignition_bringup/local/lib/python3.10/dist-packages/rs1_nav"
+      )
+endif()
+
+if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib/41068_ignition_bringup" TYPE PROGRAM FILES
+    "/home/tajw/git/team25_rs1/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/scripts/dynamic_world_demo.py"
+    "/home/tajw/git/team25_rs1/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/scripts/basic_autonomy_demo.py"
+    "/home/tajw/git/team25_rs1/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/scripts/odometry_tf_broadcaster.py"
+    "/home/tajw/git/team25_rs1/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/scripts/obstacle_injector.py"
+    "/home/tajw/git/team25_rs1/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/scripts/robot_status_gui.py"
+    )
+endif()
+
+if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/ament_index/resource_index/package_run_dependencies" TYPE FILE FILES "/home/tajw/git/team25_rs1/RS1-Gr25/build/41068_ignition_bringup/ament_cmake_index/share/ament_index/resource_index/package_run_dependencies/41068_ignition_bringup")
+endif()
+
+if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/ament_index/resource_index/parent_prefix_path" TYPE FILE FILES "/home/tajw/git/team25_rs1/RS1-Gr25/build/41068_ignition_bringup/ament_cmake_index/share/ament_index/resource_index/parent_prefix_path/41068_ignition_bringup")
+endif()
+
+if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/41068_ignition_bringup/environment" TYPE FILE FILES "/opt/ros/humble/share/ament_cmake_core/cmake/environment_hooks/environment/ament_prefix_path.sh")
+endif()
+
+if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/41068_ignition_bringup/environment" TYPE FILE FILES "/home/tajw/git/team25_rs1/RS1-Gr25/build/41068_ignition_bringup/ament_cmake_environment_hooks/ament_prefix_path.dsv")
+endif()
+
+if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/41068_ignition_bringup/environment" TYPE FILE FILES "/opt/ros/humble/share/ament_cmake_core/cmake/environment_hooks/environment/path.sh")
+endif()
+
+if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/41068_ignition_bringup/environment" TYPE FILE FILES "/home/tajw/git/team25_rs1/RS1-Gr25/build/41068_ignition_bringup/ament_cmake_environment_hooks/path.dsv")
+endif()
+
+if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/41068_ignition_bringup" TYPE FILE FILES "/home/tajw/git/team25_rs1/RS1-Gr25/build/41068_ignition_bringup/ament_cmake_environment_hooks/local_setup.bash")
+endif()
+
+if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/41068_ignition_bringup" TYPE FILE FILES "/home/tajw/git/team25_rs1/RS1-Gr25/build/41068_ignition_bringup/ament_cmake_environment_hooks/local_setup.sh")
+endif()
+
+if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/41068_ignition_bringup" TYPE FILE FILES "/home/tajw/git/team25_rs1/RS1-Gr25/build/41068_ignition_bringup/ament_cmake_environment_hooks/local_setup.zsh")
+endif()
+
+if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/41068_ignition_bringup" TYPE FILE FILES "/home/tajw/git/team25_rs1/RS1-Gr25/build/41068_ignition_bringup/ament_cmake_environment_hooks/local_setup.dsv")
+endif()
+
+if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/41068_ignition_bringup" TYPE FILE FILES "/home/tajw/git/team25_rs1/RS1-Gr25/build/41068_ignition_bringup/ament_cmake_environment_hooks/package.dsv")
+endif()
+
+if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/ament_index/resource_index/packages" TYPE FILE FILES "/home/tajw/git/team25_rs1/RS1-Gr25/build/41068_ignition_bringup/ament_cmake_index/share/ament_index/resource_index/packages/41068_ignition_bringup")
+endif()
+
+if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/41068_ignition_bringup/cmake" TYPE FILE FILES
+    "/home/tajw/git/team25_rs1/RS1-Gr25/build/41068_ignition_bringup/ament_cmake_core/41068_ignition_bringupConfig.cmake"
+    "/home/tajw/git/team25_rs1/RS1-Gr25/build/41068_ignition_bringup/ament_cmake_core/41068_ignition_bringupConfig-version.cmake"
+    )
+endif()
+
+if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/41068_ignition_bringup" TYPE FILE FILES "/home/tajw/git/team25_rs1/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup/package.xml")
 endif()
 
 if(CMAKE_INSTALL_COMPONENT)
@@ -54,5 +154,5 @@ endif()
 
 string(REPLACE ";" "\n" CMAKE_INSTALL_MANIFEST_CONTENT
        "${CMAKE_INSTALL_MANIFEST_FILES}")
-file(WRITE "/home/jhavranek/git/RS1-Gr25/build/41068_ignition_bringup/${CMAKE_INSTALL_MANIFEST}"
+file(WRITE "/home/tajw/git/team25_rs1/RS1-Gr25/build/41068_ignition_bringup/${CMAKE_INSTALL_MANIFEST}"
      "${CMAKE_INSTALL_MANIFEST_CONTENT}")

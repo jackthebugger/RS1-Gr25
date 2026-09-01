@@ -1,1 +1,3 @@
-/home/jordan/G25_RS1/RS1-Gr25/build/41068_ignition_bringup/ament_cmake_environment_hooks/pythonpath.sh
+# generated from ament_package/template/environment_hook/pythonpath.sh.in
+
+ament_prepend_unique_value PYTHONPATH "$AMENT_CURRENT_PREFIX/local/lib/python3.10/dist-packages"

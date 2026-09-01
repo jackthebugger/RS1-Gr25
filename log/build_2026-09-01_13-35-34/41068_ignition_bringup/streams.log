@@ -1,6 +1,0 @@
-[0.034s] Invoking command in '/home/jordan/G25_RS1/RS1-Gr25/build/41068_ignition_bringup': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake --build /home/jordan/G25_RS1/RS1-Gr25/build/41068_ignition_bringup -- -j6 -l6
-[0.117s] CMake Error: The current CMakeCache.txt directory /home/jordan/G25_RS1/RS1-Gr25/build/41068_ignition_bringup/CMakeCache.txt is different than the directory /home/jordan/RS1-Gr25/build/41068_ignition_bringup where CMakeCache.txt was created. This may result in binaries being created in the wrong place. If you are not sure, reedit the CMakeCache.txt
-[0.154s] CMake Error: The source directory "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup" does not exist.
-[0.155s] Specify --help for usage, or press the help button on the CMake GUI.
-[0.161s] gmake: *** [Makefile:254: cmake_check_build_system] Error 1
-[0.163s] Invoked command in '/home/jordan/G25_RS1/RS1-Gr25/build/41068_ignition_bringup' returned '2': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake --build /home/jordan/G25_RS1/RS1-Gr25/build/41068_ignition_bringup -- -j6 -l6

@@ -53,17 +53,10 @@ RM = /usr/bin/cmake -E rm -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-<<<<<<< HEAD
-CMAKE_SOURCE_DIR = /home/jordan/G25_RS1/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup
+CMAKE_SOURCE_DIR = /home/tajw/git/team25_rs1/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /home/jordan/G25_RS1/RS1-Gr25/build/41068_ignition_bringup
-=======
-CMAKE_SOURCE_DIR = /home/jhavranek/git/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup
-
-# The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /home/jhavranek/git/RS1-Gr25/build/41068_ignition_bringup
->>>>>>> origin/JackUIattempt
+CMAKE_BINARY_DIR = /home/tajw/git/team25_rs1/RS1-Gr25/build/41068_ignition_bringup
 
 # Utility rule file for 41068_ignition_bringup_uninstall.
 
@@ -74,11 +67,7 @@ include CMakeFiles/41068_ignition_bringup_uninstall.dir/compiler_depend.make
 include CMakeFiles/41068_ignition_bringup_uninstall.dir/progress.make
 
 CMakeFiles/41068_ignition_bringup_uninstall:
-<<<<<<< HEAD
-	/usr/bin/cmake -P /home/jordan/G25_RS1/RS1-Gr25/build/41068_ignition_bringup/ament_cmake_uninstall_target/ament_cmake_uninstall_target.cmake
-=======
-	/usr/bin/cmake -P /home/jhavranek/git/RS1-Gr25/build/41068_ignition_bringup/ament_cmake_uninstall_target/ament_cmake_uninstall_target.cmake
->>>>>>> origin/JackUIattempt
+	/usr/bin/cmake -P /home/tajw/git/team25_rs1/RS1-Gr25/build/41068_ignition_bringup/ament_cmake_uninstall_target/ament_cmake_uninstall_target.cmake
 
 41068_ignition_bringup_uninstall: CMakeFiles/41068_ignition_bringup_uninstall
 41068_ignition_bringup_uninstall: CMakeFiles/41068_ignition_bringup_uninstall.dir/build.make
@@ -93,10 +82,6 @@ CMakeFiles/41068_ignition_bringup_uninstall.dir/clean:
 .PHONY : CMakeFiles/41068_ignition_bringup_uninstall.dir/clean
 
 CMakeFiles/41068_ignition_bringup_uninstall.dir/depend:
-<<<<<<< HEAD
-	cd /home/jordan/G25_RS1/RS1-Gr25/build/41068_ignition_bringup && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/jordan/G25_RS1/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup /home/jordan/G25_RS1/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup /home/jordan/G25_RS1/RS1-Gr25/build/41068_ignition_bringup /home/jordan/G25_RS1/RS1-Gr25/build/41068_ignition_bringup /home/jordan/G25_RS1/RS1-Gr25/build/41068_ignition_bringup/CMakeFiles/41068_ignition_bringup_uninstall.dir/DependInfo.cmake --color=$(COLOR)
-=======
-	cd /home/jhavranek/git/RS1-Gr25/build/41068_ignition_bringup && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/jhavranek/git/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup /home/jhavranek/git/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup /home/jhavranek/git/RS1-Gr25/build/41068_ignition_bringup /home/jhavranek/git/RS1-Gr25/build/41068_ignition_bringup /home/jhavranek/git/RS1-Gr25/build/41068_ignition_bringup/CMakeFiles/41068_ignition_bringup_uninstall.dir/DependInfo.cmake --color=$(COLOR)
->>>>>>> origin/JackUIattempt
+	cd /home/tajw/git/team25_rs1/RS1-Gr25/build/41068_ignition_bringup && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/tajw/git/team25_rs1/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup /home/tajw/git/team25_rs1/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup /home/tajw/git/team25_rs1/RS1-Gr25/build/41068_ignition_bringup /home/tajw/git/team25_rs1/RS1-Gr25/build/41068_ignition_bringup /home/tajw/git/team25_rs1/RS1-Gr25/build/41068_ignition_bringup/CMakeFiles/41068_ignition_bringup_uninstall.dir/DependInfo.cmake --color=$(COLOR)
 .PHONY : CMakeFiles/41068_ignition_bringup_uninstall.dir/depend
 
