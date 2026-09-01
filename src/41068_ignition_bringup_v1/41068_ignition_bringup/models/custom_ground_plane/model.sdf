@@ -1,0 +1,48 @@
+<sdf version="1.7">
+<model name="custom_ground_plane">
+    <static>true</static>
+    <link name="link">
+        <!--<collision name="collision">
+            <geometry>
+            <plane>
+                <normal>0 0 1</normal>
+                <size>25 25</size>
+            </plane>
+            </geometry>
+        </collision>-->
+        <collision name="collision">
+            <geometry>
+                <heightmap>
+                    <uri>
+                        model://custom_ground_plane/materials/pitchmap3.png
+                    </uri>
+                    <size>50 75 8</size>
+                    <pos>0 0 0</pos>
+                </heightmap>
+            </geometry>
+        </collision>
+
+        <visual name="visual">
+            <cast_shadows>false</cast_shadows>
+            <geometry>
+                <heightmap>
+                <uri>
+                    model://custom_ground_plane/materials/pitchmap3.png
+                </uri>
+                <size>50 75 8</size>
+                <pos>0 0 0</pos>
+                    <texture>
+                        <diffuse>
+                            model://custom_ground_plane/materials/forest_overhead.png
+                        </diffuse>
+                        <normal>
+                            model://custom_ground_plane/materials/normalmap.png
+                        </normal>
+                        <size>75</size>
+                    </texture>
+                </heightmap>
+            </geometry>
+        </visual>
+    </link>
+</model>
+</sdf>
