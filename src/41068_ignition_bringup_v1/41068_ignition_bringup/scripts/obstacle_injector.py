@@ -9,7 +9,7 @@ path becomes invalid and Nav2 plans a new route by itself.
     # from the package directory (no ros2 run / sourcing required):
     python3 scripts/obstacle_injector.py --world simple_trees --x 0.0 --y -3.5 --name wall_1
 
-    # via ros2 run (source ~/RS1-Gr25/install/setup.bash first):
+    # via ros2 run (source ~/G25_RS1/RS1-Gr25/install/setup.bash first):
     ros2 run 41068_ignition_bringup obstacle_injector.py --x 1.5 --y -3.0
 
     # take it away again
