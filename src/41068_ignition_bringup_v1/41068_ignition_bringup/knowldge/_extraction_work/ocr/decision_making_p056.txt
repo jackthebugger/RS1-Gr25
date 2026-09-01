@@ -1,9 +1,0 @@
-Conclusions
-> Robot decision making is the process of choosing what the robot should do next based on
-its current knowledge, goals, and environment.
-> Travelling salesman problem aims to visit a set of locations as quickly as possible
-> Exploration aims to build a map of an environment by visiting unobserved locations
-> Informative path planning gathers the most information, as defined by an application
->» Monte Carlo tree search is an algorithm for decision making
-> Behaviour trees is a way of encoding high-level task switching
-56

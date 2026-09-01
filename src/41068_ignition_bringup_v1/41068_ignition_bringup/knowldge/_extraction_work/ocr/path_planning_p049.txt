@@ -1,7 +1,0 @@
-. eo
-RRT Algorithm x
-~~
-draw a random sample
-random
-point
-start °

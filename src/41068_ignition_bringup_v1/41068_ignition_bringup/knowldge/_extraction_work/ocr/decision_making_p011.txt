@@ -1,9 +1,0 @@
-Why is Decision Making Challenging?
-> Defining the right objective for the application
-> Incomplete and uncertain information — usually from noisy sensors
->» Interact with lower-level planners and controllers
-> Computationally difficult - many options to pick from
-> Choosing the right algorithm for the task
->» Tuning algorithm parameters
->» Multi-robot coordination
-11

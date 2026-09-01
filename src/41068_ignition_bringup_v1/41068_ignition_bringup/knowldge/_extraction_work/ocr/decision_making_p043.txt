@@ -1,8 +1,0 @@
-. eo
-or
-MCTS Algorithm %
-Selection ——* Expansion —— Simulation —* Backpropagation
-Tree Default
-Policy Policy
-v
-heee

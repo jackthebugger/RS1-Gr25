@@ -1,7 +1,0 @@
-Map Categories
-> Typical maps are loosely categorised as:
-* Metric: Accurately represents distance
-* Topological: Accurately represents connectivity
-* Semantic: Additionally associates “descriptive meaning” with locations
-* Some maps contain all of the above
-17

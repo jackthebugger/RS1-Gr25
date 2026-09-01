@@ -1,8 +1,0 @@
-Graph Search Method %
-e
-1. Discretise C-Space into a graph
-* Grid cells
-* Visibility graph
-¢ Probabilistic roadmap
-2. Perform a graph search
-3. Extract the shortest path

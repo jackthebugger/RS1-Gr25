@@ -1,4 +1,0 @@
-Robot Decision Making x
-action = f (state)
-e.g. “move over there” | e.g. location, map
-“planner”

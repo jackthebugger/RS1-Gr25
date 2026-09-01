@@ -1,3 +1,0 @@
-Coupled Sensing and Planning x
-Make an observation at this location
-Move to a new location
