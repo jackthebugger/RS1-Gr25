@@ -14,20 +14,19 @@
             <geometry>
                 <heightmap>
                     <uri>
-                        model://custom_ground_plane/materials/pitchmap3.png
+                        model://custom_ground_plane/materials/cloudheightmaptest.png
                     </uri>
                     <size>50 75 8</size>
                     <pos>0 0 0</pos>
                 </heightmap>
             </geometry>
         </collision>
-
         <visual name="visual">
             <cast_shadows>false</cast_shadows>
             <geometry>
                 <heightmap>
                 <uri>
-                    model://custom_ground_plane/materials/pitchmap3.png
+                    model://custom_ground_plane/materials/cloudheightmaptest.png
                 </uri>
                 <size>50 75 8</size>
                 <pos>0 0 0</pos>
@@ -46,3 +45,4 @@
     </link>
 </model>
 </sdf>
+
