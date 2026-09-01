@@ -1,0 +1,32 @@
+<?xml version='1.0'?>
+<sdf version='1.9'>
+  <world name='beer_demo_world'>
+
+    <!-- Use a simple directional light instead of model://sun -->
+    <light name="sun" type="directional">
+      <pose>0 0 10 0 0 0</pose>
+      <diffuse>1 1 1 1</diffuse>
+      <specular>0.1 0.1 0.1 1</specular>
+      <direction>0 0 -1</direction>
+    </light>
+
+    <!-- Ground plane / grass (reuse existing grass_plane model if available) -->
+    <include>
+      <uri>model://grass_plane</uri>
+    </include>
+
+    <!-- Place a burning tree approximately 3m in front of where Husky will be spawned (husky spawn x=0,y=0,z=0.4)
+         So tree at x=3.0,y=0 -->
+    <include>
+      <uri>model://tree_burning</uri>
+      <pose>3.0 0 0 0 0 0</pose>
+    </include>
+
+    <!-- Optional static visual marker near tree (small orange cylinder) -->
+
+    <scene>
+      <ambient>0.4 0.4 0.4 1</ambient>
+    </scene>
+
+  </world>
+</sdf>
