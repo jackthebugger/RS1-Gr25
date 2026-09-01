@@ -6,6 +6,25 @@
   <xacro:arg name="gz_model_name" default="husky"/>
   <xacro:property name="gz_model_name" value="$(arg gz_model_name)"/>
 
+  <!-- Sensor performance knobs.
+       Ignition renders every camera and lidar on a single sensor thread, so an
+       expensive camera directly throttles the lidar. On software-GL machines
+       (WSL) a 720x480 RGBD camera starves the lidar to well below 1 Hz, which
+       breaks SLAM and the Nav2 costmaps. These arguments let the launch trade
+       camera fidelity for the scan rate that navigation depends on. -->
+  <xacro:arg name="enable_camera"      default="false"/>
+  <xacro:arg name="lidar_update_rate"  default="10"/>
+  <xacro:arg name="lidar_samples"      default="360"/>
+  <xacro:arg name="camera_update_rate" default="3"/>
+  <xacro:arg name="camera_width"       default="720"/>
+  <xacro:arg name="camera_height"      default="480"/>
+  <xacro:property name="enable_camera" value="$(arg enable_camera)"/>
+
+  <!-- Which Gazebo system drives the base. See the plugin block below. -->
+  <xacro:arg name="drive_plugin" default="diff_drive"/>
+  <xacro:property name="drive_plugin" value="$(arg drive_plugin)"/>
+  <xacro:arg name="effective_wheel_separation" default="0.94"/>
+
   <xacro:include filename="$(find 41068_ignition_bringup)/urdf_husky/wheel.urdf.xacro"/>
 
   <gazebo reference="${prefix}imu_link">
@@ -74,19 +93,59 @@
         name="ignition::gazebo::systems::Imu">
       </plugin>
     </sensor>
-    <material>Gazebo/Grey</material>
   </gazebo>
  
-  <!-- Move base directly without faffing around with diff drive controllers -->
-  <gazebo>
-    <plugin
-      filename="ignition-gazebo-velocity-control-system"
-      name="ignition::gazebo::systems::VelocityControl">
-      <topic>model/${gz_model_name}/cmd_vel</topic>
-    </plugin>
-  </gazebo>
+  <!-- Drive the base.
+       DiffDrive commands the four wheel joints, so a turn is produced the way a
+       real skid-steer Husky produces one. The alternative, VelocityControl,
+       hard-sets the velocity of base_link only; measured on this repository it
+       tracks linear commands exactly but achieves just 0.045 rad/s of the
+       0.5 rad/s commanded yaw, because the wheel contacts resist a rotation
+       that no wheel is turning to create. Nav2 needs rotate-in-place for
+       RotateToGoal and for its spin recovery, so DiffDrive is the default.
+       Set drive_plugin:=velocity_control to compare. -->
+  <xacro:if value="${drive_plugin == 'diff_drive'}">
+    <gazebo>
+      <plugin
+        filename="ignition-gazebo-diff-drive-system"
+        name="ignition::gazebo::systems::DiffDrive">
+        <left_joint>${prefix}front_left_wheel_joint</left_joint>
+        <left_joint>${prefix}rear_left_wheel_joint</left_joint>
+        <right_joint>${prefix}front_right_wheel_joint</right_joint>
+        <right_joint>${prefix}rear_right_wheel_joint</right_joint>
+        <!-- A skid-steer's effective track is wider than its geometric track,
+             because turning drags the tyres sideways. Calibrated against the
+             measured yaw rate in test/movement_test.py; the geometric value is
+             the starting point. -->
+        <wheel_separation>$(arg effective_wheel_separation)</wheel_separation>
+        <wheel_radius>${wheel_radius}</wheel_radius>
+        <topic>model/${gz_model_name}/cmd_vel</topic>
+        <!-- DiffDrive also offers odometry, but this model keeps
+             OdometryPublisher (below) as the single odometry source. Point
+             DiffDrive's own output at unused topics so the two plugins never
+             publish to the same place. -->
+        <odom_topic>model/${gz_model_name}/diff_drive/odometry</odom_topic>
+        <tf_topic>model/${gz_model_name}/diff_drive/tf</tf_topic>
+        <frame_id>${prefix}odom</frame_id>
+        <child_frame_id>${prefix}base_link</child_frame_id>
+        <odom_publish_frequency>1</odom_publish_frequency>
+      </plugin>
+    </gazebo>
+  </xacro:if>
 
-  <!-- Publish odometry separately -->
+  <xacro:if value="${drive_plugin == 'velocity_control'}">
+    <gazebo>
+      <plugin
+        filename="ignition-gazebo-velocity-control-system"
+        name="ignition::gazebo::systems::VelocityControl">
+        <topic>model/${gz_model_name}/cmd_vel</topic>
+      </plugin>
+    </gazebo>
+  </xacro:if>
+
+  <!-- Odometry. Differentiates the simulated pose rather than integrating wheel
+       encoders, so it does not accumulate the slip error that skid-steering
+       creates. The EKF fuses it with the IMU to publish odom->base_link. -->
   <gazebo>
     <plugin
       filename="ignition-gazebo-odometry-publisher-system"
@@ -107,17 +166,16 @@
   </gazebo>
 
   <gazebo reference="${prefix}base_scan">
-    <material>Gazebo/FlatBlack</material>
     <sensor type="gpu_lidar" name="lidar">
       <pose relative_to='${prefix}base_scan'>0 0 0 0 0 0</pose>
       <visualize>$(arg laser_visual)</visualize>
       <topic>model/${gz_model_name}/scan</topic>
-      <update_rate>3</update_rate>
+      <update_rate>$(arg lidar_update_rate)</update_rate>
       <gz_frame_id>${prefix}base_scan</gz_frame_id>
       <ray>
         <scan>
           <horizontal>
-            <samples>360</samples>
+            <samples>$(arg lidar_samples)</samples>
             <resolution>1</resolution>
             <min_angle>0.0</min_angle>
             <max_angle>6.28319</max_angle>
@@ -138,13 +196,14 @@
     </sensor>
   </gazebo>
 
+  <xacro:if value="${enable_camera}">
   <gazebo reference="${prefix}camera_link">
     <sensor name="rgbd_camera" type="rgbd_camera">
       <camera>
         <horizontal_fov>2.0944</horizontal_fov>
         <image>
-          <width>720</width>
-          <height>480</height>
+          <width>$(arg camera_width)</width>
+          <height>$(arg camera_height)</height>
         </image>
         <clip>
           <near>0.1</near>
@@ -165,10 +224,49 @@
         </depth_camera>
       </camera>
       <always_on>1</always_on>
-      <update_rate>3</update_rate> <!--10-->
+      <update_rate>$(arg camera_update_rate)</update_rate>
       <visualize>$(arg camera_visual)</visualize>
       <topic>/model/${gz_model_name}/camera</topic>
       <gz_frame_id>${prefix}camera_link</gz_frame_id>
+    </sensor>
+  </gazebo>
+  </xacro:if>
+
+  <!-- B.E.E.R. thermal sensor added: beer_thermal_camera -->
+  <gazebo reference="${prefix}camera_link">
+    <!-- B.E.E.R. thermal fire-detection camera -->
+    <sensor name="beer_thermal_camera" type="thermal">
+      <pose>0.45 0 0.45 0 0 0</pose>
+
+      <camera>
+        <horizontal_fov>1.047</horizontal_fov>
+
+        <image>
+          <width>320</width>
+          <height>240</height>
+          <format>L16</format>
+        </image>
+
+        <clip>
+          <near>0.1</near>
+          <far>20.0</far>
+        </clip>
+      </camera>
+
+      <always_on>true</always_on>
+      <update_rate>10</update_rate>
+      <visualize>true</visualize>
+
+      <!-- Publish to model-level topic; bridge config maps this to /husky1/thermal/image -->
+      <topic>/model/${gz_model_name}/thermal/image</topic>
+
+      <plugin
+          filename="ignition-gazebo-thermal-sensor-system"
+          name="ignition::gazebo::systems::ThermalSensor">
+        <min_temp>273.15</min_temp>
+        <max_temp>673.15</max_temp>
+        <resolution>0.01</resolution>
+      </plugin>
     </sensor>
   </gazebo>
 

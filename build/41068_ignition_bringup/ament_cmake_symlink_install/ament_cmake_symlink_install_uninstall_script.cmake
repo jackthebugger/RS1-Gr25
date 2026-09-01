@@ -1,7 +1,11 @@
 # generated from
 # ament_cmake_core/cmake/symlink_install/ament_cmake_symlink_install_uninstall_script.cmake.in
 
-set(install_manifest "/home/tajw/git/team25_rs1/RS1-Gr25/build/41068_ignition_bringup/symlink_install_manifest.txt")
+<<<<<<< HEAD
+set(install_manifest "/home/jordan/G25_RS1/RS1-Gr25/build/41068_ignition_bringup/symlink_install_manifest.txt")
+=======
+set(install_manifest "/home/jhavranek/git/RS1-Gr25/build/41068_ignition_bringup/symlink_install_manifest.txt")
+>>>>>>> origin/JackUIattempt
 if(NOT EXISTS "${install_manifest}")
   message(FATAL_ERROR "Cannot find symlink install manifest: ${install_manifest}")
 endif()

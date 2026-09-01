@@ -5,7 +5,7 @@ set(41068_ignition_bringup_BUILD_DEPENDS "ros_ign_interfaces" "ros_ign_gazebo" "
 set(41068_ignition_bringup_BUILDTOOL_DEPENDS "ament_cmake")
 set(41068_ignition_bringup_BUILD_EXPORT_DEPENDS "ros_ign_interfaces" "ros_ign_gazebo" "ros_ign_bridge" "robot_localization")
 set(41068_ignition_bringup_BUILDTOOL_EXPORT_DEPENDS )
-set(41068_ignition_bringup_EXEC_DEPENDS "rclpy" "action_msgs" "geometry_msgs" "nav2_msgs" "nav_msgs" "sensor_msgs" "tf2_ros" "python3-numpy" "ros_ign_interfaces" "ros_ign_gazebo" "ros_ign_bridge" "robot_localization")
+set(41068_ignition_bringup_EXEC_DEPENDS "rclpy" "action_msgs" "geometry_msgs" "nav2_msgs" "nav_msgs" "sensor_msgs" "tf2_ros" "nav2_bringup" "navigation2" "slam_toolbox" "python3-numpy" "ros_ign_interfaces" "ros_ign_gazebo" "ros_ign_bridge" "robot_localization")
 set(41068_ignition_bringup_TEST_DEPENDS "ament_lint_auto" "ament_lint_common")
 set(41068_ignition_bringup_GROUP_DEPENDS )
 set(41068_ignition_bringup_MEMBER_OF_GROUPS )

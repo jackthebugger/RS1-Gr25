@@ -2,7 +2,11 @@
 
 # since this file is sourced use either the provided AMENT_CURRENT_PREFIX
 # or fall back to the destination set at configure time
-: ${AMENT_CURRENT_PREFIX:="/home/tajw/git/team25_rs1/RS1-Gr25/install/41068_ignition_bringup"}
+<<<<<<< HEAD
+: ${AMENT_CURRENT_PREFIX:="/home/jordan/G25_RS1/RS1-Gr25/install/41068_ignition_bringup"}
+=======
+: ${AMENT_CURRENT_PREFIX:="/home/jhavranek/git/RS1-Gr25/install/41068_ignition_bringup"}
+>>>>>>> origin/JackUIattempt
 if [ ! -d "$AMENT_CURRENT_PREFIX" ]; then
   if [ -z "$COLCON_CURRENT_PREFIX" ]; then
     echo "The compile time prefix path '$AMENT_CURRENT_PREFIX' doesn't " \
@@ -153,6 +157,7 @@ fi
 # list all environment hooks of this package
 ament_append_value AMENT_ENVIRONMENT_HOOKS "$AMENT_CURRENT_PREFIX/share/41068_ignition_bringup/environment/ament_prefix_path.sh"
 ament_append_value AMENT_ENVIRONMENT_HOOKS "$AMENT_CURRENT_PREFIX/share/41068_ignition_bringup/environment/path.sh"
+ament_append_value AMENT_ENVIRONMENT_HOOKS "$AMENT_CURRENT_PREFIX/share/41068_ignition_bringup/environment/pythonpath.sh"
 
 # source all shell-specific environment hooks of this package
 # if not returning them
