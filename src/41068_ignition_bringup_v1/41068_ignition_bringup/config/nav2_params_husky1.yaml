@@ -1,6 +1,17 @@
+# NOTE ON AMCL
+# This block is INERT. Nav2 is started through nav2_bringup/navigation_launch.py
+# (see 41068_navigation.launch.py), which brings up only controller_server,
+# smoother_server, planner_server, behavior_server, bt_navigator,
+# waypoint_follower and velocity_smoother. AMCL and map_server live in
+# nav2_bringup/localization_launch.py, which this package never includes, so no
+# AMCL node ever runs and there is no competing publisher of husky1_map ->
+# husky1_odom. SLAM Toolbox is the sole owner of that transform.
+# tf_broadcast is nevertheless set to false so that if anyone later adds
+# localization_launch.py while SLAM is running, the TF tree stays single-owner.
 amcl:
   ros__parameters:
     use_sim_time: true
+    tf_broadcast: false
     alpha1: 0.2
     alpha2: 0.2
     alpha3: 0.2
@@ -29,7 +40,6 @@ amcl:
     robot_model_type: nav2_amcl::DifferentialMotionModel
     save_pose_rate: 0.5
     sigma_hit: 0.2
-    tf_broadcast: true
     transform_tolerance: 1.0
     update_min_a: 0.2
     update_min_d: 0.25
@@ -104,9 +114,11 @@ bt_navigator_navigate_to_pose_rclcpp_node:
 controller_server:
   ros__parameters:
     use_sim_time: true
-    controller_frequency: 5.0
+    # 10 Hz control matches the 10 Hz lidar and the 10 Hz local costmap, so a
+    # newly detected obstacle can influence the very next velocity command.
+    controller_frequency: 10.0
     min_x_velocity_threshold: 0.001
-    min_y_velocity_threshold: 0.5
+    min_y_velocity_threshold: 0.001
     min_theta_velocity_threshold: 0.001
     failure_tolerance: 0.3
     progress_checker_plugin: progress_checker
@@ -116,65 +128,63 @@ controller_server:
     - FollowPath
     progress_checker:
       plugin: nav2_controller::SimpleProgressChecker
-      required_movement_radius: 0.5
-      movement_time_allowance: 10.0
+      # Must move 0.5 m within 20 s or the behaviour tree runs recovery. The
+      # allowance is generous because the robot legitimately pauses while
+      # rotating on the spot to face a freshly replanned path.
+      required_movement_radius: 0.3
+      movement_time_allowance: 30.0
     general_goal_checker:
       stateful: true
       plugin: nav2_controller::SimpleGoalChecker
-      xy_goal_tolerance: 1.0
-      yaw_goal_tolerance: 1.57
+      # Tight enough that "goal reached" means the robot is actually at the
+      # goal. The original 1.0 m / 90 deg tolerance let it stop a full robot
+      # length away and still report success.
+      xy_goal_tolerance: 0.25
+      yaw_goal_tolerance: 0.35
     FollowPath:
-      plugin: dwb_core::DWBLocalPlanner
-      debug_trajectory_details: false
-      min_vel_x: 0.0
-      min_vel_y: 0.0
-      max_vel_x: 1.0
-      max_vel_y: 0.0
-      max_vel_theta: 1.5
-      min_speed_xy: 0.0
-      max_speed_xy: 1.0
-      min_speed_theta: 0.0
-      acc_lim_x: 2.5
-      acc_lim_y: 0.0
-      acc_lim_theta: 3.2
-      decel_lim_x: -2.5
-      decel_lim_y: 0.0
-      decel_lim_theta: -3.2
-      vx_samples: 7
-      vy_samples: 1
-      vtheta_samples: 7
-      sim_time: 2.0
-      linear_granularity: 0.2
-      angular_granularity: 0.2
-      transform_tolerance: 0.2
-      xy_goal_tolerance: 1.0
-      yaw_goal_tolerance: 1.57
-      trans_stopped_velocity: 0.25
-      short_circuit_trajectory_evaluation: true
-      stateful: true
-      critics:
-      - RotateToGoal
-      - Oscillation
-      - BaseObstacle
-      - GoalAlign
-      - PathAlign
-      - PathDist
-      - GoalDist
-      BaseObstacle.scale: 0.02
-      PathAlign.scale: 32.0
-      PathAlign.forward_point_distance: 0.1
-      GoalAlign.scale: 32.0
-      GoalAlign.forward_point_distance: 0.1
-      PathDist.scale: 32.0
-      GoalDist.scale: 24.0
-      RotateToGoal.scale: 32.0
-      RotateToGoal.xy_goal_tolerance: 2.0
-      RotateToGoal.slowing_factor: 5.0
-      RotateToGoal.lookahead_time: -1.0
+      # DWB was tried first and failed the dynamic-obstacle test: once a wall
+      # appeared on the path it sat in front of the inflation and the progress
+      # checker aborted ("Failed to make progress") instead of tracking the
+      # new global plan around the ends. Regulated Pure Pursuit follows the
+      # NavFn path and uses the local costmap only to slow/stop, which is the
+      # right split for this stack (global planner owns detours).
+      plugin: nav2_regulated_pure_pursuit_controller::RegulatedPurePursuitController
+      desired_linear_vel: 0.5
+      lookahead_dist: 0.6
+      min_lookahead_dist: 0.3
+      max_lookahead_dist: 0.9
+      lookahead_time: 1.5
+      rotate_to_heading_angular_vel: 1.2
+      transform_tolerance: 0.5
+      use_velocity_scaled_lookahead_dist: true
+      min_approach_linear_velocity: 0.05
+      approach_velocity_scaling_dist: 0.8
+      use_collision_detection: true
+      max_allowed_time_to_collision_up_to_carrot: 1.0
+      use_regulated_linear_velocity_scaling: true
+      use_cost_regulated_linear_velocity_scaling: true
+      cost_scaling_dist: 0.6
+      cost_scaling_gain: 1.0
+      inflation_cost_scaling_factor: 3.0
+      regulated_linear_scaling_min_radius: 0.9
+      regulated_linear_scaling_min_speed: 0.2
+      use_rotate_to_heading: true
+      rotate_to_heading_min_angle: 0.785
+      max_angular_accel: 3.2
+      max_robot_pose_search_dist: 10.0
+# FOOTPRINT AND INFLATION
+# The Husky chassis is 0.987 x 0.571 m and the wheels widen it to about 0.685 m
+# (wheel centres at y = +-0.2854, wheel width 0.1143). The original 1.0 x 1.0 m
+# square footprint was therefore 0.3 m too wide, and the 2.0 m inflation radius
+# put a high-cost halo more than three robot widths across every tree -- in a
+# 15 x 15 m world that leaves almost no low-cost space to plan through.
+# Footprint below is the real hull plus a small margin; inflation gives roughly
+# 0.37 m of clearance beyond the robot's side.
 local_costmap:
   local_costmap:
     ros__parameters:
-      update_frequency: 5.0
+      # Matches controller_frequency so the controller always sees fresh cells.
+      update_frequency: 10.0
       publish_frequency: 5.0
       global_frame: husky1_odom
       robot_base_frame: husky1_base_link
@@ -183,42 +193,63 @@ local_costmap:
       width: 10
       height: 10
       resolution: 0.05
-      footprint: '[ [0.5, 0.5], [0.5, -0.5], [-0.5, -0.5], [-0.5, 0.5] ]'
+      footprint: '[ [0.55, 0.38], [0.55, -0.38], [-0.55, -0.38], [-0.55, 0.38] ]'
       plugins:
       - obstacle_layer
       - inflation_layer
       inflation_layer:
         plugin: nav2_costmap_2d::InflationLayer
         cost_scaling_factor: 3.0
-        inflation_radius: 2.0
+        inflation_radius: 0.75
       obstacle_layer:
         plugin: nav2_costmap_2d::ObstacleLayer
         enabled: true
         observation_sources: scan
         scan:
           topic: scan
+          # The lidar sits 0.845 m above the ground, so a scan return is only
+          # ever at that height. The band below accepts it and rejects nothing
+          # useful; raising min_obstacle_height above 0.845 would silently
+          # discard every obstacle.
+          min_obstacle_height: 0.0
           max_obstacle_height: 2.0
           clearing: true
           marking: true
           data_type: LaserScan
+          # Raytracing out to 20 m clears stale cells across the whole rolling
+          # window; marking is limited to 12 m where the scan is most reliable.
           raytrace_max_range: 20.0
           raytrace_min_range: 0.0
-          obstacle_max_range: 10.0
+          obstacle_max_range: 12.0
           obstacle_min_range: 0.0
-      static_layer:
-        plugin: nav2_costmap_2d::StaticLayer
-        map_subscribe_transient_local: true
+          inf_is_valid: false
       always_send_full_costmap: true
 global_costmap:
   global_costmap:
     ros__parameters:
+      # 5 Hz is enough for the global costmap: the behaviour tree only replans
+      # at 1 Hz, so updating faster would burn CPU without changing behaviour.
       update_frequency: 5.0
-      publish_frequency: 5.0
+      publish_frequency: 2.0
       global_frame: husky1_map
       robot_base_frame: husky1_base_link
       use_sim_time: true
-      footprint: '[ [0.5, 0.5], [0.5, -0.5], [-0.5, -0.5], [-0.5, 0.5] ]'
+      footprint: '[ [0.55, 0.38], [0.55, -0.38], [-0.55, -0.38], [-0.55, 0.38] ]'
       resolution: 0.1
+      # SLAM Toolbox only grows the occupancy grid to the bounding box of
+      # returns that actually hit something. In an open yard that box is a few
+      # metres around the nearest tree, so a goal in clear space (e.g. 5 m
+      # south of the origin) is literally off the map and NavFn aborts with
+      # "goal sent to the planner is off the global costmap".
+      # allow_unknown only helps for unknown *cells*; it cannot invent cells
+      # that are not on the grid. A rolling window sized for both worlds
+      # (simple_trees ~15 m, large_demo ~25 m) keeps every reasonable goal on
+      # the costmap; the lidar obstacle layer fills in what the robot can see.
+      rolling_window: true
+      width: 40
+      height: 40
+      # SLAM starts with an empty map, so unknown space must be tracked and the
+      # planner must be allowed to route through it (planner_server below).
       track_unknown_space: true
       plugins:
       - static_layer
@@ -230,21 +261,23 @@ global_costmap:
         observation_sources: scan
         scan:
           topic: scan
+          min_obstacle_height: 0.0
           max_obstacle_height: 2.0
           clearing: true
           marking: true
           data_type: LaserScan
           raytrace_max_range: 20.0
           raytrace_min_range: 0.0
-          obstacle_max_range: 10.0
+          obstacle_max_range: 12.0
           obstacle_min_range: 0.0
+          inf_is_valid: false
       static_layer:
         plugin: nav2_costmap_2d::StaticLayer
         map_subscribe_transient_local: true
       inflation_layer:
         plugin: nav2_costmap_2d::InflationLayer
         cost_scaling_factor: 3.0
-        inflation_radius: 2.0
+        inflation_radius: 0.75
       always_send_full_costmap: true
 map_server:
   ros__parameters:
@@ -259,14 +292,21 @@ map_saver:
     map_subscribe_transient_local: true
 planner_server:
   ros__parameters:
-    expected_planner_frequency: 20.0
+    # The default behaviour tree replans at 1 Hz, so 5 Hz is ample and stops
+    # Nav2 logging "planner missed its rate" warnings.
+    expected_planner_frequency: 5.0
     use_sim_time: true
     planner_plugins:
     - GridBased
     GridBased:
       plugin: nav2_navfn_planner/NavfnPlanner
       tolerance: 0.5
-      use_astar: false
+      # A* expands far fewer cells than the full Dijkstra wavefront, which
+      # matters because this planner now runs every second for the whole
+      # mission. Path quality is equivalent on this grid.
+      use_astar: true
+      # Required: SLAM builds the map as the robot drives, so the goal is
+      # usually in unknown space when the mission starts.
       allow_unknown: true
 smoother_server:
   ros__parameters:
@@ -326,14 +366,16 @@ velocity_smoother:
     smoothing_frequency: 20.0
     scale_velocities: false
     feedback: OPEN_LOOP
+    # Kept in step with the DWB limits above so the smoother never becomes the
+    # binding constraint (or silently allows more than the controller planned).
     max_velocity:
-    - 1.0
+    - 0.6
     - 0.0
-    - 1.5
+    - 1.2
     min_velocity:
-    - -1.0
+    - -0.6
     - 0.0
-    - -1.5
+    - -1.2
     max_accel:
     - 2.5
     - 0.0

@@ -2,7 +2,7 @@
 # ament_cmake_core/cmake/uninstall_target/ament_cmake_uninstall_target.cmake.in
 
 function(ament_cmake_uninstall_target_remove_empty_directories path)
-  set(install_space "/home/tajw/git/team25_rs1/RS1-Gr25/install/41068_ignition_bringup")
+  set(install_space "/home/jordan/G25_RS1/RS1-Gr25/install/41068_ignition_bringup")
   if(install_space STREQUAL "")
     message(FATAL_ERROR "The CMAKE_INSTALL_PREFIX variable must not be empty")
   endif()
@@ -29,7 +29,7 @@ function(ament_cmake_uninstall_target_remove_empty_directories path)
 endfunction()
 
 # uninstall files installed using the standard install() function
-set(install_manifest "/home/tajw/git/team25_rs1/RS1-Gr25/build/41068_ignition_bringup/install_manifest.txt")
+set(install_manifest "/home/jordan/G25_RS1/RS1-Gr25/build/41068_ignition_bringup/install_manifest.txt")
 if(NOT EXISTS "${install_manifest}")
   message(FATAL_ERROR "Cannot find install manifest: ${install_manifest}")
 endif()
@@ -57,4 +57,4 @@ message(STATUS "Execute custom uninstall script")
 # begin of custom uninstall code
 
 # uninstall files installed using the symlink install functions
-include("/home/tajw/git/team25_rs1/RS1-Gr25/build/41068_ignition_bringup/ament_cmake_symlink_install/ament_cmake_symlink_install_uninstall_script.cmake")
+include("/home/jordan/G25_RS1/RS1-Gr25/build/41068_ignition_bringup/ament_cmake_symlink_install/ament_cmake_symlink_install_uninstall_script.cmake")
