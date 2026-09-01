@@ -27,6 +27,7 @@ install(
     scripts/basic_autonomy_demo.py
     scripts/odometry_tf_broadcaster.py
     scripts/obstacle_injector.py
+    scripts/robot_status_gui.py
   DESTINATION lib/${PROJECT_NAME}
 )
 
