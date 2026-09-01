@@ -1,0 +1,241 @@
+<?xml version="1.0"?>
+
+<sdf version="1.9">
+
+  <model name="tree_burning">
+
+    <static>false</static>
+
+    <link name="trunk">
+
+      <pose>0 0 0 0 0 0</pose>
+
+
+      <!-- ====================================================== -->
+      <!-- TREE TRUNK                                             -->
+      <!-- ====================================================== -->
+
+      <visual name="trunk_visual">
+
+        <geometry>
+          <cylinder>
+            <radius>0.2</radius>
+            <length>1.5</length>
+          </cylinder>
+        </geometry>
+
+        <pose>0 0 0.75 0 0 0</pose>
+
+        <material>
+          <ambient>0.35 0.20 0.08 1</ambient>
+          <diffuse>0.45 0.25 0.10 1</diffuse>
+        </material>
+
+      </visual>
+
+
+      <!-- ====================================================== -->
+      <!-- GREEN TREE CANOPY                                      -->
+      <!-- Centre = Z 1.6 m                                      -->
+      <!-- Radius = 0.9 m                                        -->
+      <!-- Top of canopy = Z 2.5 m                               -->
+      <!-- ====================================================== -->
+
+      <visual name="leaves_visual">
+
+        <geometry>
+          <sphere>
+            <radius>0.9</radius>
+          </sphere>
+        </geometry>
+
+        <pose>0 0 1.6 0 0 0</pose>
+
+        <material>
+          <ambient>0.0 0.40 0.0 1</ambient>
+          <diffuse>0.0 0.58 0.0 1</diffuse>
+        </material>
+
+      </visual>
+
+
+      <!-- ====================================================== -->
+      <!-- B.E.E.R. FIRE VISUALS                                  -->
+      <!--                                                        -->
+      <!-- Flames deliberately sit above / around Z = 2.5 m,     -->
+      <!-- which is the top of the green canopy.                  -->
+      <!--                                                        -->
+      <!-- These visuals have NO collision and therefore do not   -->
+      <!-- alter LiDAR or fire-detection behaviour.               -->
+      <!-- ====================================================== -->
+
+
+      <!-- ====================================================== -->
+      <!-- B.E.E.R. FIRE VISUALS - Gazebo-friendly sphere flames -->
+      <!-- ====================================================== -->
+
+      <!-- Bottom orange fire mass: overlaps canopy top slightly -->
+      <visual name="flame_base">
+        <pose>0 0 2.48 0 0 0</pose>
+        <geometry>
+          <sphere>
+            <radius>0.32</radius>
+          </sphere>
+        </geometry>
+        <material>
+          <ambient>1.0 0.12 0.0 1</ambient>
+          <diffuse>1.0 0.20 0.0 1</diffuse>
+          <emissive>0.65 0.08 0.0 1</emissive>
+        </material>
+      </visual>
+
+      <!-- Main yellow/orange flame -->
+      <visual name="flame_middle">
+        <pose>0.03 0 2.70 0 0 0</pose>
+        <geometry>
+          <sphere>
+            <radius>0.25</radius>
+          </sphere>
+        </geometry>
+        <material>
+          <ambient>1.0 0.40 0.0 1</ambient>
+          <diffuse>1.0 0.45 0.0 1</diffuse>
+          <emissive>0.70 0.20 0.0 1</emissive>
+        </material>
+      </visual>
+
+      <!-- Upper flame -->
+      <visual name="flame_upper">
+        <pose>-0.04 0 2.91 0 0 0</pose>
+        <geometry>
+          <sphere>
+            <radius>0.18</radius>
+          </sphere>
+        </geometry>
+        <material>
+          <ambient>1.0 0.65 0.05 1</ambient>
+          <diffuse>1.0 0.55 0.02 1</diffuse>
+          <emissive>0.75 0.30 0.0 1</emissive>
+        </material>
+      </visual>
+
+      <!-- Flame tip -->
+      <visual name="flame_tip">
+        <pose>0.04 0 3.08 0 0 0</pose>
+        <geometry>
+          <sphere>
+            <radius>0.11</radius>
+          </sphere>
+        </geometry>
+        <material>
+          <ambient>1.0 0.25 0.0 1</ambient>
+          <diffuse>1.0 0.30 0.0 1</diffuse>
+          <emissive>0.65 0.10 0.0 1</emissive>
+        </material>
+      </visual>
+
+      <!-- Left crown fire -->
+      <visual name="flame_left">
+        <pose>-0.28 0 2.57 0 0 0</pose>
+        <geometry>
+          <sphere>
+            <radius>0.19</radius>
+          </sphere>
+        </geometry>
+        <material>
+          <ambient>1.0 0.18 0.0 1</ambient>
+          <diffuse>1.0 0.25 0.0 1</diffuse>
+          <emissive>0.65 0.08 0.0 1</emissive>
+        </material>
+      </visual>
+
+      <!-- Right crown fire -->
+      <visual name="flame_right">
+        <pose>0.30 0 2.58 0 0 0</pose>
+        <geometry>
+          <sphere>
+            <radius>0.20</radius>
+          </sphere>
+        </geometry>
+        <material>
+          <ambient>1.0 0.35 0.0 1</ambient>
+          <diffuse>1.0 0.38 0.0 1</diffuse>
+          <emissive>0.68 0.16 0.0 1</emissive>
+        </material>
+      </visual>
+
+
+      <!-- ====================================================== -->
+      <!-- COLLISION GEOMETRY                                     -->
+      <!-- Keep unchanged: the real LiDAR uses this.              -->
+      <!-- ====================================================== -->
+
+      <collision name="trunk_collision">
+
+        <geometry>
+          <cylinder>
+            <radius>0.6</radius>
+            <length>2.0</length>
+          </cylinder>
+        </geometry>
+
+        <pose>0 0 1.0 0 0 0</pose>
+
+      </collision>
+
+
+      <collision name="leaves_collision">
+
+        <geometry>
+          <sphere>
+            <radius>0.9</radius>
+          </sphere>
+        </geometry>
+
+        <pose>0 0 1.6 0 0 0</pose>
+
+      </collision>
+
+
+      <!-- ====================================================== -->
+      <!-- PHYSICS                                                -->
+      <!-- ====================================================== -->
+
+      <inertial>
+        <mass>5.0</mass>
+      </inertial>
+
+
+      <!-- Nominal simulated burning temperature.
+           The stakeholder demo currently uses the deterministic
+           synthetic thermal pipeline for reliable detection. -->
+
+      <temperature>600</temperature>
+
+    </link>
+
+
+    <!-- Existing thermal plugin attempts retained.
+         They do not control the current synthetic stakeholder demo. -->
+
+    <plugin
+      filename="libignition-gazebo-thermal-system.so"
+      name="ignition::gazebo::systems::Thermal">
+
+      <temperature>600</temperature>
+
+    </plugin>
+
+
+    <plugin
+      filename="ignition-gazebo-thermal-system"
+      name="ignition::gazebo::systems::Thermal">
+
+      <temperature>600</temperature>
+
+    </plugin>
+
+
+  </model>
+
+</sdf>
