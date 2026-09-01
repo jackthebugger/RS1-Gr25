@@ -1,7 +1,0 @@
-Tree Search Problem
-___Current state
-<«<____——— Future actions
-Green =
-high reward
-Find the best action sequence
-40

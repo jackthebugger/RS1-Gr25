@@ -1,6 +1,0 @@
-Questions for your 41068 Project
-> How will you adapt the simulation environment to support your project?
-> How will you adapt the robots and sensors?
-> How will you adapt and develop the autonomy?
-> How will you test and evaluate your system?
-33

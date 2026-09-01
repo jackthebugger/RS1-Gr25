@@ -1,5 +1,0 @@
-Wavefront Algorithm
-S— start, G--goal Build the wave (start from goal)
-8 7 65 5 5
-8 |
-6 8

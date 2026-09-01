@@ -1,9 +1,0 @@
-ROS Learning Resources
->» This seminar is not a replacement for the ROS tutorials
-> The best way to learn is to try it yourself!
-¢ Use the 41068 package README and working examples
-> Revisit 41012 PFMS and related subjects a + snc
-> Official ROS 2 tutorials See ere
-Tutorials
-* https://docs.ros.org/en/humble/Tutorials.htm| come See
-‘ =

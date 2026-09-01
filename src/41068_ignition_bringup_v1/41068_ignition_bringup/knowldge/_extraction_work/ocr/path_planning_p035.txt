@@ -1,8 +1,0 @@
-A General Shortest Path Problem
-> Given a weighted graph and two vertices s and g
-Find a shortest path from s to g (i.e. path with least sum of edge costs)
-Ss 2
-NS
-| A | “@o
-O5*Gr ?
-35

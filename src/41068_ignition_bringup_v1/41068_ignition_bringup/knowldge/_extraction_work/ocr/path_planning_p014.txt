@@ -1,4 +1,0 @@
-Example: Robot Arms
-3 different configurations Configuration space
-i nh
-14

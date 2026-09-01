@@ -1,8 +1,0 @@
-What the Main Launch File Starts
-> The canonical launch file performs the following sequence:
-1. Starts the Gazebo world and bridges the simulation clock
-2. Generates and spawns each enabled robot
-3. Starts robot state publishing, localisation, and the robot-specific Gazebo bridge
-4. Optionally starts namespaced SLAM and Nav2 instances for each robot
-5. Optionally starts one namespaced RViz process for each robot
-16

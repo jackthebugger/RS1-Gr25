@@ -1,9 +1,0 @@
-LIDAR: Light Detection And Ranging ,
-> Measure the time of flight of laser light pulses SS
-> The pulsed laser beam is deflected by an internal ———
-rotating mirror
-> The measurement data is available in real time via an
-interface @®
-B object i °
-——_ Ns wy & ,
-13

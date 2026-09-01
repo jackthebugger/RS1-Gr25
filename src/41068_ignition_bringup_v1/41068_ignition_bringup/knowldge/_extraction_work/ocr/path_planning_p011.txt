@@ -1,7 +1,0 @@
-or
-Outline z
-> Quick definitions
-> Artificial potential fields
->» Graph search methods
->» Sampling-based motion planning
->» Nav2 navigation stack
