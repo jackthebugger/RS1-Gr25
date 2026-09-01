@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 /home/jordan/G25_RS1/RS1-Gr25/build/41068_ignition_bringup/CMakeFiles/uninstall.dir
 /home/jordan/G25_RS1/RS1-Gr25/build/41068_ignition_bringup/CMakeFiles/41068_ignition_bringup_uninstall.dir
 /home/jordan/G25_RS1/RS1-Gr25/build/41068_ignition_bringup/CMakeFiles/ament_cmake_python_symlink_rs1_nav.dir
@@ -9,3 +10,14 @@
 /home/jordan/G25_RS1/RS1-Gr25/build/41068_ignition_bringup/CMakeFiles/install.dir
 /home/jordan/G25_RS1/RS1-Gr25/build/41068_ignition_bringup/CMakeFiles/install/local.dir
 /home/jordan/G25_RS1/RS1-Gr25/build/41068_ignition_bringup/CMakeFiles/install/strip.dir
+=======
+/home/jhavranek/git/RS1-Gr25/build/41068_ignition_bringup/CMakeFiles/uninstall.dir
+/home/jhavranek/git/RS1-Gr25/build/41068_ignition_bringup/CMakeFiles/41068_ignition_bringup_uninstall.dir
+/home/jhavranek/git/RS1-Gr25/build/41068_ignition_bringup/CMakeFiles/test.dir
+/home/jhavranek/git/RS1-Gr25/build/41068_ignition_bringup/CMakeFiles/edit_cache.dir
+/home/jhavranek/git/RS1-Gr25/build/41068_ignition_bringup/CMakeFiles/rebuild_cache.dir
+/home/jhavranek/git/RS1-Gr25/build/41068_ignition_bringup/CMakeFiles/list_install_components.dir
+/home/jhavranek/git/RS1-Gr25/build/41068_ignition_bringup/CMakeFiles/install.dir
+/home/jhavranek/git/RS1-Gr25/build/41068_ignition_bringup/CMakeFiles/install/local.dir
+/home/jhavranek/git/RS1-Gr25/build/41068_ignition_bringup/CMakeFiles/install/strip.dir
+>>>>>>> origin/JackUIattempt
