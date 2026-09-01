@@ -64,7 +64,7 @@ def detect_workspace() -> str:
     candidate = os.path.abspath(os.path.join(os.path.dirname(here), '..', '..', '..', '..'))
     if os.path.isdir(os.path.join(candidate, 'install')):
         return candidate
-    return os.path.expanduser('~/RS1-Gr25')
+    return os.path.expanduser('~/G25_RS1/RS1-Gr25')
 
 
 WORKSPACE = detect_workspace()

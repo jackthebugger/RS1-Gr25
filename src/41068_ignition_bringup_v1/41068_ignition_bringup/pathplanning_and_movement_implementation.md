@@ -1369,13 +1369,13 @@ Mission node should:
 
 ### Quick Start
 
-Workspace in these commands is `~/RS1-Gr25`. Adjust if yours is different.
+Workspace in these commands is `~/G25_RS1/RS1-Gr25`. Adjust if yours is different.
 
 ```bash
 export ROS_LOCALHOST_ONLY=1
 source /opt/ros/humble/setup.bash
-source ~/RS1-Gr25/install/setup.bash
-cd ~/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup
+source ~/G25_RS1/RS1-Gr25/install/setup.bash
+cd ~/G25_RS1/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup
 ```
 
 1. **One-command autonomous demo** (starts Gazebo headless, Nav2, sends a goal, stops on success or timeout):

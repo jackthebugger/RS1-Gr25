@@ -233,7 +233,7 @@ One command starts Gazebo, Nav2, and a start→goal mission. Every wait has a ti
 ```bash
 export ROS_LOCALHOST_ONLY=1
 source /opt/ros/humble/setup.bash
-source ~/RS1-Gr25/install/setup.bash   # or your workspace
+source ~/G25_RS1/RS1-Gr25/install/setup.bash   # or your workspace
 cd path/to/41068_ignition_bringup
 
 python3 scripts/basic_autonomy_demo.py
