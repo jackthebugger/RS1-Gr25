@@ -1,0 +1,160 @@
+[0.024s] Invoking command in '/home/jordan/G25_RS1/RS1-Gr25/build/41068_ignition_bringup': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake /home/jordan/G25_RS1/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup -DAMENT_CMAKE_SYMLINK_INSTALL=1 -DCMAKE_INSTALL_PREFIX=/home/jordan/G25_RS1/RS1-Gr25/install/41068_ignition_bringup
+[0.241s] -- The C compiler identification is GNU 11.4.0
+[0.394s] -- The CXX compiler identification is GNU 11.4.0
+[0.434s] -- Detecting C compiler ABI info
+[0.538s] -- Detecting C compiler ABI info - done
+[0.548s] -- Check for working C compiler: /usr/bin/cc - skipped
+[0.549s] -- Detecting C compile features
+[0.551s] -- Detecting C compile features - done
+[0.556s] -- Detecting CXX compiler ABI info
+[0.652s] -- Detecting CXX compiler ABI info - done
+[0.661s] -- Check for working CXX compiler: /usr/bin/c++ - skipped
+[0.662s] -- Detecting CXX compile features
+[0.662s] -- Detecting CXX compile features - done
+[0.672s] -- Found ament_cmake: 1.3.14 (/opt/ros/humble/share/ament_cmake/cmake)
+[0.874s] -- Found Python3: /usr/bin/python3 (found version "3.10.12") found components: Interpreter 
+[0.987s] -- Override CMake install command with custom implementation using symlinks instead of copying resources
+[1.049s] -- Found ros_ign_interfaces: 0.244.25 (/opt/ros/humble/share/ros_ign_interfaces/cmake)
+[1.135s] -- Found rosidl_generator_c: 3.1.9 (/opt/ros/humble/share/rosidl_generator_c/cmake)
+[1.145s] -- Found rosidl_adapter: 3.1.9 (/opt/ros/humble/share/rosidl_adapter/cmake)
+[1.162s] -- Found rosidl_generator_cpp: 3.1.9 (/opt/ros/humble/share/rosidl_generator_cpp/cmake)
+[1.193s] -- Using all available rosidl_typesupport_c: rosidl_typesupport_fastrtps_c;rosidl_typesupport_introspection_c
+[1.224s] -- Using all available rosidl_typesupport_cpp: rosidl_typesupport_fastrtps_cpp;rosidl_typesupport_introspection_cpp
+[1.520s] WARNING: Package name "41068_ignition_bringup" does not follow the naming conventions. It should start with a lower case letter and only contain lower case letters, digits, underscores, and dashes.
+[1.536s] -- Found ament_lint_auto: 0.12.15 (/opt/ros/humble/share/ament_lint_auto/cmake)
+[1.618s] WARNING: Package name "41068_ignition_bringup" does not follow the naming conventions. It should start with a lower case letter and only contain lower case letters, digits, underscores, and dashes.
+[1.674s] -- Added test 'copyright' to check source files copyright and LICENSE
+[1.775s] -- Added test 'flake8' to check Python code syntax and style conventions
+[1.787s] -- Added test 'lint_cmake' to check CMake code style
+[1.793s] -- Added test 'pep257' to check Python code against some of the docstring style conventions in PEP 257
+[1.852s] -- Added test 'xmllint' to check XML markup files
+[1.856s] -- Configuring done
+[1.868s] -- Generating done
+[1.874s] -- Build files have been written to: /home/jordan/G25_RS1/RS1-Gr25/build/41068_ignition_bringup
+[1.880s] Invoked command in '/home/jordan/G25_RS1/RS1-Gr25/build/41068_ignition_bringup' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake /home/jordan/G25_RS1/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup -DAMENT_CMAKE_SYMLINK_INSTALL=1 -DCMAKE_INSTALL_PREFIX=/home/jordan/G25_RS1/RS1-Gr25/install/41068_ignition_bringup
+[1.885s] Invoking command in '/home/jordan/G25_RS1/RS1-Gr25/build/41068_ignition_bringup': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake --build /home/jordan/G25_RS1/RS1-Gr25/build/41068_ignition_bringup -- -j6 -l6
+[1.953s] Built target ament_cmake_python_symlink_rs1_nav
+[2.288s] running egg_info
+[2.288s] creating rs1_nav.egg-info
+[2.289s] writing rs1_nav.egg-info/PKG-INFO
+[2.289s] writing dependency_links to rs1_nav.egg-info/dependency_links.txt
+[2.289s] writing top-level names to rs1_nav.egg-info/top_level.txt
+[2.290s] writing manifest file 'rs1_nav.egg-info/SOURCES.txt'
+[2.294s] reading manifest file 'rs1_nav.egg-info/SOURCES.txt'
+[2.295s] writing manifest file 'rs1_nav.egg-info/SOURCES.txt'
+[2.335s] Built target ament_cmake_python_build_rs1_nav_egg
+[2.346s] Invoked command in '/home/jordan/G25_RS1/RS1-Gr25/build/41068_ignition_bringup' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake --build /home/jordan/G25_RS1/RS1-Gr25/build/41068_ignition_bringup -- -j6 -l6
+[2.358s] Invoking command in '/home/jordan/G25_RS1/RS1-Gr25/build/41068_ignition_bringup': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake --install /home/jordan/G25_RS1/RS1-Gr25/build/41068_ignition_bringup
+[2.367s] -- Install configuration: ""
+[2.368s] -- Execute custom install script
+[2.370s] -- Symlinking: /home/jordan/G25_RS1/RS1-Gr25/install/41068_ignition_bringup/share/41068_ignition_bringup/config/41068.rviz
+[2.379s] -- Symlinking: /home/jordan/G25_RS1/RS1-Gr25/install/41068_ignition_bringup/share/41068_ignition_bringup/config/41068_husky1.rviz
+[2.389s] -- Symlinking: /home/jordan/G25_RS1/RS1-Gr25/install/41068_ignition_bringup/share/41068_ignition_bringup/config/41068_parrot1.rviz
+[2.397s] -- Symlinking: /home/jordan/G25_RS1/RS1-Gr25/install/41068_ignition_bringup/share/41068_ignition_bringup/config/gazebo_bridge_clock.yaml
+[2.407s] -- Symlinking: /home/jordan/G25_RS1/RS1-Gr25/install/41068_ignition_bringup/share/41068_ignition_bringup/config/gazebo_bridge_husky.yaml
+[2.417s] -- Symlinking: /home/jordan/G25_RS1/RS1-Gr25/install/41068_ignition_bringup/share/41068_ignition_bringup/config/gazebo_bridge_husky1.yaml
+[2.427s] -- Symlinking: /home/jordan/G25_RS1/RS1-Gr25/install/41068_ignition_bringup/share/41068_ignition_bringup/config/gazebo_bridge_parrot.yaml
+[2.442s] -- Symlinking: /home/jordan/G25_RS1/RS1-Gr25/install/41068_ignition_bringup/share/41068_ignition_bringup/config/gazebo_bridge_parrot1.yaml
+[2.459s] -- Symlinking: /home/jordan/G25_RS1/RS1-Gr25/install/41068_ignition_bringup/share/41068_ignition_bringup/config/ignition_server.config
+[2.475s] -- Symlinking: /home/jordan/G25_RS1/RS1-Gr25/install/41068_ignition_bringup/share/41068_ignition_bringup/config/nav2_params.yaml
+[2.489s] -- Symlinking: /home/jordan/G25_RS1/RS1-Gr25/install/41068_ignition_bringup/share/41068_ignition_bringup/config/nav2_params_husky1.yaml
+[2.503s] -- Symlinking: /home/jordan/G25_RS1/RS1-Gr25/install/41068_ignition_bringup/share/41068_ignition_bringup/config/nav2_params_parrot1.yaml
+[2.514s] -- Symlinking: /home/jordan/G25_RS1/RS1-Gr25/install/41068_ignition_bringup/share/41068_ignition_bringup/config/robot_localization.yaml
+[2.527s] -- Symlinking: /home/jordan/G25_RS1/RS1-Gr25/install/41068_ignition_bringup/share/41068_ignition_bringup/config/robot_localization_husky1.yaml
+[2.540s] -- Symlinking: /home/jordan/G25_RS1/RS1-Gr25/install/41068_ignition_bringup/share/41068_ignition_bringup/config/robot_localization_parrot1.yaml
+[2.552s] -- Symlinking: /home/jordan/G25_RS1/RS1-Gr25/install/41068_ignition_bringup/share/41068_ignition_bringup/config/slam_params.yaml
+[2.562s] -- Symlinking: /home/jordan/G25_RS1/RS1-Gr25/install/41068_ignition_bringup/share/41068_ignition_bringup/config/slam_params_husky1.yaml
+[2.573s] -- Symlinking: /home/jordan/G25_RS1/RS1-Gr25/install/41068_ignition_bringup/share/41068_ignition_bringup/config/slam_params_parrot1.yaml
+[2.587s] -- Symlinking: /home/jordan/G25_RS1/RS1-Gr25/install/41068_ignition_bringup/share/41068_ignition_bringup/launch/41068_autonomy_demo.launch.py
+[2.595s] -- Symlinking: /home/jordan/G25_RS1/RS1-Gr25/install/41068_ignition_bringup/share/41068_ignition_bringup/launch/41068_dynamic_world_demo.launch.py
+[2.606s] -- Symlinking: /home/jordan/G25_RS1/RS1-Gr25/install/41068_ignition_bringup/share/41068_ignition_bringup/launch/41068_ignition.launch.py
+[2.614s] -- Symlinking: /home/jordan/G25_RS1/RS1-Gr25/install/41068_ignition_bringup/share/41068_ignition_bringup/launch/41068_ignition_husky.launch.py
+[2.625s] -- Symlinking: /home/jordan/G25_RS1/RS1-Gr25/install/41068_ignition_bringup/share/41068_ignition_bringup/launch/41068_ignition_parrot.launch.py
+[2.635s] -- Symlinking: /home/jordan/G25_RS1/RS1-Gr25/install/41068_ignition_bringup/share/41068_ignition_bringup/launch/41068_navigation.launch.py
+[2.644s] -- Symlinking: /home/jordan/G25_RS1/RS1-Gr25/install/41068_ignition_bringup/share/41068_ignition_bringup/launch/__pycache__/41068_autonomy_demo.launch.cpython-310.pyc
+[2.655s] -- Symlinking: /home/jordan/G25_RS1/RS1-Gr25/install/41068_ignition_bringup/share/41068_ignition_bringup/launch/__pycache__/41068_autonomy_demo.launch.cpython-313.pyc
+[2.664s] -- Symlinking: /home/jordan/G25_RS1/RS1-Gr25/install/41068_ignition_bringup/share/41068_ignition_bringup/launch/__pycache__/41068_dynamic_world_demo.launch.cpython-313.pyc
+[2.675s] -- Symlinking: /home/jordan/G25_RS1/RS1-Gr25/install/41068_ignition_bringup/share/41068_ignition_bringup/launch/__pycache__/41068_ignition.launch.cpython-313.pyc
+[2.686s] -- Symlinking: /home/jordan/G25_RS1/RS1-Gr25/install/41068_ignition_bringup/share/41068_ignition_bringup/launch/__pycache__/41068_ignition_husky.launch.cpython-313.pyc
+[2.696s] -- Symlinking: /home/jordan/G25_RS1/RS1-Gr25/install/41068_ignition_bringup/share/41068_ignition_bringup/launch/__pycache__/41068_ignition_parrot.launch.cpython-313.pyc
+[2.705s] -- Symlinking: /home/jordan/G25_RS1/RS1-Gr25/install/41068_ignition_bringup/share/41068_ignition_bringup/launch/__pycache__/41068_navigation.launch.cpython-313.pyc
+[2.717s] -- Symlinking: /home/jordan/G25_RS1/RS1-Gr25/install/41068_ignition_bringup/share/41068_ignition_bringup/models/forest_plane/materials/textures/empty_grass.png
+[2.727s] -- Symlinking: /home/jordan/G25_RS1/RS1-Gr25/install/41068_ignition_bringup/share/41068_ignition_bringup/models/forest_plane/materials/textures/forest_overhead.png
+[2.738s] -- Symlinking: /home/jordan/G25_RS1/RS1-Gr25/install/41068_ignition_bringup/share/41068_ignition_bringup/models/forest_plane/materials/textures/forest_overhead_plain.png
+[2.748s] -- Symlinking: /home/jordan/G25_RS1/RS1-Gr25/install/41068_ignition_bringup/share/41068_ignition_bringup/models/forest_plane/materials/textures/leaf_litter.png
+[2.760s] -- Symlinking: /home/jordan/G25_RS1/RS1-Gr25/install/41068_ignition_bringup/share/41068_ignition_bringup/models/forest_plane/model.config
+[2.771s] -- Symlinking: /home/jordan/G25_RS1/RS1-Gr25/install/41068_ignition_bringup/share/41068_ignition_bringup/models/forest_plane/model.sdf
+[2.780s] -- Symlinking: /home/jordan/G25_RS1/RS1-Gr25/install/41068_ignition_bringup/share/41068_ignition_bringup/models/forest_wall/materials/textures/forest_wall.png
+[2.792s] -- Symlinking: /home/jordan/G25_RS1/RS1-Gr25/install/41068_ignition_bringup/share/41068_ignition_bringup/models/forest_wall/materials/textures/forest_wall_transparent.png
+[2.803s] -- Symlinking: /home/jordan/G25_RS1/RS1-Gr25/install/41068_ignition_bringup/share/41068_ignition_bringup/models/forest_wall/materials/textures/forest_wall_transparent_small.png
+[2.812s] -- Symlinking: /home/jordan/G25_RS1/RS1-Gr25/install/41068_ignition_bringup/share/41068_ignition_bringup/models/forest_wall/model.config
+[2.823s] -- Symlinking: /home/jordan/G25_RS1/RS1-Gr25/install/41068_ignition_bringup/share/41068_ignition_bringup/models/forest_wall/model.sdf
+[2.833s] -- Symlinking: /home/jordan/G25_RS1/RS1-Gr25/install/41068_ignition_bringup/share/41068_ignition_bringup/models/grass_plane/materials/textures/empty_grass.png
+[2.857s] -- Symlinking: /home/jordan/G25_RS1/RS1-Gr25/install/41068_ignition_bringup/share/41068_ignition_bringup/models/grass_plane/model.config
+[2.873s] -- Symlinking: /home/jordan/G25_RS1/RS1-Gr25/install/41068_ignition_bringup/share/41068_ignition_bringup/models/grass_plane/model.sdf
+[2.885s] -- Symlinking: /home/jordan/G25_RS1/RS1-Gr25/install/41068_ignition_bringup/share/41068_ignition_bringup/urdf_husky/common_properties.urdf.xacro
+[2.894s] -- Symlinking: /home/jordan/G25_RS1/RS1-Gr25/install/41068_ignition_bringup/share/41068_ignition_bringup/urdf_husky/husky.gazebo.xacro
+[2.906s] -- Symlinking: /home/jordan/G25_RS1/RS1-Gr25/install/41068_ignition_bringup/share/41068_ignition_bringup/urdf_husky/husky.urdf.xacro
+[2.915s] -- Symlinking: /home/jordan/G25_RS1/RS1-Gr25/install/41068_ignition_bringup/share/41068_ignition_bringup/urdf_husky/meshes/base_link.dae
+[2.928s] -- Symlinking: /home/jordan/G25_RS1/RS1-Gr25/install/41068_ignition_bringup/share/41068_ignition_bringup/urdf_husky/meshes/bumper.dae
+[2.939s] -- Symlinking: /home/jordan/G25_RS1/RS1-Gr25/install/41068_ignition_bringup/share/41068_ignition_bringup/urdf_husky/meshes/jpl04_arch_nosensor.stl
+[2.947s] -- Symlinking: /home/jordan/G25_RS1/RS1-Gr25/install/41068_ignition_bringup/share/41068_ignition_bringup/urdf_husky/meshes/top_chassis.dae
+[2.958s] -- Symlinking: /home/jordan/G25_RS1/RS1-Gr25/install/41068_ignition_bringup/share/41068_ignition_bringup/urdf_husky/meshes/top_plate.dae
+[2.968s] -- Symlinking: /home/jordan/G25_RS1/RS1-Gr25/install/41068_ignition_bringup/share/41068_ignition_bringup/urdf_husky/meshes/wheel.dae
+[2.978s] -- Symlinking: /home/jordan/G25_RS1/RS1-Gr25/install/41068_ignition_bringup/share/41068_ignition_bringup/urdf_husky/wheel.urdf.xacro
+[2.990s] -- Symlinking: /home/jordan/G25_RS1/RS1-Gr25/install/41068_ignition_bringup/share/41068_ignition_bringup/worlds/large_demo.sdf
+[3.001s] -- Symlinking: /home/jordan/G25_RS1/RS1-Gr25/install/41068_ignition_bringup/share/41068_ignition_bringup/worlds/simple_trees.sdf
+[3.010s] -- Symlinking: /home/jordan/G25_RS1/RS1-Gr25/install/41068_ignition_bringup/share/41068_ignition_bringup/urdf_parrot/common_properties.urdf.xacro
+[3.022s] -- Symlinking: /home/jordan/G25_RS1/RS1-Gr25/install/41068_ignition_bringup/share/41068_ignition_bringup/urdf_parrot/meshes/hull.dae
+[3.031s] -- Symlinking: /home/jordan/G25_RS1/RS1-Gr25/install/41068_ignition_bringup/share/41068_ignition_bringup/urdf_parrot/meshes/propeller_fl.dae
+[3.041s] -- Symlinking: /home/jordan/G25_RS1/RS1-Gr25/install/41068_ignition_bringup/share/41068_ignition_bringup/urdf_parrot/meshes/propeller_fr.dae
+[3.051s] -- Symlinking: /home/jordan/G25_RS1/RS1-Gr25/install/41068_ignition_bringup/share/41068_ignition_bringup/urdf_parrot/meshes/propeller_rl.dae
+[3.062s] -- Symlinking: /home/jordan/G25_RS1/RS1-Gr25/install/41068_ignition_bringup/share/41068_ignition_bringup/urdf_parrot/meshes/propeller_rr.dae
+[3.072s] -- Symlinking: /home/jordan/G25_RS1/RS1-Gr25/install/41068_ignition_bringup/share/41068_ignition_bringup/urdf_parrot/model.config
+[3.084s] -- Symlinking: /home/jordan/G25_RS1/RS1-Gr25/install/41068_ignition_bringup/share/41068_ignition_bringup/urdf_parrot/model.sdf
+[3.093s] -- Symlinking: /home/jordan/G25_RS1/RS1-Gr25/install/41068_ignition_bringup/share/41068_ignition_bringup/urdf_parrot/parrot.gazebo.xacro
+[3.105s] -- Symlinking: /home/jordan/G25_RS1/RS1-Gr25/install/41068_ignition_bringup/share/41068_ignition_bringup/urdf_parrot/parrot.urdf.xacro
+[3.114s] -- Symlinking: /home/jordan/G25_RS1/RS1-Gr25/install/41068_ignition_bringup/share/41068_ignition_bringup/urdf_parrot/thumbnails/1.png
+[3.124s] -- Symlinking: /home/jordan/G25_RS1/RS1-Gr25/install/41068_ignition_bringup/share/41068_ignition_bringup/urdf_parrot/thumbnails/2.png
+[3.135s] -- Symlinking: /home/jordan/G25_RS1/RS1-Gr25/install/41068_ignition_bringup/share/41068_ignition_bringup/urdf_parrot/thumbnails/3.png
+[3.144s] -- Symlinking: /home/jordan/G25_RS1/RS1-Gr25/install/41068_ignition_bringup/share/41068_ignition_bringup/urdf_parrot/thumbnails/4.png
+[3.155s] -- Symlinking: /home/jordan/G25_RS1/RS1-Gr25/install/41068_ignition_bringup/share/41068_ignition_bringup/urdf_parrot/thumbnails/5.png
+[3.167s] -- Symlinking: /home/jordan/G25_RS1/RS1-Gr25/install/41068_ignition_bringup/share/41068_ignition_bringup/environment/pythonpath.sh
+[3.177s] -- Symlinking: /home/jordan/G25_RS1/RS1-Gr25/install/41068_ignition_bringup/share/41068_ignition_bringup/environment/pythonpath.dsv
+[3.189s] -- Symlinking: /home/jordan/G25_RS1/RS1-Gr25/install/41068_ignition_bringup/local/lib/python3.10/dist-packages/rs1_nav-1.0.5-py3.10.egg-info/PKG-INFO
+[3.202s] -- Symlinking: /home/jordan/G25_RS1/RS1-Gr25/install/41068_ignition_bringup/local/lib/python3.10/dist-packages/rs1_nav-1.0.5-py3.10.egg-info/SOURCES.txt
+[3.212s] -- Symlinking: /home/jordan/G25_RS1/RS1-Gr25/install/41068_ignition_bringup/local/lib/python3.10/dist-packages/rs1_nav-1.0.5-py3.10.egg-info/dependency_links.txt
+[3.222s] -- Symlinking: /home/jordan/G25_RS1/RS1-Gr25/install/41068_ignition_bringup/local/lib/python3.10/dist-packages/rs1_nav-1.0.5-py3.10.egg-info/top_level.txt
+[3.233s] -- Symlinking: /home/jordan/G25_RS1/RS1-Gr25/install/41068_ignition_bringup/local/lib/python3.10/dist-packages/rs1_nav/__init__.py
+[3.243s] -- Symlinking: /home/jordan/G25_RS1/RS1-Gr25/install/41068_ignition_bringup/local/lib/python3.10/dist-packages/rs1_nav/gazebo_world.py
+[3.253s] -- Symlinking: /home/jordan/G25_RS1/RS1-Gr25/install/41068_ignition_bringup/local/lib/python3.10/dist-packages/rs1_nav/geometry.py
+[3.263s] -- Symlinking: /home/jordan/G25_RS1/RS1-Gr25/install/41068_ignition_bringup/local/lib/python3.10/dist-packages/rs1_nav/mission.py
+[3.273s] -- Symlinking: /home/jordan/G25_RS1/RS1-Gr25/install/41068_ignition_bringup/local/lib/python3.10/dist-packages/rs1_nav/nav_observer.py
+[3.282s] -- Symlinking: /home/jordan/G25_RS1/RS1-Gr25/install/41068_ignition_bringup/local/lib/python3.10/dist-packages/rs1_nav/sim.py
+[3.295s] -- Symlinking: /home/jordan/G25_RS1/RS1-Gr25/install/41068_ignition_bringup/lib/41068_ignition_bringup/dynamic_world_demo.py
+[3.306s] -- Symlinking: /home/jordan/G25_RS1/RS1-Gr25/install/41068_ignition_bringup/lib/41068_ignition_bringup/basic_autonomy_demo.py
+[3.317s] -- Symlinking: /home/jordan/G25_RS1/RS1-Gr25/install/41068_ignition_bringup/lib/41068_ignition_bringup/odometry_tf_broadcaster.py
+[3.326s] -- Symlinking: /home/jordan/G25_RS1/RS1-Gr25/install/41068_ignition_bringup/lib/41068_ignition_bringup/obstacle_injector.py
+[3.339s] -- Symlinking: /home/jordan/G25_RS1/RS1-Gr25/install/41068_ignition_bringup/share/ament_index/resource_index/package_run_dependencies/41068_ignition_bringup
+[3.355s] -- Symlinking: /home/jordan/G25_RS1/RS1-Gr25/install/41068_ignition_bringup/share/ament_index/resource_index/parent_prefix_path/41068_ignition_bringup
+[3.369s] -- Symlinking: /home/jordan/G25_RS1/RS1-Gr25/install/41068_ignition_bringup/share/41068_ignition_bringup/environment/ament_prefix_path.sh
+[3.380s] -- Symlinking: /home/jordan/G25_RS1/RS1-Gr25/install/41068_ignition_bringup/share/41068_ignition_bringup/environment/ament_prefix_path.dsv
+[3.396s] -- Symlinking: /home/jordan/G25_RS1/RS1-Gr25/install/41068_ignition_bringup/share/41068_ignition_bringup/environment/path.sh
+[3.409s] -- Symlinking: /home/jordan/G25_RS1/RS1-Gr25/install/41068_ignition_bringup/share/41068_ignition_bringup/environment/path.dsv
+[3.420s] -- Symlinking: /home/jordan/G25_RS1/RS1-Gr25/install/41068_ignition_bringup/share/41068_ignition_bringup/local_setup.bash
+[3.429s] -- Symlinking: /home/jordan/G25_RS1/RS1-Gr25/install/41068_ignition_bringup/share/41068_ignition_bringup/local_setup.sh
+[3.440s] -- Symlinking: /home/jordan/G25_RS1/RS1-Gr25/install/41068_ignition_bringup/share/41068_ignition_bringup/local_setup.zsh
+[3.452s] -- Symlinking: /home/jordan/G25_RS1/RS1-Gr25/install/41068_ignition_bringup/share/41068_ignition_bringup/local_setup.dsv
+[3.462s] -- Symlinking: /home/jordan/G25_RS1/RS1-Gr25/install/41068_ignition_bringup/share/41068_ignition_bringup/package.dsv
+[3.473s] -- Symlinking: /home/jordan/G25_RS1/RS1-Gr25/install/41068_ignition_bringup/share/ament_index/resource_index/packages/41068_ignition_bringup
+[3.484s] -- Symlinking: /home/jordan/G25_RS1/RS1-Gr25/install/41068_ignition_bringup/share/41068_ignition_bringup/cmake/41068_ignition_bringupConfig.cmake
+[3.497s] -- Symlinking: /home/jordan/G25_RS1/RS1-Gr25/install/41068_ignition_bringup/share/41068_ignition_bringup/cmake/41068_ignition_bringupConfig-version.cmake
+[3.511s] -- Symlinking: /home/jordan/G25_RS1/RS1-Gr25/install/41068_ignition_bringup/share/41068_ignition_bringup/package.xml
+[3.587s] Listing '/home/jordan/G25_RS1/RS1-Gr25/install/41068_ignition_bringup/local/lib/python3.10/dist-packages/rs1_nav'...
+[3.587s] Compiling '/home/jordan/G25_RS1/RS1-Gr25/install/41068_ignition_bringup/local/lib/python3.10/dist-packages/rs1_nav/__init__.py'...
+[3.588s] Compiling '/home/jordan/G25_RS1/RS1-Gr25/install/41068_ignition_bringup/local/lib/python3.10/dist-packages/rs1_nav/gazebo_world.py'...
+[3.588s] Compiling '/home/jordan/G25_RS1/RS1-Gr25/install/41068_ignition_bringup/local/lib/python3.10/dist-packages/rs1_nav/geometry.py'...
+[3.588s] Compiling '/home/jordan/G25_RS1/RS1-Gr25/install/41068_ignition_bringup/local/lib/python3.10/dist-packages/rs1_nav/mission.py'...
+[3.588s] Compiling '/home/jordan/G25_RS1/RS1-Gr25/install/41068_ignition_bringup/local/lib/python3.10/dist-packages/rs1_nav/nav_observer.py'...
+[3.588s] Compiling '/home/jordan/G25_RS1/RS1-Gr25/install/41068_ignition_bringup/local/lib/python3.10/dist-packages/rs1_nav/sim.py'...
+[3.597s] Invoked command in '/home/jordan/G25_RS1/RS1-Gr25/build/41068_ignition_bringup' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake --install /home/jordan/G25_RS1/RS1-Gr25/build/41068_ignition_bringup
