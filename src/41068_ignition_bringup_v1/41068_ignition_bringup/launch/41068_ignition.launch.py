@@ -273,7 +273,7 @@ def generate_launch_description():
         'world',
         default_value='simple_trees',
         description='Which world to load',
-        choices=['simple_trees', 'large_demo'],
+        choices=['simple_trees', 'large_demo', 'custom_world_1'],
     )
     ld.add_action(world_launch_arg)
 
@@ -338,8 +338,8 @@ def generate_launch_description():
         xacro_parts=['urdf_husky', 'husky.urdf.xacro'],
         bridge_config='gazebo_bridge_husky1.yaml',
         localization_config='robot_localization_husky1.yaml',
-        x='0.0',
-        y='0.0',
+        x='-22.0',
+        y='2.0',
         z='0.4',
         spawn_delay=3.0,
     )
