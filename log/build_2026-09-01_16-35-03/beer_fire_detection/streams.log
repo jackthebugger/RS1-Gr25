@@ -1,0 +1,19 @@
+[1.608s] Invoking command in '/home/jordan/G25_RS1/RS1-Gr25/build/beer_fire_detection': PYTHONPATH=/home/jordan/G25_RS1/RS1-Gr25/build/beer_fire_detection/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/jordan/G25_RS1/RS1-Gr25/install/beer_fire_detection/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py develop --editable --build-directory /home/jordan/G25_RS1/RS1-Gr25/build/beer_fire_detection/build --no-deps
+[1.978s] running develop
+[2.241s] running egg_info
+[2.241s] creating beer_fire_detection.egg-info
+[2.242s] writing beer_fire_detection.egg-info/PKG-INFO
+[2.242s] writing dependency_links to beer_fire_detection.egg-info/dependency_links.txt
+[2.245s] writing entry points to beer_fire_detection.egg-info/entry_points.txt
+[2.246s] writing requirements to beer_fire_detection.egg-info/requires.txt
+[2.246s] writing top-level names to beer_fire_detection.egg-info/top_level.txt
+[2.246s] writing manifest file 'beer_fire_detection.egg-info/SOURCES.txt'
+[2.249s] reading manifest file 'beer_fire_detection.egg-info/SOURCES.txt'
+[2.250s] writing manifest file 'beer_fire_detection.egg-info/SOURCES.txt'
+[2.252s] running build_ext
+[2.253s] Creating /home/jordan/G25_RS1/RS1-Gr25/install/beer_fire_detection/lib/python3.10/site-packages/beer-fire-detection.egg-link (link to .)
+[2.253s] Installing fire_detector script to /home/jordan/G25_RS1/RS1-Gr25/install/beer_fire_detection/bin
+[2.254s] Installing synthetic_thermal_demo script to /home/jordan/G25_RS1/RS1-Gr25/install/beer_fire_detection/bin
+[2.254s] 
+[2.254s] Installed /home/jordan/G25_RS1/RS1-Gr25/build/beer_fire_detection
+[2.287s] Invoked command in '/home/jordan/G25_RS1/RS1-Gr25/build/beer_fire_detection' returned '0': PYTHONPATH=/home/jordan/G25_RS1/RS1-Gr25/build/beer_fire_detection/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/jordan/G25_RS1/RS1-Gr25/install/beer_fire_detection/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py develop --editable --build-directory /home/jordan/G25_RS1/RS1-Gr25/build/beer_fire_detection/build --no-deps

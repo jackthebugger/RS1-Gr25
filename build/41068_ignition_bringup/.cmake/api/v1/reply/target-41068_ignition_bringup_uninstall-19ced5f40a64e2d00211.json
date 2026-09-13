@@ -98,21 +98,13 @@
 		{
 			"backtrace" : 9,
 			"isGenerated" : true,
-<<<<<<<< HEAD:build/41068_ignition_bringup/.cmake/api/v1/reply/target-41068_ignition_bringup_uninstall-19ced5f40a64e2d00211.json
 			"path" : "/home/jordan/G25_RS1/RS1-Gr25/build/41068_ignition_bringup/CMakeFiles/41068_ignition_bringup_uninstall",
-========
-			"path" : "/home/jhavranek/git/RS1-Gr25/build/41068_ignition_bringup/CMakeFiles/41068_ignition_bringup_uninstall",
->>>>>>>> origin/JackUIattempt:build/41068_ignition_bringup/.cmake/api/v1/reply/target-41068_ignition_bringup_uninstall-3373f3491ca4dae369cc.json
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 0,
 			"isGenerated" : true,
-<<<<<<<< HEAD:build/41068_ignition_bringup/.cmake/api/v1/reply/target-41068_ignition_bringup_uninstall-19ced5f40a64e2d00211.json
 			"path" : "/home/jordan/G25_RS1/RS1-Gr25/build/41068_ignition_bringup/CMakeFiles/41068_ignition_bringup_uninstall.rule",
-========
-			"path" : "/home/jhavranek/git/RS1-Gr25/build/41068_ignition_bringup/CMakeFiles/41068_ignition_bringup_uninstall.rule",
->>>>>>>> origin/JackUIattempt:build/41068_ignition_bringup/.cmake/api/v1/reply/target-41068_ignition_bringup_uninstall-3373f3491ca4dae369cc.json
 			"sourceGroupIndex" : 1
 		}
 	],
