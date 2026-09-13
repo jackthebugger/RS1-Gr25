@@ -108,11 +108,7 @@
 		{
 			"backtrace" : 10,
 			"component" : "Unspecified",
-<<<<<<<< HEAD:build/41068_ignition_bringup/.cmake/api/v1/reply/directory-.-3503ad36f05fd24f5daa.json
 			"scriptFile" : "/home/jordan/G25_RS1/RS1-Gr25/build/41068_ignition_bringup/ament_cmake_symlink_install/ament_cmake_symlink_install.cmake",
-========
-			"scriptFile" : "/home/jhavranek/git/RS1-Gr25/build/41068_ignition_bringup/ament_cmake_symlink_install/ament_cmake_symlink_install.cmake",
->>>>>>>> origin/JackUIattempt:build/41068_ignition_bringup/.cmake/api/v1/reply/directory-.-6854a835d55f9cea8352.json
 			"type" : "script"
 		},
 		{

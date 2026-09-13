@@ -1,4 +1,0 @@
-CMake Error: The current CMakeCache.txt directory /home/jordan/G25_RS1/RS1-Gr25/build/41068_ignition_bringup/CMakeCache.txt is different than the directory /home/jordan/RS1-Gr25/build/41068_ignition_bringup where CMakeCache.txt was created. This may result in binaries being created in the wrong place. If you are not sure, reedit the CMakeCache.txt
-CMake Error: The source directory "/home/jordan/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup" does not exist.
-Specify --help for usage, or press the help button on the CMake GUI.
-gmake: *** [Makefile:254: cmake_check_build_system] Error 1

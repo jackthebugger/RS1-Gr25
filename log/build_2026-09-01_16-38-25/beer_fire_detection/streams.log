@@ -1,0 +1,25 @@
+[1.903s] Invoking command in '/home/jordan/G25_RS1/RS1-Gr25/build/beer_fire_detection': PYTHONPATH=/home/jordan/G25_RS1/RS1-Gr25/build/beer_fire_detection/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/jordan/G25_RS1/RS1-Gr25/install/beer_fire_detection/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py develop --editable --build-directory /home/jordan/G25_RS1/RS1-Gr25/build/beer_fire_detection/build --no-deps symlink_data
+[2.357s] running develop
+[2.615s] running egg_info
+[2.615s] creating beer_fire_detection.egg-info
+[2.615s] writing beer_fire_detection.egg-info/PKG-INFO
+[2.617s] writing dependency_links to beer_fire_detection.egg-info/dependency_links.txt
+[2.617s] writing entry points to beer_fire_detection.egg-info/entry_points.txt
+[2.617s] writing requirements to beer_fire_detection.egg-info/requires.txt
+[2.618s] writing top-level names to beer_fire_detection.egg-info/top_level.txt
+[2.618s] writing manifest file 'beer_fire_detection.egg-info/SOURCES.txt'
+[2.620s] reading manifest file 'beer_fire_detection.egg-info/SOURCES.txt'
+[2.620s] writing manifest file 'beer_fire_detection.egg-info/SOURCES.txt'
+[2.623s] running build_ext
+[2.623s] Creating /home/jordan/G25_RS1/RS1-Gr25/install/beer_fire_detection/lib/python3.10/site-packages/beer-fire-detection.egg-link (link to .)
+[2.624s] Installing fire_detector script to /home/jordan/G25_RS1/RS1-Gr25/install/beer_fire_detection/bin
+[2.625s] Installing synthetic_thermal_demo script to /home/jordan/G25_RS1/RS1-Gr25/install/beer_fire_detection/bin
+[2.625s] 
+[2.625s] Installed /home/jordan/G25_RS1/RS1-Gr25/build/beer_fire_detection
+[2.626s] running symlink_data
+[2.627s] creating /home/jordan/G25_RS1/RS1-Gr25/install/beer_fire_detection/share/ament_index
+[2.627s] creating /home/jordan/G25_RS1/RS1-Gr25/install/beer_fire_detection/share/ament_index/resource_index
+[2.627s] creating /home/jordan/G25_RS1/RS1-Gr25/install/beer_fire_detection/share/ament_index/resource_index/packages
+[2.628s] symbolically linking /home/jordan/G25_RS1/RS1-Gr25/build/beer_fire_detection/resource/beer_fire_detection -> /home/jordan/G25_RS1/RS1-Gr25/install/beer_fire_detection/share/ament_index/resource_index/packages
+[2.629s] symbolically linking /home/jordan/G25_RS1/RS1-Gr25/build/beer_fire_detection/package.xml -> /home/jordan/G25_RS1/RS1-Gr25/install/beer_fire_detection/share/beer_fire_detection
+[2.706s] Invoked command in '/home/jordan/G25_RS1/RS1-Gr25/build/beer_fire_detection' returned '0': PYTHONPATH=/home/jordan/G25_RS1/RS1-Gr25/build/beer_fire_detection/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/jordan/G25_RS1/RS1-Gr25/install/beer_fire_detection/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py develop --editable --build-directory /home/jordan/G25_RS1/RS1-Gr25/build/beer_fire_detection/build --no-deps symlink_data

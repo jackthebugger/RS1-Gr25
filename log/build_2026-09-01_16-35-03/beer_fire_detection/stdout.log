@@ -1,0 +1,17 @@
+running develop
+running egg_info
+creating beer_fire_detection.egg-info
+writing beer_fire_detection.egg-info/PKG-INFO
+writing dependency_links to beer_fire_detection.egg-info/dependency_links.txt
+writing entry points to beer_fire_detection.egg-info/entry_points.txt
+writing requirements to beer_fire_detection.egg-info/requires.txt
+writing top-level names to beer_fire_detection.egg-info/top_level.txt
+writing manifest file 'beer_fire_detection.egg-info/SOURCES.txt'
+reading manifest file 'beer_fire_detection.egg-info/SOURCES.txt'
+writing manifest file 'beer_fire_detection.egg-info/SOURCES.txt'
+running build_ext
+Creating /home/jordan/G25_RS1/RS1-Gr25/install/beer_fire_detection/lib/python3.10/site-packages/beer-fire-detection.egg-link (link to .)
+Installing fire_detector script to /home/jordan/G25_RS1/RS1-Gr25/install/beer_fire_detection/bin
+Installing synthetic_thermal_demo script to /home/jordan/G25_RS1/RS1-Gr25/install/beer_fire_detection/bin
+
+Installed /home/jordan/G25_RS1/RS1-Gr25/build/beer_fire_detection

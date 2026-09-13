@@ -186,14 +186,10 @@ class RobotStatusNode(Node):
 def main(args=None):
     rclpy.init(args=args)
 
-    robot_name = 'husky1'
-    argv = args or []
-    for idx, arg in enumerate(argv):
-        if arg.startswith('__name:='):
-            continue
-        if arg.startswith('--robot'):
-            robot_name = arg.split('=', 1)[1] if '=' in arg else argv[idx + 1]
-            break
+    # Temporary node so we can read launch-file parameters before creating the GUI.
+    param_node = Node('robot_status_gui_param_reader')
+    robot_name = str(param_node.declare_parameter('robot_name', 'husky1').value)
+    param_node.destroy_node()
 
     gui = RobotStatusWindow(robot_name)
     node = RobotStatusNode(gui, robot_name)

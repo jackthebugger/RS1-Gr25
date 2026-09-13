@@ -1,2 +1,0 @@
-Invoking command in '/home/jordan/G25_RS1/RS1-Gr25/build/41068_ignition_bringup': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake --build /home/jordan/G25_RS1/RS1-Gr25/build/41068_ignition_bringup -- -j6 -l6
-Invoked command in '/home/jordan/G25_RS1/RS1-Gr25/build/41068_ignition_bringup' returned '2': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake --build /home/jordan/G25_RS1/RS1-Gr25/build/41068_ignition_bringup -- -j6 -l6
