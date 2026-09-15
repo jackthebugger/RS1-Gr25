@@ -242,17 +242,22 @@ global_costmap:
       # south of the origin) is literally off the map and NavFn aborts with
       # "goal sent to the planner is off the global costmap".
       # allow_unknown only helps for unknown *cells*; it cannot invent cells
-      # that are not on the grid. A rolling window sized for both worlds
-      # (simple_trees ~15 m, large_demo ~25 m) keeps every reasonable goal on
-      # the costmap; the lidar obstacle layer fills in what the robot can see.
+      # that are not on the grid. A rolling window must cover the longest
+      # Rolling window is centred on the robot. Half-width must reach the
+      # farthest goal we care about: custom_world_1 runs from ~(-22, 3) to
+      # ~(30, 0) are ~52 m, so 80 m was still too small (only ±40 m). 120 m
+      # leaves margin; lidar fills obstacles as the robot drives.
       rolling_window: true
-      width: 40
-      height: 40
+      width: 120
+      height: 120
       # SLAM starts with an empty map, so unknown space must be tracked and the
       # planner must be allowed to route through it (planner_server below).
       track_unknown_space: true
+      # Rolling window + a growing SLAM static map makes NavFn fail with
+      # "Failed to create a plan from potential when a legal potential was
+      # found". Obstacle layer alone is enough: walls are thick enough for
+      # lidar, and allow_unknown lets the planner route through unseen space.
       plugins:
-      - static_layer
       - obstacle_layer
       - inflation_layer
       obstacle_layer:
@@ -300,11 +305,10 @@ planner_server:
     - GridBased
     GridBased:
       plugin: nav2_navfn_planner/NavfnPlanner
-      tolerance: 0.5
-      # A* expands far fewer cells than the full Dijkstra wavefront, which
-      # matters because this planner now runs every second for the whole
-      # mission. Path quality is equivalent on this grid.
-      use_astar: true
+      tolerance: 1.5
+      # Dijkstra is more stable than A* on large mostly-unknown rolling maps
+      # (A* was aborting mid-mission with the NavFn potential error).
+      use_astar: false
       # Required: SLAM builds the map as the robot drives, so the goal is
       # usually in unknown space when the mission starts.
       allow_unknown: true
