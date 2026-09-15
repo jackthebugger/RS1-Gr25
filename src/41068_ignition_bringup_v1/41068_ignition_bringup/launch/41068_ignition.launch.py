@@ -425,7 +425,7 @@ def generate_launch_description():
                     'worlds',
                     [LaunchConfiguration('world'), '.sdf'],
                 ]),
-                ' -r --render-engine-server ogre',
+                ' -r --render-engine ogre',
                 ign_gui_flag,
             ],
             'on_exit_shutdown': 'true',

@@ -1,5 +1,5 @@
 <sdf version="1.7">
-<model name="grass_plane">
+<model name="flat_custom_ground_plane">
     <static>true</static>
     <link name="link">
         <!--<collision name="collision">
@@ -13,7 +13,6 @@
         <collision name="collision">
             <geometry>
             <box>
-                <normal>0 0 1</normal>
                 <size>60 30 0.01</size>
             </box>
             </geometry>

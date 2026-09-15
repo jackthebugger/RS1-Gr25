@@ -67,12 +67,14 @@ from rs1_nav.sim import bringup, log
 DEFAULT_GOALS = {
     'simple_trees': (0.0, -5.0, 0.0),
     'large_demo': (8.0, 6.0, 0.0),
+    'custom_world_1': (0.0, -5.0, 0.0),
 }
 # Replan needs a longer southbound run so the mid-path wall still leaves
 # open ground between the barrier and the goal.
 DEFAULT_REPLAN_GOALS = {
     'simple_trees': (0.0, -6.0, 0.0),
     'large_demo': (8.0, 6.0, 0.0),
+    'custom_world_1': (0.0, -6.0, 0.0),
 }
 
 
@@ -521,7 +523,7 @@ def _parse_args(argv=None) -> argparse.Namespace:
     parser.add_argument('--replan', action='store_true',
                         help='Shorthand for --mode replan: inject an obstacle mid-route')
     parser.add_argument('--world', default='simple_trees',
-                        choices=('simple_trees', 'large_demo'))
+                        choices=('simple_trees', 'large_demo', 'custom_world_1'))
     parser.add_argument('--robot', default='husky1')
     parser.add_argument('--start', nargs=3, type=float, metavar=('X', 'Y', 'YAW'),
                         default=[0.0, 0.0, 0.0],

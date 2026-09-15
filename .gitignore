@@ -1,0 +1,25 @@
+# ROS 2 and colcon build output
+/build/
+/install/
+/log/
+/src/build/
+/src/install/
+/src/log/
+
+# Python bytecode, caches, and local packaging output
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+
+# CMake-generated files outside the main build directory
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+Makefile
+compile_commands.json
+
+# Local editor and environment files
+.vscode/settings.json
+.env
+.env.*

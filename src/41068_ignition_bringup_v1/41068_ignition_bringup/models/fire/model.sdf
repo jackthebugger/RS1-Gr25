@@ -1,5 +1,5 @@
 <sdf version="1.7">
-<model name="forest_wall">
+<model name="fire">
     <static>true</static>
     <link name="link">
         <!--<collision name="collision">
@@ -13,7 +13,6 @@
         <collision name="collision">
             <geometry>
             <box>
-                <normal>0 0 1</normal>
                 <size>7 3.5 0.01</size>
             </box>
             </geometry>

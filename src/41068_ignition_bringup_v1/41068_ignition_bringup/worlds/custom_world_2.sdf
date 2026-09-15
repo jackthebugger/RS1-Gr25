@@ -42,7 +42,7 @@
 
     <!-- Large ground planes with forest floor texture -->
     <include>
-      <uri>model://flat_custom_ground_plane</uri>
+      <uri>model://custom_ground_plane</uri>
       <name>custom_map</name>
       <pose>0 0 0 0 0 0</pose>
     </include>
@@ -228,47 +228,5 @@
       <pose>-15 7 1.4 1.570796 0 0</pose>
     </include>
 
-    <!-- Oak trees -->
-    <include>
-      <uri>
-        https://fuel.gazebosim.org/1.0/OpenRobotics/models/Oak%20tree
-      </uri>
-      <name>oak1</name>
-      <pose>3.54698 5 -0.3 0 -0 0.1</pose>
-    </include>
-
-    <include>
-      <uri>
-        https://fuel.gazebosim.org/1.0/OpenRobotics/models/Oak%20tree
-      </uri>
-      <name>oak2</name>
-      <pose>25 10 -0.3 0 -0 0.1</pose>
-    </include>
-
-    <include>
-      <uri>
-        https://fuel.gazebosim.org/1.0/OpenRobotics/models/Oak%20tree
-      </uri>
-      <name>oak3</name>
-      <pose>10 -7 -0.3 0 -0 0.1</pose>
-    </include>
-
-    <include>
-      <uri>
-        https://fuel.gazebosim.org/1.0/OpenRobotics/models/Oak%20tree
-      </uri>
-      <name>oak4</name>
-      <pose>4 -3 -0.3 0 -0 0.1</pose>
-    </include>
-
-    <include>
-      <uri>
-        https://fuel.gazebosim.org/1.0/OpenRobotics/models/Oak%20tree
-      </uri>
-      <name>oak5</name>
-      <pose>13 5 -0.3 0 -0 0.1</pose>
-    </include>
-
   </world>
 </sdf>
-
