@@ -3,7 +3,7 @@
 **Package:** `41068_ignition_bringup` (UTS 41068 Robotics Studio 1)  
 **ROS 2:** Humble · **Simulator:** Ignition Gazebo Fortress  
 **Evidence basis:** repository code + `pathplanning_and_movement_implementation.md` (claims verified against code; where they disagree, **the repository wins**)  
-**Workspace assumed in examples:** `~/G25_RS1/RS1-Gr25` (adjust if yours differs)
+**Workspace assumed in examples:** your local clone of `RS1-Gr25` (e.g. `~/git/RS1-Gr25`) — always `cd` into *your* clone before building/sourcing
 
 ---
 
@@ -52,7 +52,7 @@ MissionRunner / RViz / teleop
 | OS | Ubuntu (WSL2 supported; software GL is slower) |
 | ROS | ROS 2 Humble |
 | Simulator | Ignition Gazebo Fortress (`ignition-fortress`) |
-| Workspace | Colcon workspace containing this package under `src/` (e.g. `~/G25_RS1/RS1-Gr25`) |
+| Workspace | Colcon workspace containing this package under `src/` (e.g. `~/git/RS1-Gr25`) |
 | Network | `export ROS_LOCALHOST_ONLY=1` recommended in classroom Wi-Fi |
 
 **Apt packages** (from `README.md` / `package.xml`):
@@ -73,8 +73,11 @@ Also install Ignition Fortress per `README.md` (osrf packages).
 ```bash
 export ROS_LOCALHOST_ONLY=1
 source /opt/ros/humble/setup.bash
-source ~/G25_RS1/RS1-Gr25/install/setup.bash
+cd ~/git/RS1-Gr25   # ← your local clone path
+source install/setup.bash
 ```
+
+**Git hygiene (required for team pull/push):** never commit `build/`, `install/`, or `log/`. Those directories contain machine-specific absolute symlinks (another teammate's home path). The repo `.gitignore` excludes them. After every `git pull`, rebuild and re-source on your machine.
 
 ---
 
@@ -182,15 +185,17 @@ Replanning: default Nav2 BT uses `is_path_valid`; when the path is blocked, a ne
 
 Gazebo + Husky + sensors, without autonomy.
 
-### Build
+### Build (from workspace root — do this after every pull)
 
 ```bash
 export ROS_LOCALHOST_ONLY=1
 source /opt/ros/humble/setup.bash
-cd ~/G25_RS1/RS1-Gr25
-colcon build --symlink-install --packages-select 41068_ignition_bringup
+cd ~/git/RS1-Gr25   # ← your local clone path
+colcon build --symlink-install --packages-select beer_fire_detection 41068_ignition_bringup
 source install/setup.bash
 ```
+
+Do **not** run `colcon` inside `src/.../41068_ignition_bringup/` — always build from the workspace root so `install/setup.bash` is created in the right place. Rebuild both packages after a pull (`41068_ignition_bringup` depends on `beer_fire_detection`).
 
 ### Terminal layout
 
@@ -204,12 +209,17 @@ Terminal 2  →  optional teleop
 ```bash
 export ROS_LOCALHOST_ONLY=1
 source /opt/ros/humble/setup.bash
-source ~/G25_RS1/RS1-Gr25/install/setup.bash
+cd ~/git/RS1-Gr25   # ← your local clone path
+source install/setup.bash
 
 ros2 launch 41068_ignition_bringup 41068_ignition_husky.launch.py
 ```
 
-Useful args: `world:=simple_trees|large_demo`, `gui:=true|false`, `husky_x:=…`, `husky_y:=…`, `husky_yaw:=…`, `enable_camera:=false` (default).
+Useful args: `world:=simple_trees|large_demo|custom_world_1`, `gui:=true|false`, `husky_x:=…`, `husky_y:=…`, `husky_yaw:=…`, `enable_camera:=false` (default).
+
+For `custom_world_1`, use `husky_z:=0.4` (flat solid ground). That world uses lightweight solid-color models (no PNG/PBR/Fuel meshes) so the Gazebo GUI does not thrash textures.
+
+Do **not** pass `software_gl:=true` on a normal Linux desktop GPU — the old default forced Mesa software GL and caused continuous texture load/unload flicker. Only use `software_gl:=true` on WSL / broken drivers (often with `render_engine:=ogre`).
 
 ### Terminal 2 — teleop (optional)
 
@@ -250,16 +260,27 @@ Robot plans and drives to a goal using SLAM + Nav2.
 
 ### Option A — one command (recommended)
 
+From **any** directory after sourcing the workspace:
+
 ```bash
 export ROS_LOCALHOST_ONLY=1
 source /opt/ros/humble/setup.bash
-source ~/G25_RS1/RS1-Gr25/install/setup.bash
-cd ~/G25_RS1/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup
+cd ~/git/RS1-Gr25   # ← your local clone path
+source install/setup.bash
 
-python3 scripts/basic_autonomy_demo.py
-# with visualisation:
-python3 scripts/basic_autonomy_demo.py --start 0 0 0 --goal 0 -5 0 --rviz --gui
+ros2 run 41068_ignition_bringup basic_autonomy_demo.py
+# with visualisation (launches its own sim):
+ros2 run 41068_ignition_bringup basic_autonomy_demo.py --start 0 0 0 --goal 0 -5 0 --rviz --gui
 ```
+
+If Terminal 1 already has the sim running (`--attach`; do **not** pass `--rviz/--gui` again):
+
+```bash
+ros2 run 41068_ignition_bringup basic_autonomy_demo.py \
+  --attach --world custom_world_1 --goal -4.5 -4.5 0
+```
+
+`python3 scripts/basic_autonomy_demo.py ...` also works from the workspace root (shim) or from `src/41068_ignition_bringup_v1/41068_ignition_bringup/`.
 
 `rs1_nav/sim.py` → `bringup()` launches `41068_ignition_husky.launch.py` with `nav2:=true`, waits via `MissionRunner.wait_until_ready()`, then `MissionRunner.run()` sends `NavigateToPose`.
 
@@ -367,7 +388,7 @@ ros2 launch 41068_ignition_bringup 41068_ignition_husky.launch.py \
 **Terminal 2:**
 
 ```bash
-cd ~/G25_RS1/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup
+cd ~/git/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup
 python3 scripts/obstacle_injector.py --world simple_trees --x 0.0 --y -3.5 --name wall_1
 # or:
 ros2 run 41068_ignition_bringup obstacle_injector.py --x 1.5 --y -3.0
@@ -430,7 +451,7 @@ Show that a mid-route obstacle causes a new global path without a second goal.
 ### One-command
 
 ```bash
-cd ~/G25_RS1/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup
+cd ~/git/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup
 python3 scripts/basic_autonomy_demo.py --replan
 # optional:
 python3 scripts/basic_autonomy_demo.py --replan --rviz --gui
@@ -706,6 +727,8 @@ Topic                              | Publisher                    | Subscriber  
 | Symptom | Likely cause | Diagnostic | Solution |
 |---------|--------------|------------|----------|
 | Package not found | Not sourced / not built | `ros2 pkg list \| grep 41068` | Build + `source install/setup.bash` |
+| `not found: .../local_setup.bash` after pull | Stale committed `install/` with another machine's absolute symlinks | `ls -l install/*/share/*/local_setup.bash` | Delete `build/ install/ log/`, rebuild from workspace root; never commit those dirs |
+| Gazebo GUI constantly loads/unloads textures / freezes | Forced software GL + huge PNG/PBR textures (old `fire` / ground) | Watch GUI flicker; check launch used `software_gl:=true` or `LIBGL_ALWAYS_SOFTWARE=1` | Relaunch with defaults (`software_gl:=false`, `render_engine:=ogre2`); use `world:=custom_world_1` (solid-color models). On WSL only: `software_gl:=true render_engine:=ogre` |
 | Jump back in time / RViz flicker | Multiple Gazebo / stale processes | `ps aux \| grep -E 'ign gazebo\|gz sim'` | Kill orphans; restart; demo uses `sweep_orphans()` |
 | No `/husky1/scan` | Bridge or spawn failed | `ros2 topic list`, `hz /husky1/scan` | Relaunch; wait past spawn delay |
 | Camera / sim freeze on WSL | RGB-D + software GL | Check `enable_camera` | Keep `enable_camera:=false` |

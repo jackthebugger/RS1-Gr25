@@ -68,6 +68,10 @@ def generate_launch_description():
          'Wheel separation used by DiffDrive, in metres (calibrated for skid-steer slip)'),
         ('nav_start_delay', '15.0',
          'Seconds after launch before starting SLAM/Nav2'),
+        ('software_gl', 'false',
+         'Force software OpenGL. Only enable on WSL / broken GPU drivers.'),
+        ('render_engine', 'ogre2',
+         'Ignition render engine: ogre2 (default) or ogre'),
     )
     for name, default, description in passthrough_args:
         ld.add_action(DeclareLaunchArgument(name, default_value=default, description=description))
