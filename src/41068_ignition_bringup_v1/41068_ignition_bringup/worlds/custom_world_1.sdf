@@ -40,6 +40,14 @@
       <pose>0 0 0 0 0 0</pose>
     </include>
 
+    <!-- Solid perimeter around the 60 x 30 m ground (X ±30, Y ±15).
+         0.5 m thick boxes so gpu_lidar / SLAM see the map boundary. -->
+    <include>
+      <uri>model://map_perimeter</uri>
+      <name>map_perimeter</name>
+      <pose>0 0 0 0 0 0</pose>
+    </include>
+
     <!-- Walls: model is an upright 9.32 x 0.5 x 4 m box. Yaw π/2 aligns
          the long axis with world Y so they block east/west travel. -->
     <include>

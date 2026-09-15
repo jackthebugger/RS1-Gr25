@@ -151,11 +151,29 @@ ros2 launch 41068_ignition_bringup 41068_ignition_husky.launch.py slam:=true nav
 
 When launching with RViz, use the "Nav2 Goal" / "2D Goal Pose" tool to send a waypoint to the robot. The robot is navigating using Nav2. If it gets stuck, try the buttons in the Navigation 2 panel in the top right of RViz.
 
-You can also drive the Husky using keyboard teleoperation from a separate terminal:
+You can also drive the Husky using keyboard teleoperation from a separate terminal.
+
+WASD (recommended):
+
+```bash
+ros2 run 41068_ignition_bringup wasd_teleop.py --ros-args -r cmd_vel:=/husky1/cmd_vel
+```
+
+Classic `teleop_twist_keyboard` (`i`/`j`/`l`/`,`):
 
 ```bash
 ros2 run teleop_twist_keyboard teleop_twist_keyboard --ros-args -r cmd_vel:=/husky1/cmd_vel
 ```
+
+For **manual mapping** (build a map in RViz while driving), start SLAM without Nav2 so the keyboard owns `cmd_vel`:
+
+```bash
+ros2 launch 41068_ignition_bringup 41068_ignition_husky.launch.py \
+  slam:=true nav2:=false rviz:=true world:=custom_world_1 \
+  husky_x:=-18 husky_y:=3 husky_z:=0.4 husky_yaw:=0.0
+```
+
+Then run `wasd_teleop.py` as above. Full steps (including saving the map) are in `simulation_workflow_and_implementation_overview.md` §6b.
 
 ## Stage 2: Launch the Parrot drone
 
