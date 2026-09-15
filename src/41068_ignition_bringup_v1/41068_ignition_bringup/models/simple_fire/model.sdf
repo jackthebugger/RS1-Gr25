@@ -1,0 +1,60 @@
+<?xml version="1.0"?>
+<sdf version="1.7">
+  <model name="simple_fire">
+    <static>true</static>
+    <link name="link">
+      <!-- Tall thin collision so lidar can see the fire column -->
+      <collision name="collision">
+        <pose>0 0 1.0 0 0 0</pose>
+        <geometry>
+          <cylinder>
+            <radius>0.35</radius>
+            <length>2.0</length>
+          </cylinder>
+        </geometry>
+      </collision>
+      <visual name="flame_base">
+        <pose>0 0 0.6 0 0 0</pose>
+        <cast_shadows>false</cast_shadows>
+        <geometry>
+          <sphere>
+            <radius>0.45</radius>
+          </sphere>
+        </geometry>
+        <material>
+          <ambient>1.0 0.15 0.0 1</ambient>
+          <diffuse>1.0 0.25 0.0 1</diffuse>
+          <emissive>0.9 0.15 0.0 1</emissive>
+        </material>
+      </visual>
+      <visual name="flame_mid">
+        <pose>0 0 1.15 0 0 0</pose>
+        <cast_shadows>false</cast_shadows>
+        <geometry>
+          <sphere>
+            <radius>0.32</radius>
+          </sphere>
+        </geometry>
+        <material>
+          <ambient>1.0 0.45 0.0 1</ambient>
+          <diffuse>1.0 0.5 0.05 1</diffuse>
+          <emissive>1.0 0.35 0.0 1</emissive>
+        </material>
+      </visual>
+      <visual name="flame_tip">
+        <pose>0 0 1.55 0 0 0</pose>
+        <cast_shadows>false</cast_shadows>
+        <geometry>
+          <sphere>
+            <radius>0.18</radius>
+          </sphere>
+        </geometry>
+        <material>
+          <ambient>1.0 0.75 0.1 1</ambient>
+          <diffuse>1.0 0.7 0.1 1</diffuse>
+          <emissive>1.0 0.55 0.05 1</emissive>
+        </material>
+      </visual>
+    </link>
+  </model>
+</sdf>

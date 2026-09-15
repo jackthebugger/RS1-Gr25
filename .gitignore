@@ -1,0 +1,34 @@
+# Colcon / ROS 2 generated artifacts (never commit these)
+/build/
+/install/
+/log/
+
+# Nested accidental colcon runs inside package folders
+**/build/
+**/install/
+**/log/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.eggs/
+*.egg
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Editors / OS
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# Local env / secrets
+.env
+.env.*
+*.log

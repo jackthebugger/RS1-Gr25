@@ -9,7 +9,7 @@ from launch.actions import (
     SetEnvironmentVariable,
     TimerAction,
 )
-from launch.conditions import IfCondition
+from launch.conditions import IfCondition, UnlessCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import Command, LaunchConfiguration, PathJoinSubstitution, PythonExpression
 from launch_ros.actions import Node
@@ -356,6 +356,22 @@ def generate_launch_description():
     )
     ld.add_action(gui_launch_arg)
 
+    # software_gl:=true forces Mesa llvmpipe. That is useful on WSL/broken GPU
+    # drivers, but on a normal Linux desktop it causes Gazebo to thrash large
+    # textures (constant load/unload flicker). Default is hardware GL.
+    ld.add_action(DeclareLaunchArgument(
+        'software_gl',
+        default_value='false',
+        description='Force software OpenGL (LIBGL_ALWAYS_SOFTWARE=1). '
+                    'Only enable on WSL / broken GPU drivers.',
+    ))
+    ld.add_action(DeclareLaunchArgument(
+        'render_engine',
+        default_value='ogre2',
+        description='Ignition render engine: ogre2 (default, GPU) or ogre '
+                    '(often needed with software_gl:=true).',
+    ))
+
     # Ensure package models (grass_plane, forest_*, etc.) resolve via model://
     # even when gazebo_ros export hooks are not applied (e.g. bare ign gazebo).
     pkg_share = get_package_share_directory('41068_ignition_bringup')
@@ -395,12 +411,31 @@ def generate_launch_description():
         value=server_config_file,
     ))
 
-    # WSL / software-GL mitigations for Ignition rendering (sensors need a
-    # render engine even when the Gazebo GUI is off).
-    ld.add_action(SetEnvironmentVariable(name='LIBGL_ALWAYS_SOFTWARE', value='1'))
-    ld.add_action(SetEnvironmentVariable(name='MESA_GL_VERSION_OVERRIDE', value='3.3'))
-    ld.add_action(SetEnvironmentVariable(name='MESA_GLSL_VERSION_OVERRIDE', value='330'))
+    # Prefer xcb under Wayland so Qt/Ignition GUIs stay stable.
     ld.add_action(SetEnvironmentVariable(name='QT_QPA_PLATFORM', value='xcb'))
+
+    # Optional software-GL path (WSL). When disabled, explicitly clear overrides
+    # that may already be set in the parent shell from a previous run.
+    ld.add_action(SetEnvironmentVariable(
+        name='LIBGL_ALWAYS_SOFTWARE',
+        value='1',
+        condition=_if_true('software_gl'),
+    ))
+    ld.add_action(SetEnvironmentVariable(
+        name='MESA_GL_VERSION_OVERRIDE',
+        value='3.3',
+        condition=_if_true('software_gl'),
+    ))
+    ld.add_action(SetEnvironmentVariable(
+        name='MESA_GLSL_VERSION_OVERRIDE',
+        value='330',
+        condition=_if_true('software_gl'),
+    ))
+    ld.add_action(SetEnvironmentVariable(
+        name='LIBGL_ALWAYS_SOFTWARE',
+        value='0',
+        condition=UnlessCondition(PythonExpression(_is_true_expression('software_gl'))),
+    ))
 
     # -r runs immediately. When gui:=false: -s (no GUI) + --headless-rendering
     # so camera/lidar sensors still render without a window (needed on WSL).
@@ -425,7 +460,8 @@ def generate_launch_description():
                     'worlds',
                     [LaunchConfiguration('world'), '.sdf'],
                 ]),
-                ' -r --render-engine ogre',
+                ' -r --render-engine ',
+                LaunchConfiguration('render_engine'),
                 ign_gui_flag,
             ],
             'on_exit_shutdown': 'true',
