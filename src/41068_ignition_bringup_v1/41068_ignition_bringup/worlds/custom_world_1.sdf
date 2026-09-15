@@ -40,8 +40,17 @@
       <pose>0 0 0 0 0 0</pose>
     </include>
 
-    <!-- Fire markers (emissive spheres, no textures). Spawn Z ~0.4 is correct. -->
+    <!-- wall-->
     <include>
+      <uri>model://forest_wall</uri>
+      <name>forest_wall</name>
+      <pose>-4 10 2 1.570796 0 1.570796</pose>
+    </include>
+
+
+    <!-- fire markers -->
+    <!-- Fire markers (emissive spheres, no textures). Spawn Z ~0.4 is correct. -->
+    <!-- <include>
       <uri>model://simple_fire</uri>
       <name>fire1</name>
       <pose>-20 15 0 0 0 0</pose>
@@ -100,7 +109,7 @@
       <uri>model://simple_fire</uri>
       <name>fire12</name>
       <pose>-15 7 0 0 0 0</pose>
-    </include>
+    </include> -->
 
     <include>
       <uri>model://simple_tree</uri>
@@ -108,7 +117,7 @@
       <pose>3.54698 5 0 0 0 0.1</pose>
     </include>
 
-    <include>
+    <!-- <include>
       <uri>model://simple_rock</uri>
       <name>rock1</name>
       <pose>-6.30926 -8.38159 0 0 0 0.2</pose>
@@ -137,6 +146,6 @@
       <uri>model://simple_rock</uri>
       <name>rock6</name>
       <pose>-14 -12 0 0 0 0.5</pose>
-    </include>
+    </include> -->
   </world>
 </sdf>
