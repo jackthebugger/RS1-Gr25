@@ -19,7 +19,7 @@ __pycache__/
 .mypy_cache/
 .ruff_cache/
 
-# Editors / OS
+# Editors / OS / machine-local IDE settings
 .vscode/
 .idea/
 *.swp
@@ -27,8 +27,12 @@ __pycache__/
 *~
 .DS_Store
 Thumbs.db
+*:Zone.Identifier
 
 # Local env / secrets
 .env
 .env.*
 *.log
+
+# Scratch / non-project files
+/hello
