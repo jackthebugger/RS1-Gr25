@@ -223,6 +223,14 @@ Do **not** pass `software_gl:=true` on a normal Linux desktop GPU — the old de
 
 ### Terminal 2 — teleop (optional)
 
+WASD (recommended for mapping):
+
+```bash
+ros2 run 41068_ignition_bringup wasd_teleop.py --ros-args -r cmd_vel:=/husky1/cmd_vel
+```
+
+Classic arrow-style keys (`i`/`j`/`l`/`,`):
+
 ```bash
 ros2 run teleop_twist_keyboard teleop_twist_keyboard --ros-args -r cmd_vel:=/husky1/cmd_vel
 ```
@@ -245,6 +253,131 @@ ros2 topic echo /clock --once
 - Workspace not sourced → `Package '41068_ignition_bringup' not found`
 - Stale Gazebo processes → clock jumps / TF clears (see §18)
 - Camera enabled on WSL software GL → sim stall (`enable_camera` defaults false)
+
+---
+
+## 6b. Manual mapping with SLAM Toolbox + WASD
+
+### Purpose
+
+Drive the Husky with the keyboard while SLAM Toolbox builds an occupancy map that you watch live in RViz.
+
+### Why `nav2:=false`
+
+For mapping, leave **Nav2 off**. Nav2's velocity smoother also publishes `/husky1/cmd_vel` and will fight the keyboard. Use:
+
+- `slam:=true` — starts SLAM Toolbox (`async_slam_toolbox_node`) with `config/slam_params_husky1.yaml` (`mode: mapping`)
+- `nav2:=false` — teleop owns `cmd_vel`
+- `rviz:=true` — shows `/husky1/map`, laser scan, and robot model
+
+(`nav2:=true` also starts SLAM, but is for autonomous goals — not for keyboard mapping.)
+
+### Prerequisites
+
+```bash
+sudo apt update
+sudo apt install ros-humble-slam-toolbox
+# optional classic teleop package (WASD script is in this package):
+sudo apt install ros-humble-teleop-twist-keyboard
+```
+
+Rebuild after pulling the WASD script:
+
+```bash
+cd ~/git/RS1-Gr25
+colcon build --symlink-install --packages-select 41068_ignition_bringup
+source install/setup.bash
+```
+
+### Terminal layout
+
+```text
+Terminal 1  →  Gazebo + Husky + SLAM + RViz
+Terminal 2  →  WASD teleop  (must keep focus on this window)
+Terminal 3  →  optional: save map when done
+```
+
+### Terminal 1 — sim + SLAM + RViz
+
+```bash
+export ROS_LOCALHOST_ONLY=1
+source /opt/ros/humble/setup.bash
+cd ~/git/RS1-Gr25
+source install/setup.bash
+
+ros2 launch 41068_ignition_bringup 41068_ignition_husky.launch.py \
+  slam:=true nav2:=false rviz:=true gui:=true \
+  world:=custom_world_1 \
+  husky_x:=-18 husky_y:=3 husky_z:=0.4 husky_yaw:=0.0
+```
+
+Wait ~15 s (`nav_start_delay`) for SLAM to start. In RViz, Fixed Frame should be `husky1_map`. You should see the Map display on `/husky1/map` and LaserScan on `/husky1/scan`.
+
+### Terminal 2 — WASD drive
+
+```bash
+export ROS_LOCALHOST_ONLY=1
+source /opt/ros/humble/setup.bash
+cd ~/git/RS1-Gr25
+source install/setup.bash
+
+ros2 run 41068_ignition_bringup wasd_teleop.py --ros-args -r cmd_vel:=/husky1/cmd_vel
+```
+
+| Key | Action |
+|-----|--------|
+| `W` / `S` | forward / reverse |
+| `A` / `D` | turn left / right |
+| `Q` / `E` | slower / faster linear |
+| `Z` / `C` | slower / faster turn |
+| `Space` | stop |
+| `Ctrl-C` | quit |
+
+Motion sticks after a key press until you press another key or Space (terminals do not report key-up cleanly).
+
+Drive slowly through open space, pause for loops to close, and watch the map fill in RViz.
+
+### Terminal 3 — save the map (when finished)
+
+Occupancy grid PNG/YAML via Nav2 map saver (works even if Nav2 stack is not running — uses the `/husky1/map` topic):
+
+```bash
+export ROS_LOCALHOST_ONLY=1
+source /opt/ros/humble/setup.bash
+cd ~/git/RS1-Gr25
+source install/setup.bash
+mkdir -p maps
+
+ros2 run nav2_map_server map_saver_cli \
+  -f ~/git/RS1-Gr25/maps/custom_world_1 \
+  --ros-args -r map:=/husky1/map -p use_sim_time:=true
+```
+
+That writes `maps/custom_world_1.pgm` + `maps/custom_world_1.yaml`.
+
+Or serialize SLAM Toolbox's pose graph (for later localization mode):
+
+```bash
+ros2 service call /husky1/slam_toolbox/save_map slam_toolbox/srv/SaveMap \
+  "{name: {data: '/home/jordan/git/RS1-Gr25/maps/custom_world_1_slam'}}"
+```
+
+### Data flow
+
+```text
+WASD keys → wasd_teleop → /husky1/cmd_vel
+        → ros_ign_bridge → Ignition DiffDrive → Husky moves
+Lidar → /husky1/scan + odom TF → SLAM Toolbox
+        → /husky1/map + husky1_map→husky1_odom → RViz Map display
+```
+
+### Common failure points
+
+- `nav2:=true` while teleoping → robot jerks / ignores keys (smoother owns `cmd_vel`)
+- Teleop terminal not focused → keys do nothing
+- Remap forgotten → publishing `/cmd_vel` instead of `/husky1/cmd_vel`
+- Fixed Frame still `map` instead of `husky1_map` → empty / wrong TF in RViz
+- SLAM not up yet → wait for `nav_start_delay` (~15 s) after launch
 
 ---
 
