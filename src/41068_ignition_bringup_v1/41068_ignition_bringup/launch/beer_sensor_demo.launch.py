@@ -18,6 +18,11 @@ def generate_launch_description():
     ld.add_action(DeclareLaunchArgument('use_sim_time', default_value='True'))
     use_sim_time = LaunchConfiguration('use_sim_time')
 
+    pkg_share = FindPackageShare('41068_ignition_bringup')
+    models_path = PathJoinSubstitution([pkg_share, 'models'])
+    ld.add_action(SetEnvironmentVariable(name='IGN_GAZEBO_RESOURCE_PATH', value=models_path))
+    ld.add_action(SetEnvironmentVariable(name='GZ_SIM_RESOURCE_PATH', value=models_path))
+
     # Ensure server config is used (same as original launch)
     server_config_file = PathJoinSubstitution([config_path, 'ignition_server.config'])
     ld.add_action(SetEnvironmentVariable(name='IGN_GAZEBO_SERVER_CONFIG_PATH', value=server_config_file))
@@ -82,19 +87,33 @@ def generate_launch_description():
         parameters=[{'config_file': PathJoinSubstitution([config_path, 'gazebo_bridge_husky1.yaml']), 'use_sim_time': use_sim_time}],
     ))
 
-    # Start synthetic thermal demo script directly (avoid package lookup issues)
-    from launch.actions import ExecuteProcess
-    synthetic_script = '/home/faiyad/RS1-Gr25/install/beer_fire_detection/bin/synthetic_thermal_demo'
-    ld.add_action(ExecuteProcess(
-        cmd=[synthetic_script, '--ros-args', '-p', 'demo_topic:=/husky1/thermal/demo_image', '-p', 'visual_topic:=/husky1/thermal/demo_visual', '-p', 'scan_topic:=/husky1/scan', '-p', 'resolution:=0.01'],
+    # Start the beer demo thermal nodes using the package entry points.
+    ld.add_action(Node(
+        package='beer_fire_detection',
+        executable='synthetic_thermal_demo',
+        name='synthetic_thermal_demo',
         output='screen',
+        parameters=[{
+            'demo_topic': '/husky1/thermal/demo_image',
+            'visual_topic': '/husky1/thermal/demo_visual',
+            'scan_topic': '/husky1/scan',
+            'resolution': 0.01,
+            'use_sim_time': use_sim_time,
+        }],
     ))
 
-    # Start the fire detector script directly
-    fire_script = '/home/faiyad/RS1-Gr25/install/beer_fire_detection/bin/fire_detector'
-    ld.add_action(ExecuteProcess(
-        cmd=[fire_script, '--ros-args', '-p', 'thermal_topic:=/husky1/thermal/demo_image', '-p', 'fire_threshold_kelvin:=400.0', '-p', 'minimum_hot_pixels:=20', '-p', 'thermal_resolution:=0.01'],
+    ld.add_action(Node(
+        package='beer_fire_detection',
+        executable='fire_detector',
+        name='fire_detector',
         output='screen',
+        parameters=[{
+            'thermal_topic': '/husky1/thermal/demo_image',
+            'fire_threshold_kelvin': 400.0,
+            'minimum_hot_pixels': 20,
+            'thermal_resolution': 0.01,
+            'use_sim_time': use_sim_time,
+        }],
     ))
 
     return ld

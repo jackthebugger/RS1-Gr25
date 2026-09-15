@@ -187,7 +187,7 @@ def main(args=None):
     rclpy.init(args=args)
 
     robot_name = 'husky1'
-    argv = args or []
+    argv = list(args or [])
     for idx, arg in enumerate(argv):
         if arg.startswith('__name:='):
             continue
@@ -197,6 +197,13 @@ def main(args=None):
 
     gui = RobotStatusWindow(robot_name)
     node = RobotStatusNode(gui, robot_name)
+    robot_name_param = node.declare_parameter('robot_name', robot_name).value
+    if robot_name_param:
+        robot_name = str(robot_name_param)
+        gui.title(f'{robot_name} status')
+        gui.robot_name = robot_name
+        node.robot_name = robot_name
+        node.status.robot_name = robot_name
 
     try:
         while rclpy.ok():
