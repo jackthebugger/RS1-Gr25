@@ -5,6 +5,9 @@
 /src/build/
 /src/install/
 /src/log/
+**/build/
+**/install/
+**/log/
 
 # Python bytecode, caches, and local packaging output
 __pycache__/
