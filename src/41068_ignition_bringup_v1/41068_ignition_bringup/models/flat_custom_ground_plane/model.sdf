@@ -21,23 +21,13 @@
         <visual name="visual">
             <cast_shadows>false</cast_shadows>
             <geometry>
-            <plane>
-                <normal>0 0 1</normal>
-                <size>60 30</size>
-            </plane>
+            <box>
+                <size>60 30 0.01</size>
+            </box>
             </geometry>
             <material>
-                <!-- <diffuse>0.8 0.8 0.8 1</diffuse> -->
-                <ambient>1.0 1.0 1.0 1</ambient>
-                <diffuse>1.0 1.0 1.0 1</diffuse>
-                <!--<specular>1.0 1.0 1.0 1</specular>-->
-                <pbr>
-                    <metal>
-                    <albedo_map>
-                        model://flat_custom_ground_plane/materials/forest_overhead_plain.png
-                    </albedo_map>
-                    </metal>
-                </pbr>
+                <ambient>0.35 0.45 0.30 1</ambient>
+                <diffuse>0.35 0.45 0.30 1</diffuse>
             </material>
         </visual>
     </link>
