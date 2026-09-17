@@ -1,0 +1,225 @@
+<?xml version="1.0"?>
+<sdf version='1.8'>
+  <world name="custom_world_1_fire">
+    <!-- Lightweight world: solid-color geometry only (no PNG/PBR/Fuel meshes).
+         Large transparent fire textures + software GL caused Gazebo to thrash
+         textures continuously in the GUI. -->
+    <light name="sun" type="directional">
+      <cast_shadows>0</cast_shadows>
+      <pose>0 0 100 0 -0 0</pose>
+      <diffuse>0.8 0.8 0.8 1</diffuse>
+      <specular>0.4 0.4 0.4 1</specular>
+      <direction>-0.5 0.1 -0.9</direction>
+    </light>
+    <gravity>0 0 -9.81</gravity>
+    <magnetic_field>6e-06 2.3e-05 -4.2e-05</magnetic_field>
+    <atmosphere type="adiabatic"/>
+    <physics name="default_physics" type="ignored">
+      <max_step_size>0.01</max_step_size>
+      <real_time_factor>1</real_time_factor>
+      <real_time_update_rate>100</real_time_update_rate>
+    </physics>
+    <scene>
+      <ambient>0.7 0.7 0.7 1</ambient>
+      <background>0.6 0.8 1.0 1</background>
+      <shadows>0</shadows>
+      <grid>0</grid>
+    </scene>
+
+    <spherical_coordinates>
+      <latitude_deg>0.0</latitude_deg>
+      <longitude_deg>0.0</longitude_deg>
+      <elevation>10.0</elevation>
+      <heading_deg>0</heading_deg>
+      <surface_model>EARTH_WGS84</surface_model>
+    </spherical_coordinates>
+
+    <include>
+      <uri>model://flat_custom_ground_plane</uri>
+      <name>flat_custom_ground_plane</name>
+      <pose>0 0 0 0 0 0</pose>
+    </include>
+
+    <!-- Solid perimeter around the 60 x 30 m ground (X ±30, Y ±15).
+         0.5 m thick boxes so gpu_lidar / SLAM see the map boundary. -->
+    <include>
+      <uri>model://map_perimeter</uri>
+      <name>map_perimeter</name>
+      <pose>0 0 0 0 0 0</pose>
+    </include>
+
+    <!-- Walls: model is an upright 9.32 x 0.5 x 4 m box. Yaw π/2 aligns
+         the long axis with world Y so they block east/west travel. -->
+    <include>
+      <uri>model://forest_wall</uri>
+      <name>forest_wall_1</name>
+      <pose>-4 10 0 0 0 1.570796</pose>
+    </include>
+
+    <include>
+      <uri>model://forest_wall</uri>
+      <name>forest_wall_2</name>
+      <pose>-4 -5 0 0 0 1.570796</pose>
+    </include>
+
+    <include>
+      <uri>model://forest_wall</uri>
+      <name>forest_wall_3</name>
+      <pose>-4 -10 0 0 0 1.570796</pose>
+    </include>
+
+    <include>
+      <uri>model://forest_wall</uri>
+      <name>forest_wall_4</name>
+      <pose>8 13 0 0 0 1.570796</pose>
+    </include>
+
+
+
+    <include>
+      <uri>model://simple_fire</uri>
+      <name>fire1</name>
+      <pose>8 8 0 0 0 0</pose>
+    </include>
+    <include>
+      <uri>model://simple_fire</uri>
+      <name>fire2</name>
+      <pose>8 6 0 0 0 0</pose>
+    </include>
+    <include>
+      <uri>model://simple_fire</uri>
+      <name>fire3</name>
+      <pose>8 4 0 0 0 0</pose>
+    </include>
+    <include>
+      <uri>model://simple_fire</uri>
+      <name>fire4</name>
+      <pose>8 2 0 0 0 0</pose>
+    </include>
+    <include>
+      <uri>model://simple_fire</uri>
+      <name>fire5</name>
+      <pose>8 0 0 0 0 0</pose>
+    </include>
+
+
+
+
+    <!-- Leave a clear east-west corridor around y=0 so Nav2 can reach the
+         far end of the 60 m ground (goal ~30, 0) without being sealed in. -->
+    <include>
+      <uri>model://forest_wall</uri>
+      <name>forest_wall_5</name>
+      <pose>8 -2 0 0 0 1.570796</pose>
+    </include>
+
+    <include>
+      <uri>model://forest_wall</uri>
+      <name>forest_wall_6</name>
+      <pose>8 -17 0 0 0 1.570796</pose>
+    </include>
+
+
+
+
+    <!-- fire markers -->
+    <!-- Fire markers (emissive spheres, no textures). Spawn Z ~0.4 is correct. -->
+    <!-- <include>
+      <uri>model://simple_fire</uri>
+      <name>fire1</name>
+      <pose>-20 15 0 0 0 0</pose>
+    </include>
+    <include>
+      <uri>model://simple_fire</uri>
+      <name>fire2</name>
+      <pose>-16 13 0 0 0 0</pose>
+    </include>
+    <include>
+      <uri>model://simple_fire</uri>
+      <name>fire3</name>
+      <pose>-16 9 0 0 0 0</pose>
+    </include>
+    <include>
+      <uri>model://simple_fire</uri>
+      <name>fire4</name>
+      <pose>-14 5 0 0 0 0</pose>
+    </include>
+    <include>
+      <uri>model://simple_fire</uri>
+      <name>fire5</name>
+      <pose>-10 1 0 0 0 0</pose>
+    </include>
+    <include>
+      <uri>model://simple_fire</uri>
+      <name>fire6</name>
+      <pose>-16 -5 0 0 0 0</pose>
+    </include>
+    <include>
+      <uri>model://simple_fire</uri>
+      <name>fire7</name>
+      <pose>-17 -9 0 0 0 0</pose>
+    </include>
+    <include>
+      <uri>model://simple_fire</uri>
+      <name>fire8</name>
+      <pose>-18 -11 0 0 0 0</pose>
+    </include>
+    <include>
+      <uri>model://simple_fire</uri>
+      <name>fire9</name>
+      <pose>-18 -15 0 0 0 0</pose>
+    </include>
+    <include>
+      <uri>model://simple_fire</uri>
+      <name>fire10</name>
+      <pose>-13 3 0 0 0 0</pose>
+    </include>
+    <include>
+      <uri>model://simple_fire</uri>
+      <name>fire11</name>
+      <pose>-18 14 0 0 0 0</pose>
+    </include>
+    <include>
+      <uri>model://simple_fire</uri>
+      <name>fire12</name>
+      <pose>-15 7 0 0 0 0</pose>
+    </include> -->
+
+    <include>
+      <uri>model://simple_tree</uri>
+      <name>oak8</name>
+      <pose>3.54698 5 0 0 0 0.1</pose>
+    </include>
+
+    <!-- <include>
+      <uri>model://simple_rock</uri>
+      <name>rock1</name>
+      <pose>-6.30926 -8.38159 0 0 0 0.2</pose>
+    </include>
+    <include>
+      <uri>model://simple_rock</uri>
+      <name>rock2</name>
+      <pose>-8.27162 -6.19647 0 0 0 -0.4</pose>
+    </include>
+    <include>
+      <uri>model://simple_rock</uri>
+      <name>rock3</name>
+      <pose>-9.2841 -4.61803 0 0 0 0.7</pose>
+    </include>
+    <include>
+      <uri>model://simple_rock</uri>
+      <name>rock4</name>
+      <pose>-10 -12 0 0 0 0.1</pose>
+    </include>
+    <include>
+      <uri>model://simple_rock</uri>
+      <name>rock5</name>
+      <pose>-12 -12 0 0 0 -0.3</pose>
+    </include>
+    <include>
+      <uri>model://simple_rock</uri>
+      <name>rock6</name>
+      <pose>-14 -12 0 0 0 0.5</pose>
+    </include> -->
+  </world>
+</sdf>
