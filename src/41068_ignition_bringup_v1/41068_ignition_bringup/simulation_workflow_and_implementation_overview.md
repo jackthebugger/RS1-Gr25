@@ -237,7 +237,9 @@ ros2 run teleop_twist_keyboard teleop_twist_keyboard --ros-args -r cmd_vel:=/hus
 
 ### Expected behaviour
 
-- Ignition opens (unless `gui:=false`); Husky spawns after ~3 s.
+- Ignition opens (unless `gui:=false`); Husky spawns after ~3 s. With
+  `gui:=false`, Gazebo is intentionally headless; use RViz to view the robot,
+  map, and scan.
 - Topics under `/husky1/` publish (scan, odometry, imu, cmd_vel bridged).
 
 ### How to verify
@@ -861,7 +863,7 @@ Topic                              | Publisher                    | Subscriber  
 |---------|--------------|------------|----------|
 | Package not found | Not sourced / not built | `ros2 pkg list \| grep 41068` | Build + `source install/setup.bash` |
 | `not found: .../local_setup.bash` after pull | Stale committed `install/` with another machine's absolute symlinks | `ls -l install/*/share/*/local_setup.bash` | Delete `build/ install/ log/`, rebuild from workspace root; never commit those dirs |
-| Gazebo GUI constantly loads/unloads textures / freezes | Forced software GL + huge PNG/PBR textures (old `fire` / ground) | Watch GUI flicker; check launch used `software_gl:=true` or `LIBGL_ALWAYS_SOFTWARE=1` | Relaunch with defaults (`software_gl:=false`, `render_engine:=ogre2`); use `world:=custom_world_1` (solid-color models). On WSL only: `software_gl:=true render_engine:=ogre` |
+| Gazebo GUI constantly loads/unloads textures / freezes | Renderer/display driver issue | Watch GUI flicker or an empty window; check the first OGRE/GLX lines in the launch log | Default is `render_engine:=ogre`; on WSL/broken drivers use `software_gl:=true render_engine:=ogre`. On a verified desktop GPU, `render_engine:=ogre2` remains available. |
 | Jump back in time / RViz flicker | Multiple Gazebo / stale processes | `ps aux \| grep -E 'ign gazebo\|gz sim'` | Kill orphans; restart; demo uses `sweep_orphans()` |
 | No `/husky1/scan` | Bridge or spawn failed | `ros2 topic list`, `hz /husky1/scan` | Relaunch; wait past spawn delay |
 | Camera / sim freeze on WSL | RGB-D + software GL | Check `enable_camera` | Keep `enable_camera:=false` |

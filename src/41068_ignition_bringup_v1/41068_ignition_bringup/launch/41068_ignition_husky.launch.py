@@ -12,6 +12,8 @@ def generate_launch_description():
     rviz = LaunchConfiguration('rviz')
     slam = LaunchConfiguration('slam')
     nav2 = LaunchConfiguration('nav2')
+    decision_making = LaunchConfiguration('decision_making')
+    map_yaml = LaunchConfiguration('map_yaml')
     world = LaunchConfiguration('world')
     gui = LaunchConfiguration('gui')
 
@@ -35,6 +37,24 @@ def generate_launch_description():
         default_value='False',
         description='Flag to launch Nav2. Nav2 also starts SLAM.',
     ))
+    ld.add_action(DeclareLaunchArgument(
+        'decision_making',
+        default_value='False',
+        description='Use the saved map and fire-aware decision node.',
+    ))
+    ld.add_action(DeclareLaunchArgument(
+        'map_yaml',
+        default_value='maps/my_map.yaml',
+        description='Saved map YAML; defaults to maps/my_map.yaml in the workspace.',
+    ))
+    for name, default, description in (
+        ('goal_x', '-4.5', 'Decision-mode goal X in husky1_map.'),
+        ('goal_y', '-4.5', 'Decision-mode goal Y in husky1_map.'),
+        ('goal_yaw', '0.0', 'Decision-mode goal yaw in radians.'),
+    ):
+        ld.add_action(DeclareLaunchArgument(
+            name, default_value=default, description=description,
+        ))
     ld.add_action(DeclareLaunchArgument(
         'world',
         default_value='simple_trees',
@@ -70,8 +90,9 @@ def generate_launch_description():
          'Seconds after launch before starting SLAM/Nav2'),
         ('software_gl', 'false',
          'Force software OpenGL. Only enable on WSL / broken GPU drivers.'),
-        ('render_engine', 'ogre2',
-         'Ignition render engine: ogre2 (default) or ogre'),
+                ('render_engine', 'ogre',
+                 'Ignition render engine: ogre (default, stable with Fortress GPU '
+                 'sensors) or ogre2'),
     )
     for name, default, description in passthrough_args:
         ld.add_action(DeclareLaunchArgument(name, default_value=default, description=description))
@@ -81,6 +102,11 @@ def generate_launch_description():
         'rviz': rviz,
         'slam': slam,
         'nav2': nav2,
+        'decision_making': decision_making,
+        'map_yaml': map_yaml,
+        'goal_x': LaunchConfiguration('goal_x'),
+        'goal_y': LaunchConfiguration('goal_y'),
+        'goal_yaw': LaunchConfiguration('goal_yaw'),
         'world': world,
         'gui': gui,
         'husky': 'True',
