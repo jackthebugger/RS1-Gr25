@@ -3,6 +3,7 @@
   <model name="simple_fire">
     <static>true</static>
     <link name="link">
+      <temperature>900</temperature>
       <!-- Tall thin collision so lidar can see the fire column -->
       <collision name="collision">
         <pose>0 0 1.0 0 0 0</pose>

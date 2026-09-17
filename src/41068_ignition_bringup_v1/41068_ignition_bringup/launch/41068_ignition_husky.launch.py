@@ -59,7 +59,7 @@ def generate_launch_description():
         'world',
         default_value='simple_trees',
         description='Which world to load',
-        choices=['simple_trees', 'large_demo', 'custom_world_1'],
+        choices=['simple_trees', 'large_demo', 'custom_world_1', 'custom_world_1_fire'],
     ))
     ld.add_action(DeclareLaunchArgument(
         'gui',
