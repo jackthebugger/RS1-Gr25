@@ -20,6 +20,7 @@ setup(
         'console_scripts': [
             'fire_detector = beer_fire_detection.fire_detector:main',
             'synthetic_thermal_demo = beer_fire_detection.synthetic_thermal_demo:main',
+            'decision_making = beer_fire_detection.decision_making:main',
         ],
     },
 )

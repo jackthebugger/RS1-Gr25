@@ -6,6 +6,7 @@ import rclpy
 from geometry_msgs.msg import TransformStamped
 from nav_msgs.msg import Odometry
 from rclpy.node import Node
+from rclpy.qos import QoSProfile, ReliabilityPolicy
 from tf2_ros import TransformBroadcaster
 
 
@@ -28,7 +29,15 @@ class OdometryTfBroadcaster(Node):
 
         self.tf_broadcaster = TransformBroadcaster(self)
         self.odom_pub = self.create_publisher(Odometry, output_odom_topic, 20)
-        self.create_subscription(Odometry, odom_topic, self._odom_cb, 50)
+        self.create_subscription(
+            Odometry,
+            odom_topic,
+            self._odom_cb,
+            QoSProfile(
+                depth=50,
+                reliability=ReliabilityPolicy.RELIABLE,
+            ),
+        )
 
     def _odom_cb(self, msg: Odometry) -> None:
         odom_frame = self.odom_frame if self.odom_frame else msg.header.frame_id
@@ -64,7 +73,8 @@ def main() -> None:
         pass
     finally:
         node.destroy_node()
-        rclpy.shutdown()
+        if rclpy.ok():
+            rclpy.shutdown()
 
 
 if __name__ == '__main__':

@@ -1,9 +1,9 @@
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, GroupAction, IncludeLaunchDescription
+from launch.actions import DeclareLaunchArgument, GroupAction, IncludeLaunchDescription, TimerAction
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration, PathJoinSubstitution, PythonExpression, TextSubstitution
 from launch.conditions import IfCondition
-from launch_ros.actions import PushRosNamespace, SetRemap
+from launch_ros.actions import Node, PushRosNamespace, SetRemap
 from launch_ros.substitutions import FindPackageShare
 
 
@@ -28,7 +28,16 @@ def _if_true(name):
 
 def _if_slam_needed():
     return IfCondition(PythonExpression(
-        _is_true_expression('slam') + [' or '] + _is_true_expression('nav2')
+        ['('] + _is_true_expression('slam') + [' or '] +
+        _is_true_expression('nav2') + [') and not '] +
+        _is_true_expression('decision_making')
+    ))
+
+
+def _if_navigation_needed():
+    return IfCondition(PythonExpression(
+        _is_true_expression('nav2') + [' or '] +
+        _is_true_expression('decision_making')
     ))
 
 
@@ -74,14 +83,28 @@ def generate_launch_description():
         description='Flag to launch Nav2. Nav2 also starts SLAM.'
     )
 
+    decision_launch_arg = DeclareLaunchArgument(
+        'decision_making',
+        default_value='False',
+        description='Use the saved map and fire-aware decision node.',
+    )
+    map_yaml_launch_arg = DeclareLaunchArgument(
+        'map_yaml',
+        default_value='',
+        description='Saved map YAML used when decision_making is enabled.',
+    )
+
+    # This launch is used by the Husky decision mode. Resolve its concrete
+    # parameter files directly so delayed launch groups do not lose the suffix
+    # configuration while expanding substitutions.
     slam_params_file = PathJoinSubstitution([
         config_path,
-        _params_filename('slam_params', config_filename_suffix)
+        'slam_params_husky1.yaml',
     ])
 
     nav2_params_file = PathJoinSubstitution([
         config_path,
-        _params_filename('nav2_params', config_filename_suffix)
+        'nav2_params_husky1.yaml',
     ])
 
     # Start Simultaneous Localisation and Mapping (SLAM).
@@ -117,10 +140,50 @@ def generate_launch_description():
         )
     ])
 
+    localization = GroupAction(
+        scoped=True,
+        condition=_if_true('decision_making'),
+        actions=[
+            PushRosNamespace(namespace),
+            Node(
+                package='nav2_map_server',
+                executable='map_server',
+                name='map_server',
+                output='screen',
+                parameters=[
+                    PathJoinSubstitution([
+                        config_path,
+                        'nav2_params_husky1.yaml',
+                    ]),
+                    {
+                        'use_sim_time': use_sim_time,
+                        'yaml_filename': LaunchConfiguration('map_yaml'),
+                        'frame_id': 'husky1_map',
+                    },
+                ],
+            ),
+            TimerAction(
+                period=8.0,
+                actions=[Node(
+                    package='nav2_lifecycle_manager',
+                    executable='lifecycle_manager',
+                    namespace='husky1',
+                    name='lifecycle_manager_localization',
+                    output='screen',
+                    parameters=[{
+                        'use_sim_time': use_sim_time,
+                        'autostart': True,
+                        'node_names': ['map_server'],
+                    }],
+                )],
+            ),
+        ],
+    )
+
     # Start Navigation Stack.
     # We push the namespace ourselves rather than relying on nav2_bringup's
     # use_namespace handling, which differs across distro/package versions.
-    navigation_group = GroupAction(scoped=True, condition=_if_true('nav2'), actions=[
+    navigation_group = GroupAction(scoped=True, condition=_if_navigation_needed(), actions=[
         PushRosNamespace(namespace),
         SetRemap(src='/tf', dst='tf'),
         SetRemap(src='/tf_static', dst='tf_static'),
@@ -130,18 +193,21 @@ def generate_launch_description():
         SetRemap(src='/map', dst='map'),
         SetRemap(src='/map_updates', dst='map_updates'),
 
-        IncludeLaunchDescription(
-            PythonLaunchDescriptionSource(
-                PathJoinSubstitution([
-                    FindPackageShare('nav2_bringup'),
-                    'launch',
-                    'navigation_launch.py'
-                ])
-            ),
-            launch_arguments={
-                'use_sim_time': use_sim_time,
-                'params_file': nav2_params_file,
-            }.items()
+        TimerAction(
+            period=5.0,
+            actions=[IncludeLaunchDescription(
+                PythonLaunchDescriptionSource(
+                    PathJoinSubstitution([
+                        FindPackageShare('nav2_bringup'),
+                        'launch',
+                        'navigation_launch.py'
+                    ])
+                ),
+                launch_arguments={
+                    'use_sim_time': use_sim_time,
+                    'params_file': nav2_params_file,
+                }.items()
+            )],
         )
     ])
 
@@ -152,7 +218,10 @@ def generate_launch_description():
     ld.add_action(config_filename_suffix_launch_arg)
     ld.add_action(slam_launch_arg)
     ld.add_action(nav2_launch_arg)
+    ld.add_action(decision_launch_arg)
+    ld.add_action(map_yaml_launch_arg)
     ld.add_action(slam)
+    ld.add_action(localization)
     ld.add_action(navigation)
 
     return ld

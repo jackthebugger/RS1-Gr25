@@ -96,8 +96,8 @@ def add_robot(
             'use_sim_time': use_sim_time,
         }],
         remappings=[
-            ('/tf', 'tf'),
-            ('/tf_static', 'tf_static'),
+            ('/tf', '/' + namespace + '/tf'),
+            ('/tf_static', '/' + namespace + '/tf_static'),
         ],
         condition=robot_enabled,
     ))
@@ -116,8 +116,8 @@ def add_robot(
             'base_frame': frame_prefix + 'base_link',
         }],
         remappings=[
-            ('/tf', 'tf'),
-            ('/tf_static', 'tf_static'),
+            ('/tf', '/' + namespace + '/tf'),
+            ('/tf_static', '/' + namespace + '/tf_static'),
         ],
         condition=robot_enabled,
     ))
@@ -182,6 +182,8 @@ def add_navigation_instance(
             'config_filename_suffix': '_' + robot_namespace,
             'slam': LaunchConfiguration('slam'),
             'nav2': LaunchConfiguration('nav2'),
+            'decision_making': LaunchConfiguration('decision_making'),
+            'map_yaml': LaunchConfiguration('map_yaml'),
         }.items(),
     )
 
@@ -189,10 +191,7 @@ def add_navigation_instance(
     # leak/overwrite launch configurations such as namespace and config suffix.
     ld.add_action(TimerAction(
         period=start_delay,
-        actions=[GroupAction(
-            scoped=True,
-            actions=[nav_include],
-        )],
+        actions=[GroupAction(actions=[nav_include])],
         condition=_if_true(robot_arg),
     ))
 
@@ -264,6 +263,29 @@ def generate_launch_description():
         description='Flag to launch Nav2 for each enabled robot. Nav2 also starts SLAM.',
     )
     ld.add_action(nav2_launch_arg)
+
+    ld.add_action(DeclareLaunchArgument(
+        'decision_making',
+        default_value='False',
+        description='Use the saved map and fire-aware decision node.',
+    ))
+    default_map = os.path.normpath(os.path.join(
+        get_package_share_directory('41068_ignition_bringup'),
+        '../../../../maps/my_map.yaml',
+    ))
+    ld.add_action(DeclareLaunchArgument(
+        'map_yaml',
+        default_value=default_map,
+        description='Saved map YAML used by decision_making mode.',
+    ))
+    for name, default, description in (
+        ('goal_x', '-4.5', 'Decision-mode goal X in husky1_map.'),
+        ('goal_y', '-4.5', 'Decision-mode goal Y in husky1_map.'),
+        ('goal_yaw', '0.0', 'Decision-mode goal yaw in radians.'),
+    ):
+        ld.add_action(DeclareLaunchArgument(
+            name, default_value=default, description=description,
+        ))
 
     husky_launch_arg = DeclareLaunchArgument(
         'husky',
@@ -367,9 +389,9 @@ def generate_launch_description():
     ))
     ld.add_action(DeclareLaunchArgument(
         'render_engine',
-        default_value='ogre2',
-        description='Ignition render engine: ogre2 (default, GPU) or ogre '
-                    '(often needed with software_gl:=true).',
+        default_value='ogre',
+        description='Ignition render engine: ogre (default, stable with '
+                    'Fortress GPU sensors) or ogre2.',
     ))
 
     # Ensure package models (grass_plane, forest_*, etc.) resolve via model://
@@ -465,6 +487,8 @@ def generate_launch_description():
                 ign_gui_flag,
             ],
             'on_exit_shutdown': 'true',
+              'decision_making': LaunchConfiguration('decision_making'),
+              'map_yaml': LaunchConfiguration('map_yaml'),
         }.items(),
     ))
 
@@ -508,6 +532,27 @@ def generate_launch_description():
             'effective_wheel_separation',
         ),
     )
+
+    ld.add_action(Node(
+        package='beer_fire_detection',
+        executable='decision_making',
+        namespace='husky1',
+        name='decision_making',
+        output='screen',
+        parameters=[{
+            'use_sim_time': use_sim_time,
+            'goal_x': LaunchConfiguration('goal_x'),
+            'goal_y': LaunchConfiguration('goal_y'),
+            'goal_yaw': LaunchConfiguration('goal_yaw'),
+            'initial_x': ParameterValue(LaunchConfiguration('husky_x'), value_type=float),
+            'initial_y': ParameterValue(LaunchConfiguration('husky_y'), value_type=float),
+            'initial_yaw': ParameterValue(LaunchConfiguration('husky_yaw'), value_type=float),
+        }],
+        remappings=[
+            ('/tf', '/husky1/tf'),
+        ],
+        condition=_if_true('decision_making'),
+    ))
 
     add_robot(
         ld,
