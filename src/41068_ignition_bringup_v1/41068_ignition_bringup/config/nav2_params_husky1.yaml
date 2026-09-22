@@ -131,8 +131,8 @@ controller_server:
       # Must move 0.5 m within 20 s or the behaviour tree runs recovery. The
       # allowance is generous because the robot legitimately pauses while
       # rotating on the spot to face a freshly replanned path.
-      required_movement_radius: 0.3
-      movement_time_allowance: 30.0
+      required_movement_radius: 0.25
+      movement_time_allowance: 45.0
     general_goal_checker:
       stateful: true
       plugin: nav2_controller::SimpleGoalChecker
@@ -204,9 +204,9 @@ local_costmap:
       obstacle_layer:
         plugin: nav2_costmap_2d::ObstacleLayer
         enabled: true
-        observation_sources: scan
+        observation_sources: scan fire_hazards
         scan:
-          topic: scan
+          topic: /husky1/scan
           # The lidar sits 0.845 m above the ground, so a scan return is only
           # ever at that height. The band below accepts it and rejects nothing
           # useful; raising min_obstacle_height above 0.845 would silently
@@ -222,6 +222,20 @@ local_costmap:
           raytrace_min_range: 0.0
           obstacle_max_range: 12.0
           obstacle_min_range: 0.0
+          inf_is_valid: false
+        fire_hazards:
+          topic: /husky1/fire_hazards
+          min_obstacle_height: 0.0
+          max_obstacle_height: 2.0
+          # Fire marks are sticky (no raytrace clear) so a brief thermal
+          # detection still keeps the keep-out until the observation ages out.
+          clearing: false
+          marking: true
+          data_type: PointCloud2
+          obstacle_max_range: 25.0
+          obstacle_min_range: 0.0
+          raytrace_max_range: 25.0
+          raytrace_min_range: 0.0
           inf_is_valid: false
       always_send_full_costmap: true
 global_costmap:
@@ -253,32 +267,61 @@ global_costmap:
       # SLAM starts with an empty map, so unknown space must be tracked and the
       # planner must be allowed to route through it (planner_server below).
       track_unknown_space: true
-      # Rolling window + a growing SLAM static map makes NavFn fail with
-      # "Failed to create a plan from potential when a legal potential was
-      # found". Obstacle layer alone is enough: walls are thick enough for
-      # lidar, and allow_unknown lets the planner route through unseen space.
+      # Rolling window + StaticLayer hung NavFn (Entry 002). Prior map walls
+      # enter via prior_obstacles PointCloud2 instead (same path as lidar/fire).
       plugins:
       - obstacle_layer
       - inflation_layer
       obstacle_layer:
         plugin: nav2_costmap_2d::ObstacleLayer
         enabled: true
-        observation_sources: scan
+        observation_sources: scan fire_hazards
         scan:
-          topic: scan
+          topic: /husky1/scan
           min_obstacle_height: 0.0
           max_obstacle_height: 2.0
           clearing: true
           marking: true
           data_type: LaserScan
-          raytrace_max_range: 20.0
+          raytrace_max_range: 40.0
           raytrace_min_range: 0.0
-          obstacle_max_range: 12.0
+          obstacle_max_range: 30.0
           obstacle_min_range: 0.0
+          inf_is_valid: false
+        fire_hazards:
+          topic: /husky1/fire_hazards
+          min_obstacle_height: 0.0
+          max_obstacle_height: 2.0
+          clearing: false
+          marking: true
+          data_type: PointCloud2
+          obstacle_max_range: 50.0
+          obstacle_min_range: 0.0
+          raytrace_max_range: 50.0
+          raytrace_min_range: 0.0
+          inf_is_valid: false
+        # prior_obstacles still published for inspection, but NOT in
+        # observation_sources: my_map occupied cells do not match free corridor
+        # gaps in the live SDF (Entry 007 retest → NavFn potential errors).
+        # World forest walls are restored to original poses to match the map's
+        # *intended* layout; lidar discovers walls for planning.
+        prior_obstacles:
+          topic: /husky1/prior_obstacles
+          min_obstacle_height: 0.0
+          max_obstacle_height: 2.0
+          clearing: false
+          marking: true
+          data_type: PointCloud2
+          obstacle_max_range: 80.0
+          obstacle_min_range: 0.0
+          raytrace_max_range: 80.0
+          raytrace_min_range: 0.0
           inf_is_valid: false
       static_layer:
         plugin: nav2_costmap_2d::StaticLayer
         map_subscribe_transient_local: true
+        map_topic: /husky1/prior_map
+        track_unknown_space: true
       inflation_layer:
         plugin: nav2_costmap_2d::InflationLayer
         cost_scaling_factor: 3.0

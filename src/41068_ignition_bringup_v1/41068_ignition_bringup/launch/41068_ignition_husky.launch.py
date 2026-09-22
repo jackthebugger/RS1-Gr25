@@ -20,24 +20,26 @@ def generate_launch_description():
         default_value='True',
         description='Flag to enable use_sim_time',
     ))
+    # Team defaults: custom_world_1 autonomy bringup. All remain overridable
+    # from the CLI (e.g. world:=simple_trees slam:=false).
     ld.add_action(DeclareLaunchArgument(
         'rviz',
-        default_value='False',
+        default_value='True',
         description='Flag to launch RViz',
     ))
     ld.add_action(DeclareLaunchArgument(
         'slam',
-        default_value='False',
+        default_value='True',
         description='Flag to launch SLAM Toolbox',
     ))
     ld.add_action(DeclareLaunchArgument(
         'nav2',
-        default_value='False',
+        default_value='True',
         description='Flag to launch Nav2. Nav2 also starts SLAM.',
     ))
     ld.add_action(DeclareLaunchArgument(
         'world',
-        default_value='simple_trees',
+        default_value='custom_world_1',
         description='Which world to load',
         choices=['simple_trees', 'large_demo', 'custom_world_1'],
     ))
@@ -50,10 +52,14 @@ def generate_launch_description():
     # Starting position of the Husky, plus sensor tuning. Change these to move
     # the start pose without editing any launch or Python implementation file.
     passthrough_args = (
-        ('husky_x', '0.0', 'Husky spawn X position in metres'),
-        ('husky_y', '0.0', 'Husky spawn Y position in metres'),
+        ('husky_x', '-18.0', 'Husky spawn X position in metres'),
+        ('husky_y', '3.0', 'Husky spawn Y position in metres'),
         ('husky_z', '0.4', 'Husky spawn Z position in metres'),
         ('husky_yaw', '0.0', 'Husky spawn yaw in radians'),
+        ('use_prior_map', 'true',
+         'Publish maps/my_map on prior_map for RViz/operators (not used by NavFn)'),
+        ('fire_avoidance', 'true',
+         'Launch thermal fire detector + fire_hazard_nav_bridge for costmaps'),
         ('enable_camera', 'false',
          'Enable the Husky RGB-D camera. Known to stall Ignition on WSL/software GL; '
          'not used by SLAM or Nav2.'),

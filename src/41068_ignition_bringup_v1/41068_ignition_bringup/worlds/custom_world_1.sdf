@@ -90,7 +90,6 @@
 
 
 
-
     <!-- fire markers -->
     <!-- Fire markers (emissive spheres, no textures). Spawn Z ~0.4 is correct. -->
     <!-- <include>
