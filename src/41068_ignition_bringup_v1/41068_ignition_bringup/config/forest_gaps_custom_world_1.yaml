@@ -1,0 +1,33 @@
+# Forest-wall gap centres for custom_world_1 (Gazebo world frame).
+#
+# Derived from worlds/custom_world_1.sdf + models/forest_wall (9.32 x 0.5 m box
+# at yaw π/2 → ±4.66 m along world Y). At x=8:
+#   wall_4 (8,13)  Y [8.34, 17.66]
+#   wall_5 (8,-2)  Y [-6.66, 2.66]
+#   wall_6 (8,-17) Y [-21.66, -12.34]
+# Gap A (north): between wall_5 top and wall_4 bottom → centre (8.0, 5.5)
+# Gap B (south): between wall_6 top and wall_5 bottom → centre (8.0, -9.5)
+
+forest_gaps:
+  world_name: custom_world_1
+  # Activate when the robot is within this distance of the nearest gap centre
+  # (forest-wall region). The box still spawns at the randomly selected gap.
+  trigger_distance_m: 5.0
+  # Slightly wider than the ~5.68 m geometric opening so the Husky cannot squeeze
+  # through after inflation (footprint ±0.55 m, inflation 0.75 m).
+  obstacle:
+    size_x: 0.5
+    size_y: 6.2
+    size_z: 1.5
+    name_prefix: dynamic_obstacle_
+  gaps:
+    gap_a:
+      label: Gap A (north)
+      x: 8.0
+      y: 5.5
+      yaw: 0.0
+    gap_b:
+      label: Gap B (south)
+      x: 8.0
+      y: -9.5
+      yaw: 0.0
