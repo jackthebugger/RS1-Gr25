@@ -16,6 +16,13 @@ from .gazebo_world import (
     PathBlocker,
     barrier_across_heading,
 )
+from .forest_obstacle_manager import (
+    ForestGapConfig,
+    ForestObstacleManager,
+    GapSpec,
+    ObstacleState,
+    load_forest_gap_config,
+)
 from .geometry import (
     path_closest_approach,
     path_heading,
@@ -39,16 +46,21 @@ from .nav_observer import (
 
 __all__ = [
     'ARRIVAL_TOLERANCE',
+    'ForestGapConfig',
+    'ForestObstacleManager',
+    'GapSpec',
     'GazeboWorld',
     'MissionReport',
     'MissionRunner',
     'NavObserver',
     'ObstacleSpec',
+    'ObstacleState',
     'PathBlocker',
     'PathSnapshot',
     'ReplanEvent',
     'barrier_across_heading',
     'init_ros',
+    'load_forest_gap_config',
     'path_closest_approach',
     'path_heading',
     'path_length',

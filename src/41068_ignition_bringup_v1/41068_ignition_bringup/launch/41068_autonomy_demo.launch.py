@@ -3,6 +3,8 @@ from launch.actions import DeclareLaunchArgument
 from launch.conditions import IfCondition
 from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import Node
+from ament_index_python.packages import get_package_share_directory
+import os
 
 
 def generate_launch_description():
@@ -16,6 +18,11 @@ def generate_launch_description():
     goal_y = LaunchConfiguration('goal_y')
     goal_yaw = LaunchConfiguration('goal_yaw')
     world = LaunchConfiguration('world')
+    gaps_config = os.path.join(
+        get_package_share_directory('41068_ignition_bringup'),
+        'config',
+        'forest_gaps_custom_world_1.yaml',
+    )
 
     ld.add_action(DeclareLaunchArgument(
         'robot',
@@ -40,11 +47,11 @@ def generate_launch_description():
         description='single_goal, replan (inject obstacle), or original random_walk',
     ))
     ld.add_action(DeclareLaunchArgument(
-        'goal_x', default_value='0.0',
+        'goal_x', default_value='18.0',
         description='Goal X in the robot map frame, metres',
     ))
     ld.add_action(DeclareLaunchArgument(
-        'goal_y', default_value='-5.0',
+        'goal_y', default_value='0.0',
         description='Goal Y in the robot map frame, metres',
     ))
     ld.add_action(DeclareLaunchArgument(
@@ -52,7 +59,7 @@ def generate_launch_description():
         description='Goal yaw in the robot map frame, radians',
     ))
     ld.add_action(DeclareLaunchArgument(
-        'world', default_value='simple_trees',
+        'world', default_value='custom_world_1',
         description='Gazebo world name (used by replan mode for obstacle insertion)',
     ))
 
@@ -95,6 +102,12 @@ def generate_launch_description():
             'odom_topic': 'odom',
             'scan_topic': 'scan',
             'obstacle_threshold': 1.0,
+            'goal_frame': 'husky1_map',
+            'goal_x': goal_x,
+            'goal_y': goal_y,
+            'goal_yaw': goal_yaw,
+            'world_name': world,
+            'forest_gaps_config': gaps_config,
         }],
         condition=IfCondition(show_gui),
     ))
