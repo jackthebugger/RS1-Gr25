@@ -17,6 +17,8 @@ from .gazebo_world import (
     barrier_across_heading,
 )
 from .forest_obstacle_manager import (
+    PATH_A,
+    PATH_B,
     ForestGapConfig,
     ForestObstacleManager,
     GapSpec,
@@ -46,6 +48,8 @@ from .nav_observer import (
 
 __all__ = [
     'ARRIVAL_TOLERANCE',
+    'PATH_A',
+    'PATH_B',
     'ForestGapConfig',
     'ForestObstacleManager',
     'GapSpec',
