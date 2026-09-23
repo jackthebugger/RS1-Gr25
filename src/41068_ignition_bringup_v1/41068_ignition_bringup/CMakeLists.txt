@@ -12,7 +12,7 @@ find_package(ament_cmake_python REQUIRED)
 find_package(ros_ign_interfaces REQUIRED)
 
 install(
-  DIRECTORY config launch models urdf_husky worlds urdf_parrot maps
+  DIRECTORY config launch models urdf_husky worlds urdf_parrot maps behavior_trees
   DESTINATION share/${PROJECT_NAME}
 )
 

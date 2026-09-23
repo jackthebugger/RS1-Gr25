@@ -1,3 +1,6 @@
+import os
+
+from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, GroupAction, IncludeLaunchDescription
 from launch.launch_description_sources import PythonLaunchDescriptionSource
@@ -5,6 +8,7 @@ from launch.substitutions import LaunchConfiguration, PathJoinSubstitution, Pyth
 from launch.conditions import IfCondition
 from launch_ros.actions import Node, PushRosNamespace, SetRemap
 from launch_ros.substitutions import FindPackageShare
+from nav2_common.launch import RewrittenYaml
 
 
 def _params_filename(prefix, suffix):
@@ -100,6 +104,27 @@ def generate_launch_description():
         _params_filename('nav2_params', config_filename_suffix)
     ])
 
+    # Prefer the package-local BT so route-stable replanning ships with the
+    # bringup package. RewrittenYaml substitutes into the params file before
+    # nav2_bringup applies its own namespace rewrite.
+    _pkg_share = get_package_share_directory('41068_ignition_bringup')
+    _route_stable_bt = os.path.join(
+        _pkg_share,
+        'behavior_trees',
+        'navigate_w_recovery_and_replanning_only_if_path_becomes_invalid.xml',
+    )
+    if not os.path.isfile(_route_stable_bt):
+        _route_stable_bt = (
+            '/opt/ros/humble/share/nav2_bt_navigator/behavior_trees/'
+            'navigate_w_recovery_and_replanning_only_if_path_becomes_invalid.xml'
+        )
+    configured_nav2_params = RewrittenYaml(
+        source_file=nav2_params_file,
+        root_key='',
+        param_rewrites={'default_nav_to_pose_bt_xml': _route_stable_bt},
+        convert_types=True,
+    )
+
     prior_map_yaml = PathJoinSubstitution([
         pkg_share, 'maps', 'my_map.yaml'
     ])
@@ -160,7 +185,7 @@ def generate_launch_description():
             ),
             launch_arguments={
                 'use_sim_time': use_sim_time,
-                'params_file': nav2_params_file,
+                'params_file': configured_nav2_params,
             }.items()
         )
     ])
