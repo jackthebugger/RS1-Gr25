@@ -1,13 +1,13 @@
 """Dynamic forest-gap obstacle manager for the Status UI demo.
 
-Places a real Gazebo box that blocks exactly one of the two known forest-wall
-gaps at x≈8 in custom_world_1. Activation is spatial: the obstacle is only
-spawned once the Husky is within ``trigger_distance_m`` of the selected gap
+Places a real Gazebo box that blocks Path A or Path B (the two forest-wall
+gaps at x≈8 in custom_world_1). Activation is spatial: the obstacle spawns
+only when the Husky is within ``trigger_distance_m`` of the **selected** path
 centre. Nav2 is never told which gap to use — lidar → costmap → replan does
 the work.
 
 State machine:
-    IDLE → REQUESTED (gap selected) → WAITING (until ≤5 m) → ACTIVE → IDLE (clear)
+    IDLE → WAITING (path selected) → ACTIVE → IDLE (clear)
 """
 
 from __future__ import annotations
@@ -24,6 +24,11 @@ import yaml
 from .gazebo_world import GazeboWorld, ObstacleSpec
 
 LogFn = Callable[[str], None]
+
+# Stable keys used by config YAML and UI (Path A / Path B).
+PATH_A = 'gap_a'
+PATH_B = 'gap_b'
+PATH_KEYS = (PATH_A, PATH_B)
 
 
 class ObstacleState(str, Enum):
@@ -87,8 +92,8 @@ class ForestGapConfig:
 def default_custom_world_gaps() -> Dict[str, GapSpec]:
     """Hard-coded fallback matching custom_world_1 forest_wall geometry."""
     return {
-        'gap_a': GapSpec('gap_a', 'Gap A (north)', 8.0, 5.5, 0.0),
-        'gap_b': GapSpec('gap_b', 'Gap B (south)', 8.0, -9.5, 0.0),
+        PATH_A: GapSpec(PATH_A, 'Path A', 8.0, 5.5, 0.0),
+        PATH_B: GapSpec(PATH_B, 'Path B', 8.0, -9.5, 0.0),
     }
 
 
@@ -111,12 +116,11 @@ def load_forest_gap_config(path: Optional[str] = None) -> ForestGapConfig:
     resolved = path or default_config_path()
     if resolved and os.path.isfile(resolved):
         return ForestGapConfig.from_yaml(resolved)
-    cfg = ForestGapConfig(gaps=default_custom_world_gaps())
-    return cfg
+    return ForestGapConfig(gaps=default_custom_world_gaps())
 
 
 class ForestObstacleManager:
-    """Select a forest gap, wait for proximity, spawn/remove Gazebo obstacles."""
+    """Select Path A/B (or random), wait for proximity, spawn/remove obstacles."""
 
     def __init__(
         self,
@@ -148,32 +152,49 @@ class ForestObstacleManager:
 
     # -- public API -------------------------------------------------------
 
-    def request_obstacle(self) -> Tuple[bool, str]:
-        """Arm a pending obstacle (random gap). Rejects if already pending/active."""
+    def request_obstacle(self, path_key: Optional[str] = None) -> Tuple[bool, str]:
+        """Arm a pending obstacle for Path A, Path B, or a random path.
+
+        ``path_key`` is ``gap_a``, ``gap_b``, or None (random). Rejects if an
+        obstacle is already pending or active — clear first.
+        """
         if self.state in (ObstacleState.REQUESTED, ObstacleState.WAITING, ObstacleState.ACTIVE):
             msg = (
                 f'Obstacle already {self.state.value}'
                 + (f' ({self.selected_gap.label})' if self.selected_gap else '')
+                + '. Clear obstacles before requesting another.'
             )
             self._log(msg)
             return False, msg
 
-        gap = self._choose_gap()
+        gap = self._resolve_gap(path_key)
         if gap is None:
-            msg = 'No forest gaps configured'
+            msg = 'No forest paths configured'
             self.status_message = 'Obstacle: ERROR'
             return False, msg
 
         self.selected_gap = gap
         self.state = ObstacleState.WAITING
         self.last_distance_m = None
-        self.status_message = f'Obstacle: SELECTED {gap.label} — waiting ≤{self.config.trigger_distance_m:.0f} m'
+        self.status_message = (
+            f'Obstacle: {gap.label} requested — waiting ≤'
+            f'{self.config.trigger_distance_m:.0f} m'
+        )
         self._log(
-            f'Obstacle requested: selected {gap.key} ({gap.label}) at '
+            f'Obstacle requested: {gap.key} ({gap.label}) at '
             f'({gap.x:.2f}, {gap.y:.2f}); waiting for robot within '
-            f'{self.config.trigger_distance_m:.1f} m'
+            f'{self.config.trigger_distance_m:.1f} m of selected path'
         )
         return True, self.status_message
+
+    def request_path_a(self) -> Tuple[bool, str]:
+        return self.request_obstacle(PATH_A)
+
+    def request_path_b(self) -> Tuple[bool, str]:
+        return self.request_obstacle(PATH_B)
+
+    def request_random(self) -> Tuple[bool, str]:
+        return self.request_obstacle(None)
 
     def clear_obstacles(self) -> Tuple[bool, str]:
         """Remove all demo obstacles and reset to idle."""
@@ -182,7 +203,6 @@ class ForestObstacleManager:
             if self.world.remove_model(name):
                 removed += 1
             else:
-                # Best-effort: still drop from tracking so UI does not stick.
                 self._log(f'Failed to remove "{name}" (may already be gone)')
             if name in self.active_names:
                 self.active_names.remove(name)
@@ -190,31 +210,23 @@ class ForestObstacleManager:
         self.selected_gap = None
         self.last_distance_m = None
         self.state = ObstacleState.IDLE
-        self.status_message = 'Obstacle: CLEARED' if removed or True else 'Obstacle: READY'
-        # Always present CLEARED then READY semantics for the UI.
         self.status_message = 'Obstacle: CLEARED'
         self._log(f'Cleared dynamic obstacles ({removed} remove calls)')
         return True, self.status_message
 
     def tick(self, robot_xy: Optional[Tuple[float, float]]) -> Optional[str]:
-        """Advance WAITING → ACTIVE when the robot nears the forest-gap region.
-
-        Proximity uses the nearest configured gap centre (the wall-gap *region*),
-        not only the selected gap. Otherwise selecting the southern gap would
-        never fire when the robot's preferred route is the northern opening.
-        The obstacle is still spawned at the randomly selected gap.
-        """
+        """Advance WAITING → ACTIVE when within trigger distance of selected path."""
         if self.state != ObstacleState.WAITING or self.selected_gap is None:
             return None
         if robot_xy is None:
             return None
 
-        distance = min(g.distance_to(robot_xy) for g in self.config.gaps.values())
+        distance = self.selected_gap.distance_to(robot_xy)
         self.last_distance_m = distance
         if distance > self.config.trigger_distance_m:
             self.status_message = (
-                f'Obstacle: WAITING {self.selected_gap.label} '
-                f'(region {distance:.1f} m > {self.config.trigger_distance_m:.0f} m)'
+                f'Obstacle: waiting for robot to approach {self.selected_gap.label} '
+                f'({distance:.1f} m > {self.config.trigger_distance_m:.0f} m)'
             )
             return self.status_message
 
@@ -231,16 +243,23 @@ class ForestObstacleManager:
 
     # -- internals --------------------------------------------------------
 
-    def _choose_gap(self) -> Optional[GapSpec]:
+    def _resolve_gap(self, path_key: Optional[str]) -> Optional[GapSpec]:
+        if path_key:
+            key = path_key.strip().lower()
+            aliases = {
+                'path_a': PATH_A, 'a': PATH_A, PATH_A: PATH_A,
+                'path_b': PATH_B, 'b': PATH_B, PATH_B: PATH_B,
+            }
+            resolved = aliases.get(key, key)
+            gap = self.config.gaps.get(resolved)
+            if gap is None:
+                self._log(f'Unknown path_key "{path_key}"')
+            return gap
+        if self.force_gap:
+            return self._resolve_gap(self.force_gap)
         gaps = list(self.config.gaps.values())
         if not gaps:
             return None
-        if self.force_gap:
-            chosen = self.config.gaps.get(self.force_gap)
-            if chosen is None:
-                self._log(f'Unknown force_gap "{self.force_gap}"; falling back to random')
-            else:
-                return chosen
         return self._rng.choice(gaps)
 
     def _spawn_selected(self) -> str:
@@ -262,16 +281,17 @@ class ForestObstacleManager:
             self._log(self.status_message)
             return self.status_message
 
-        # Replace any leftover model with the same name.
         self.world.remove_model(name)
         if not self.world.spawn_obstacle(spec):
             self.status_message = 'Obstacle: SPAWN FAILED'
-            self._log(f'Failed to spawn {name} at gap {gap.key}')
+            self._log(f'Failed to spawn {name} at {gap.key}')
             return self.status_message
 
         self.active_names.append(name)
         self.state = ObstacleState.ACTIVE
-        self.status_message = f'Obstacle: ACTIVE at {gap.label} ({name})'
+        self.status_message = (
+            f'Obstacle: ACTIVE — {gap.label} blocked ({name})'
+        )
         self._log(
             f'Spawned {name} blocking {gap.key} at ({gap.x:.2f}, {gap.y:.2f}) '
             f'when robot was {self.last_distance_m:.2f} m away'

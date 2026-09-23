@@ -2,9 +2,8 @@
 """Small modular GUI for displaying robot status during autonomy demos.
 
 Supports:
-  * Start mission → default goal (18, 0, 0) via shared NavigateToPose handler
-  * Arbitrary X/Y/Yaw coordinate goals with validation
-  * Dynamic forest-gap obstacle request (5 m spatial trigger) + clear
+  * Unified START/STOP MISSION using X/Y/Yaw fields → NavigateToPose
+  * Dynamic Path A / Path B / Random block (5 m spatial trigger) + Clear
 """
 
 from __future__ import annotations
@@ -34,6 +33,8 @@ if _PKG_ROOT not in sys.path:
     sys.path.insert(0, _PKG_ROOT)
 
 from rs1_nav.forest_obstacle_manager import (  # noqa: E402
+    PATH_A,
+    PATH_B,
     ForestObstacleManager,
     ObstacleState,
     load_forest_gap_config,
@@ -230,27 +231,7 @@ class RobotStatusWindow(tk.Tk):
         for label in self.labels:
             label.pack(fill='x')
 
-        # --- Mission controls ---
-        self.controls = tk.Frame(body, bg='#f3f4f6')
-        self.controls.pack(fill='x', padx=20, pady=(0, 8))
-        self.start_button = tk.Button(
-            self.controls,
-            text='Start mission',
-            state='disabled',
-            command=lambda: None,
-            height=1,
-        )
-        self.start_button.pack(side='left', expand=True, fill='x', padx=(0, 6))
-        self.stop_button = tk.Button(
-            self.controls,
-            text='Stop mission',
-            state='disabled',
-            command=lambda: None,
-            height=1,
-        )
-        self.stop_button.pack(side='left', expand=True, fill='x', padx=(6, 0))
-
-        # --- Navigation goal coordinates ---
+        # --- Navigation Goal (X/Y/Yaw + unified Start/Stop) ---
         self.goal_frame = tk.LabelFrame(
             body,
             text='Navigation Goal',
@@ -262,9 +243,9 @@ class RobotStatusWindow(tk.Tk):
         )
         self.goal_frame.pack(fill='x', padx=20, pady=(0, 8))
 
-        self.goal_x_var = tk.StringVar(value=str(DEFAULT_GOAL_X))
-        self.goal_y_var = tk.StringVar(value=str(DEFAULT_GOAL_Y))
-        self.goal_yaw_var = tk.StringVar(value=str(DEFAULT_GOAL_YAW))
+        self.goal_x_var = tk.StringVar(value=f'{DEFAULT_GOAL_X:g}')
+        self.goal_y_var = tk.StringVar(value=f'{DEFAULT_GOAL_Y:g}')
+        self.goal_yaw_var = tk.StringVar(value=f'{DEFAULT_GOAL_YAW:g}')
 
         for row, (label, var) in enumerate((
             ('X', self.goal_x_var),
@@ -281,19 +262,22 @@ class RobotStatusWindow(tk.Tk):
 
         self.goal_frame.columnconfigure(1, weight=1)
 
-        self.go_button = tk.Button(
+        self.mission_button = tk.Button(
             self.goal_frame,
-            text='Go to coordinates',
+            text='START MISSION',
             state='disabled',
             command=lambda: None,
-            height=1,
+            height=2,
         )
-        self.go_button.grid(row=3, column=0, columnspan=2, sticky='ew', pady=(8, 0))
+        self.mission_button.grid(
+            row=3, column=0, columnspan=2, sticky='ew', pady=(10, 0), ipady=2,
+        )
+        self._mission_running = False
 
-        # --- Dynamic obstacle controls (must stay reachable via scroll) ---
+        # --- Dynamic Obstacles: Path A / Path B / Random / Clear ---
         self.obstacle_frame = tk.LabelFrame(
             body,
-            text='Dynamic Obstacle',
+            text='Dynamic Obstacles',
             bg='#f3f4f6',
             fg='#1f2937',
             font=('Arial', 11, 'bold'),
@@ -304,25 +288,45 @@ class RobotStatusWindow(tk.Tk):
         self.obstacle_frame.columnconfigure(0, weight=1)
         self.obstacle_frame.columnconfigure(1, weight=1)
 
-        self.add_obstacle_button = tk.Button(
+        self.block_path_a_button = tk.Button(
             self.obstacle_frame,
-            text='Add obstacle',
+            text='BLOCK PATH A',
             state='disabled',
             command=lambda: None,
             height=2,
         )
-        self.add_obstacle_button.grid(
+        self.block_path_a_button.grid(
             row=0, column=0, sticky='ew', padx=(0, 6), pady=4, ipady=4,
+        )
+        self.block_path_b_button = tk.Button(
+            self.obstacle_frame,
+            text='BLOCK PATH B',
+            state='disabled',
+            command=lambda: None,
+            height=2,
+        )
+        self.block_path_b_button.grid(
+            row=0, column=1, sticky='ew', padx=(6, 0), pady=4, ipady=4,
+        )
+        self.random_block_button = tk.Button(
+            self.obstacle_frame,
+            text='RANDOM BLOCK',
+            state='disabled',
+            command=lambda: None,
+            height=2,
+        )
+        self.random_block_button.grid(
+            row=1, column=0, sticky='ew', padx=(0, 6), pady=4, ipady=4,
         )
         self.clear_obstacle_button = tk.Button(
             self.obstacle_frame,
-            text='Clear obstacles',
+            text='CLEAR OBSTACLES',
             state='disabled',
             command=lambda: None,
             height=2,
         )
         self.clear_obstacle_button.grid(
-            row=0, column=1, sticky='ew', padx=(6, 0), pady=4, ipady=4,
+            row=1, column=1, sticky='ew', padx=(6, 0), pady=4, ipady=4,
         )
 
         self.update_status()
@@ -359,21 +363,27 @@ class RobotStatusWindow(tk.Tk):
             self._canvas.yview_scroll(1, 'units')
         return 'break'
 
-    def set_mission_callbacks(self, start_callback, stop_callback) -> None:
-        self.start_button.configure(command=start_callback, state='normal')
-        self.stop_button.configure(command=stop_callback)
+    def set_mission_callback(self, toggle_callback) -> None:
+        self.mission_button.configure(command=toggle_callback, state='normal')
 
-    def set_goal_callback(self, go_callback) -> None:
-        self.go_button.configure(command=go_callback, state='normal')
-
-    def set_obstacle_callbacks(self, add_callback, clear_callback) -> None:
-        self.add_obstacle_button.configure(command=add_callback, state='normal')
+    def set_obstacle_callbacks(
+        self,
+        path_a_callback,
+        path_b_callback,
+        random_callback,
+        clear_callback,
+    ) -> None:
+        self.block_path_a_button.configure(command=path_a_callback, state='normal')
+        self.block_path_b_button.configure(command=path_b_callback, state='normal')
+        self.random_block_button.configure(command=random_callback, state='normal')
         self.clear_obstacle_button.configure(command=clear_callback, state='normal')
 
     def set_mission_running(self, running: bool) -> None:
-        self.start_button.configure(state='disabled' if running else 'normal')
-        self.go_button.configure(state='disabled' if running else 'normal')
-        self.stop_button.configure(state='normal' if running else 'disabled')
+        self._mission_running = bool(running)
+        if running:
+            self.mission_button.configure(text='STOP MISSION', state='normal')
+        else:
+            self.mission_button.configure(text='START MISSION', state='normal')
 
     def set_mission_status(self, status: str) -> None:
         self.mission_var.set(f'Mission: {status}')
@@ -555,7 +565,7 @@ class RobotStatusNode(Node):
     # -- shared goal submission -------------------------------------------
 
     def submit_goal(self, x: float, y: float, yaw: float, *, source: str) -> None:
-        """Common NavigateToPose path used by Start Mission and coordinate Go."""
+        """Single NavigateToPose pathway used by START MISSION."""
         if self.goal_handle is not None:
             self.gui.set_feedback('Goal rejected: mission already running', error=True)
             self.gui.set_mission_status('running')
@@ -591,10 +601,12 @@ class RobotStatusNode(Node):
         self.latest_distance = 0.0
         self.latest_time = 'Pending'
         self.gui.set_goal_fields(x, y, yaw)
-        self.gui.set_goal_status(f'({x:g}, {y:g}, {yaw:g}) via {source}')
+        self.gui.set_goal_status(f'({x:g}, {y:g}, {yaw:g})')
         self.gui.set_mission_status('starting')
         self.gui.set_mission_running(True)
-        self.gui.set_feedback('Goal accepted')
+        self.gui.set_feedback(
+            f'Mission started — navigating to X={x:g} Y={y:g} Yaw={yaw:g}'
+        )
         self.get_logger().info(
             f'Submitting goal ({x:.2f}, {y:.2f}, {yaw:.2f}) from {source}'
         )
@@ -605,35 +617,39 @@ class RobotStatusNode(Node):
         )
         future.add_done_callback(self._goal_response_callback)
 
-    def start_mission(self) -> None:
-        self.submit_goal(
-            self.default_goal_x,
-            self.default_goal_y,
-            self.default_goal_yaw,
-            source='start_mission',
-        )
+    def toggle_mission(self) -> None:
+        """Unified START MISSION / STOP MISSION control."""
+        if self.gui._mission_running or self.goal_handle is not None or self.start_request_pending:
+            self.stop_mission()
+            return
+        self.start_mission_from_fields()
 
-    def go_to_coordinates(self) -> None:
+    def start_mission_from_fields(self) -> None:
+        """Validate X/Y/Yaw entry fields and submit via the shared goal handler."""
         raw_x, raw_y, raw_yaw = self.gui.read_goal_fields()
         x, err = parse_coordinate(raw_x, 'X coordinate')
         if err:
-            self.gui.set_feedback(err, error=True)
+            self.gui.set_feedback('Invalid navigation coordinates', error=True)
+            self.get_logger().warn(err)
             return
         y, err = parse_coordinate(raw_y, 'Y coordinate')
         if err:
-            self.gui.set_feedback(err, error=True)
+            self.gui.set_feedback('Invalid navigation coordinates', error=True)
+            self.get_logger().warn(err)
             return
         yaw, err = parse_coordinate(raw_yaw, 'yaw')
         if err:
-            self.gui.set_feedback(err, error=True)
+            self.gui.set_feedback('Invalid navigation coordinates', error=True)
+            self.get_logger().warn(err)
             return
 
         bound_err = validate_goal(x, y, yaw)
         if bound_err:
-            self.gui.set_feedback(bound_err, error=True)
+            self.gui.set_feedback('Invalid navigation coordinates', error=True)
+            self.get_logger().warn(bound_err)
             return
 
-        self.submit_goal(x, y, yaw, source='coordinates')
+        self.submit_goal(x, y, yaw, source='start_mission')
 
     def _retry_pending_goal(self) -> None:
         if not self.start_request_pending or self._pending_goal is None:
@@ -650,8 +666,9 @@ class RobotStatusNode(Node):
             self.start_wait_timer = None
 
         if self.goal_handle is None:
-            self.gui.set_mission_status('paused')
+            self.gui.set_mission_status('ready')
             self.gui.set_mission_running(False)
+            self.gui.set_feedback('Mission stopped')
             return
 
         self.gui.set_mission_status('stopping')
@@ -660,16 +677,33 @@ class RobotStatusNode(Node):
 
     # -- obstacle UI ------------------------------------------------------
 
-    def request_obstacle(self) -> None:
-        ok, message = self.obstacle_manager.request_obstacle()
+    def _request_path(self, path_key: Optional[str], label: str) -> None:
+        if path_key is None:
+            ok, message = self.obstacle_manager.request_random()
+        elif path_key == PATH_A:
+            ok, message = self.obstacle_manager.request_path_a()
+        elif path_key == PATH_B:
+            ok, message = self.obstacle_manager.request_path_b()
+        else:
+            ok, message = self.obstacle_manager.request_obstacle(path_key)
         self.gui.set_dyn_obstacle_status(message)
-        self.gui.set_feedback(message, error=not ok)
+        self.gui.set_feedback(message if ok else message, error=not ok)
+        if ok:
+            self.get_logger().info(f'{label}: {message}')
+
+    def block_path_a(self) -> None:
+        self._request_path(PATH_A, 'BLOCK PATH A')
+
+    def block_path_b(self) -> None:
+        self._request_path(PATH_B, 'BLOCK PATH B')
+
+    def random_block(self) -> None:
+        self._request_path(None, 'RANDOM BLOCK')
 
     def clear_obstacles(self) -> None:
         ok, message = self.obstacle_manager.clear_obstacles()
         self.gui.set_dyn_obstacle_status(message)
-        self.gui.set_feedback(message, error=not ok)
-        # After clear, flip back to READY on next tick display.
+        self.gui.set_feedback('Obstacles cleared' if ok else message, error=not ok)
         self.obstacle_manager.status_message = 'Obstacle: READY'
 
     def _obstacle_tick(self) -> None:
@@ -679,7 +713,7 @@ class RobotStatusNode(Node):
         if status:
             self.gui.set_dyn_obstacle_status(status)
             if self.obstacle_manager.state == ObstacleState.ACTIVE:
-                self.gui.set_feedback('Dynamic obstacle activated')
+                self.gui.set_feedback('Dynamic obstacle spawned')
         elif self.obstacle_manager.state == ObstacleState.WAITING:
             self.gui.set_dyn_obstacle_status(self.obstacle_manager.status_message)
 
@@ -711,10 +745,12 @@ class RobotStatusNode(Node):
     def _cancel_response_callback(self, future) -> None:
         if future.result().goals_canceling:
             self.goal_handle = None
-            self.gui.set_mission_status('paused')
+            self.gui.set_mission_status('ready')
             self.gui.set_mission_running(False)
+            self.gui.set_feedback('Mission stopped')
         else:
             self.gui.set_mission_status('cancel failed')
+            self.gui.set_feedback('Cancel failed', error=True)
 
     def _result_callback(self, future) -> None:
         status = future.result().status
@@ -724,7 +760,8 @@ class RobotStatusNode(Node):
             self.gui.set_mission_status('complete')
             self.gui.set_feedback('Goal reached')
         elif status == GoalStatus.STATUS_CANCELED:
-            self.gui.set_mission_status('paused')
+            self.gui.set_mission_status('ready')
+            self.gui.set_feedback('Mission stopped')
         else:
             self.gui.set_mission_status('failed')
             self.gui.set_feedback('Goal failed', error=True)
@@ -774,9 +811,13 @@ def main(args=None):
 
     gui = RobotStatusWindow(robot_name)
     node = RobotStatusNode(gui, robot_name)
-    gui.set_mission_callbacks(node.start_mission, node.stop_mission)
-    gui.set_goal_callback(node.go_to_coordinates)
-    gui.set_obstacle_callbacks(node.request_obstacle, node.clear_obstacles)
+    gui.set_mission_callback(node.toggle_mission)
+    gui.set_obstacle_callbacks(
+        node.block_path_a,
+        node.block_path_b,
+        node.random_block,
+        node.clear_obstacles,
+    )
 
     try:
         while rclpy.ok():
