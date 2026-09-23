@@ -1,0 +1,56 @@
+<!--
+  RS1-Gr25 / Husky Nav2 BT — route-stable replanning policy.
+
+  Replans the global path ONLY when:
+    - the current path becomes collision-invalid (IsPathValid fails), OR
+    - the navigation goal is updated (GlobalUpdatedGoal)
+
+  Does NOT replan every second. The stock default
+  navigate_to_pose_w_replanning_and_recovery.xml calls ComputePathToPose at
+  1 Hz unconditionally; with two forest corridors that caused Path A ↔ Path B
+  oscillation whenever Dijkstra briefly preferred the other gap.
+
+  Policy:
+    current path valid? → keep following it
+    current path invalid? → ComputePathToPose (shortest valid route)
+
+  Based on nav2_bt_navigator's navigate_w_recovery_and_replanning_only_if_path_becomes_invalid.xml
+-->
+<root main_tree_to_execute="MainTree">
+  <BehaviorTree ID="MainTree">
+    <RecoveryNode number_of_retries="6" name="NavigateRecovery">
+      <PipelineSequence>
+        <RateController hz="1.0" name="RateControllerComputePathToPose">
+          <RecoveryNode number_of_retries="1" name="RecoveryComputePathToPose">
+            <Fallback name="FallbackComputePathToPose">
+              <ReactiveSequence name="CheckIfNewPathNeeded">
+                <Inverter>
+                  <GlobalUpdatedGoal/>
+                </Inverter>
+                <IsPathValid path="{path}"/>
+              </ReactiveSequence>
+              <ComputePathToPose goal="{goal}" path="{path}" planner_id="GridBased"/>
+            </Fallback>
+            <ClearEntireCostmap name="ClearGlobalCostmap-Context" service_name="global_costmap/clear_entirely_global_costmap"/>
+          </RecoveryNode>
+        </RateController>
+        <RecoveryNode number_of_retries="1" name="RecoveryFollowPath">
+          <FollowPath path="{path}" controller_id="FollowPath"/>
+          <ClearEntireCostmap name="ClearLocalCostmap-Context" service_name="local_costmap/clear_entirely_local_costmap"/>
+        </RecoveryNode>
+      </PipelineSequence>
+      <ReactiveFallback name="FallbackRecoveries">
+        <GoalUpdated/>
+        <RoundRobin name="RecoveryActions">
+          <Sequence name="ClearingActions">
+            <ClearEntireCostmap name="ClearLocalCostmap-Subtree" service_name="local_costmap/clear_entirely_local_costmap"/>
+            <ClearEntireCostmap name="ClearGlobalCostmap-Subtree" service_name="global_costmap/clear_entirely_global_costmap"/>
+          </Sequence>
+          <Spin name="SpinRecovery" spin_dist="1.57"/>
+          <Wait name="WaitRecovery" wait_duration="5"/>
+          <BackUp name="BackUpRecovery" backup_dist="0.30" backup_speed="0.05"/>
+        </RoundRobin>
+      </ReactiveFallback>
+    </RecoveryNode>
+  </BehaviorTree>
+</root>

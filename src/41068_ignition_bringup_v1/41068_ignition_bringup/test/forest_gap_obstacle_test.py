@@ -27,6 +27,8 @@ import rclpy
 from nav_test_lib import await_simulation, bringup, log, print_diagnostics
 from rs1_nav import MissionRunner, NavObserver, init_ros
 from rs1_nav.forest_obstacle_manager import (
+    PATH_A,
+    PATH_B,
     ForestObstacleManager,
     ObstacleState,
     load_forest_gap_config,
@@ -37,13 +39,50 @@ GOAL = (18.0, 0.0, 0.0)
 WORLD = 'custom_world_1'
 OCCUPIED_COST = 252
 MIN_RANGE_DROP = 0.5
+# Route-stability thresholds (Entry 016). Pre-fix Gap A runs produced ~40
+# geometric replans and drove y from ~-6 up to Path A (~5.5) and back.
+PATH_A_CORRIDOR_Y = 3.0
+PATH_B_CORRIDOR_Y = -6.0
+MAX_CORRIDOR_SWITCHES = 1
+MAX_REPLANS_AFTER_BLOCK = 8
+MAX_Y_REVERSALS_AFTER_BLOCK = 3
+
+
+def _count_corridor_switches(samples):
+    """Count Path A ↔ Path B corridor visits after the obstacle is active."""
+    zone = None
+    switches = 0
+    for _t, _x, y in samples:
+        if y >= PATH_A_CORRIDOR_Y:
+            new_zone = 'A'
+        elif y <= PATH_B_CORRIDOR_Y:
+            new_zone = 'B'
+        else:
+            continue
+        if zone is None:
+            zone = new_zone
+        elif new_zone != zone:
+            switches += 1
+            zone = new_zone
+    return switches
+
+
+def _count_y_reversals(samples, min_step=0.4):
+    """Count meaningful north/south direction changes in sampled poses."""
+    reversals = 0
+    for i in range(2, len(samples)):
+        d1 = samples[i - 1][2] - samples[i - 2][2]
+        d2 = samples[i][2] - samples[i - 1][2]
+        if d1 * d2 < 0.0 and abs(d1) >= min_step and abs(d2) >= min_step:
+            reversals += 1
+    return reversals
 
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
-        '--gap', choices=('gap_a', 'gap_b'), default='gap_a',
-        help='Which forest gap to block (deterministic for CI)',
+        '--gap', choices=('gap_a', 'gap_b', 'path_a', 'path_b'), default='gap_a',
+        help='Which forest path to block (deterministic for CI)',
     )
     parser.add_argument('--timeout', type=float, default=300.0,
                         help='Mission budget in seconds')
@@ -52,7 +91,10 @@ def build_parser() -> argparse.ArgumentParser:
 
 def main(argv=None) -> int:
     args = build_parser().parse_args(argv)
-    force_gap = args.gap
+    force_gap = PATH_A if args.gap in ('gap_a', 'path_a') else PATH_B
+    # Path B is south; use a goal that draws the robot toward that corridor so
+    # the selected-path 5 m trigger can fire.
+    goal = GOAL if force_gap == PATH_A else (18.0, -9.0, 0.0)
 
     sup = bringup(
         world=WORLD,
@@ -96,7 +138,10 @@ def main(argv=None) -> int:
                 log('FAIL  Gazebo world services unavailable')
                 return 1
 
-            ok_req, msg = mgr.request_obstacle()
+            if force_gap == PATH_A:
+                ok_req, msg = mgr.request_path_a()
+            else:
+                ok_req, msg = mgr.request_path_b()
             results.append(('obstacle_requested', ok_req))
             log(f'  request: {msg}')
             if not ok_req:
@@ -109,6 +154,8 @@ def main(argv=None) -> int:
             cost_after = None
             clearance_after = None
             spawned_at = None
+            # (elapsed, x, y) after the obstacle is active — oscillation evidence.
+            post_block_poses = []
 
             def range_toward(world_xy):
                 pose = observer.robot_pose()
@@ -128,10 +175,9 @@ def main(argv=None) -> int:
 
                 if mgr.state == ObstacleState.WAITING:
                     if range_before is None and robot_xy is not None:
-                        # Snapshot once the robot is approaching the wall line.
-                        if robot_xy[0] > 0.0:
+                        if gap.distance_to(robot_xy) < 12.0:
                             range_before = range_toward((gap.x, gap.y))
-                            log(f'  lidar toward gap BEFORE spawn: {range_before:.2f} m')
+                            log(f'  lidar toward path BEFORE spawn: {range_before:.2f} m')
                     mgr.tick(robot_xy)
 
                 if mgr.state == ObstacleState.ACTIVE and spawned_at is None:
@@ -148,10 +194,13 @@ def main(argv=None) -> int:
                         from rs1_nav import path_closest_approach
                         clearance_after = path_closest_approach(path.points, (gap.x, gap.y))
                     log(f'  lidar AFTER spawn: {range_after:.2f} m; '
-                        f'costmap max near gap={cost_after}; '
+                        f'costmap max near path={cost_after}; '
                         f'path clearance={clearance_after}')
 
-            report = mission.run(GOAL, timeout=args.timeout, on_tick=on_tick)
+                if spawned_at is not None and robot_xy is not None:
+                    post_block_poses.append((elapsed, robot_xy[0], robot_xy[1]))
+
+            report = mission.run(goal, timeout=args.timeout, on_tick=on_tick)
 
             results.append(('obstacle_spawned', mgr.state == ObstacleState.ACTIVE
                             or (mgr.state == ObstacleState.IDLE and spawned_at is not None)
@@ -159,8 +208,47 @@ def main(argv=None) -> int:
             # After mission, state should still be ACTIVE until cleared.
             results.append(('spawned_during_mission', spawned_at is not None))
             results.append(('goal_reached', report.reached))
-            results.append(('goal_retained', report.goal[:2] == GOAL[:2]))
+            results.append(('goal_retained', report.goal[:2] == goal[:2]))
             results.append(('replan_observed', len(report.replans) >= 1))
+
+            # Route stability: after Path A is blocked, the robot must not
+            # oscillate A↔B (pre-fix: 41 replans, y -6↔+6).
+            if force_gap == PATH_A and spawned_at is not None:
+                post_replans = [
+                    event for event in report.replans if event.at_seconds >= spawned_at
+                ]
+                corridor_switches = _count_corridor_switches(post_block_poses)
+                y_reversals = _count_y_reversals(post_block_poses)
+                visited_a = any(y >= PATH_A_CORRIDOR_Y for _, _, y in post_block_poses)
+                visited_b = any(y <= PATH_B_CORRIDOR_Y for _, _, y in post_block_poses)
+                log(
+                    f'  stability: post-block replans={len(post_replans)}, '
+                    f'corridor_switches={corridor_switches}, '
+                    f'y_reversals={y_reversals}, visited_A={visited_a}, '
+                    f'visited_B={visited_b}'
+                )
+                results.append((
+                    'no_ab_corridor_oscillation',
+                    corridor_switches <= MAX_CORRIDOR_SWITCHES,
+                ))
+                results.append((
+                    'bounded_post_block_replans',
+                    len(post_replans) <= MAX_REPLANS_AFTER_BLOCK,
+                ))
+                results.append((
+                    'no_excessive_y_reversals',
+                    y_reversals <= MAX_Y_REVERSALS_AFTER_BLOCK,
+                ))
+                # Once committed south of the wall towards B, do not return to A.
+                committed_south = False
+                returned_to_a = False
+                for _t, _x, y in post_block_poses:
+                    if y <= PATH_B_CORRIDOR_Y:
+                        committed_south = True
+                    if committed_south and y >= PATH_A_CORRIDOR_Y:
+                        returned_to_a = True
+                        break
+                results.append(('no_return_to_blocked_path_a', not returned_to_a))
 
             if range_before is not None and range_after is not None and math.isfinite(range_after):
                 results.append((
