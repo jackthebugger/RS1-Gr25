@@ -40,3 +40,6 @@ MASTER_PROJECT_KNOWLEDGE_BASE.md
 NAVIGATION_ENGINEERING_LOG.md
 NAVIGATION_IMPLEMENTATION.md
 NAVIGATION_UI_IMPLEMENTATION.md
+
+# Local Cursor overrides (un-ignore gitignored docs for @ mentions)
+.cursorignore
