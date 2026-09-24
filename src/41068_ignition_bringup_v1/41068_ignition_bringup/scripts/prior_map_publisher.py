@@ -2,8 +2,8 @@
 """Publish a saved occupancy map for navigation priors.
 
 Publishes:
-1. ``prior_map`` — latched OccupancyGrid (RViz / operators).
-2. ``prior_obstacles`` — PointCloud2 of occupied cells for Nav2 ObstacleLayer.
+1. ``prior_map`` - latched OccupancyGrid (RViz / operators).
+2. ``prior_obstacles`` - PointCloud2 of occupied cells for Nav2 ObstacleLayer.
 
 StaticLayer + rolling NavFn was shown to hang the planner (Entry 002/003), so
 prior knowledge enters planning through the same ObstacleLayer path as lidar

@@ -576,7 +576,7 @@ class RobotStatusNode(Node):
             self._pending_goal = (x, y, yaw)
             self.start_request_pending = True
             self.gui.set_mission_status('waiting for Nav2')
-            self.gui.set_feedback('Navigation unavailable — waiting for Nav2', error=True)
+            self.gui.set_feedback('Navigation unavailable - waiting for Nav2', error=True)
             if self.start_wait_timer is None:
                 self.start_wait_timer = self.create_timer(1.0, self._retry_pending_goal)
             return
@@ -605,7 +605,7 @@ class RobotStatusNode(Node):
         self.gui.set_mission_status('starting')
         self.gui.set_mission_running(True)
         self.gui.set_feedback(
-            f'Mission started — navigating to X={x:g} Y={y:g} Yaw={yaw:g}'
+            f'Mission started - navigating to X={x:g} Y={y:g} Yaw={yaw:g}'
         )
         self.get_logger().info(
             f'Submitting goal ({x:.2f}, {y:.2f}, {yaw:.2f}) from {source}'
@@ -775,7 +775,7 @@ class RobotStatusNode(Node):
         yaw = yaw_from_quaternion(
             p.orientation.x, p.orientation.y, p.orientation.z, p.orientation.w,
         )
-        # Gazebo OdometryPublisher reports world-frame pose — matches gap coords.
+        # Gazebo OdometryPublisher reports world-frame pose - matches gap coords.
         self.latest_pose = (float(p.position.x), float(p.position.y), yaw)
 
     def _scan_callback(self, msg: LaserScan) -> None:

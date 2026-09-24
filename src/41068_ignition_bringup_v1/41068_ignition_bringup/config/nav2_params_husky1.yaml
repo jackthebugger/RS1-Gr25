@@ -171,9 +171,10 @@ controller_server:
       max_allowed_time_to_collision_up_to_carrot: 1.0
       use_regulated_linear_velocity_scaling: true
       use_cost_regulated_linear_velocity_scaling: true
-      cost_scaling_dist: 0.6
+      cost_scaling_dist: 0.8
       cost_scaling_gain: 1.0
-      inflation_cost_scaling_factor: 3.0
+      # Must match inflation_layer.cost_scaling_factor (Entry 017).
+      inflation_cost_scaling_factor: 1.8
       regulated_linear_scaling_min_radius: 0.9
       regulated_linear_scaling_min_speed: 0.2
       use_rotate_to_heading: true
@@ -182,12 +183,26 @@ controller_server:
       max_robot_pose_search_dist: 10.0
 # FOOTPRINT AND INFLATION
 # The Husky chassis is 0.987 x 0.571 m and the wheels widen it to about 0.685 m
-# (wheel centres at y = +-0.2854, wheel width 0.1143). The original 1.0 x 1.0 m
-# square footprint was therefore 0.3 m too wide, and the 2.0 m inflation radius
-# put a high-cost halo more than three robot widths across every tree -- in a
-# 15 x 15 m world that leaves almost no low-cost space to plan through.
-# Footprint below is the real hull plus a small margin; inflation gives roughly
-# 0.37 m of clearance beyond the robot's side.
+# (wheel centres at y = +-0.2854, wheel width 0.1143). Footprint below is the
+# real hull plus a small margin (half-size 0.55 x 0.38 → inscribed ≈ 0.38 m).
+#
+# Clearance model (Entry 017): inflation_radius sets how far soft costs extend
+# from a lethal cell; cost_scaling_factor sets how fast they decay. Soft cost
+# beyond the inscribed radius is what makes NavFn prefer centre-of-corridor
+# routes over wall-skimming geometrically short paths (Nav2 tuning guide:
+# smooth potential field, not a knife-edge lethal ring).
+#
+#   inscribed ≈ 0.38 m (footprint half-width)
+#   inflation 1.60 m → preferred free-band edge ~1.60 m from lethal cells
+#     (≈1.22 m body-side clearance). In Gap A (≈5.68 m) that leaves a
+#     ~2.48 m flat free band centred near y≈5.5 — short paths stay near the
+#     south free edge (~y=4.3) instead of skimming wall_5 (~y=2.7).
+#   cost_scaling 1.8 → gentler soft-cost decay inside the halo so paths that
+#     cut the soft zone (early unknown-space plans, dynamic obstacles) pay
+#     a clearer penalty before becoming lethal.
+#
+# Forest Gap A/B openings are ≈ 5.68 m wide; free band after 2×1.60 m inflation
+# is ≈ 2.48 m — still well above the 0.76 m footprint width.
 local_costmap:
   local_costmap:
     ros__parameters:
@@ -207,8 +222,8 @@ local_costmap:
       - inflation_layer
       inflation_layer:
         plugin: nav2_costmap_2d::InflationLayer
-        cost_scaling_factor: 3.0
-        inflation_radius: 0.75
+        cost_scaling_factor: 1.8
+        inflation_radius: 1.60
       obstacle_layer:
         plugin: nav2_costmap_2d::ObstacleLayer
         enabled: true
@@ -332,8 +347,8 @@ global_costmap:
         track_unknown_space: true
       inflation_layer:
         plugin: nav2_costmap_2d::InflationLayer
-        cost_scaling_factor: 3.0
-        inflation_radius: 0.75
+        cost_scaling_factor: 1.8
+        inflation_radius: 1.60
       always_send_full_costmap: true
 map_server:
   ros__parameters:

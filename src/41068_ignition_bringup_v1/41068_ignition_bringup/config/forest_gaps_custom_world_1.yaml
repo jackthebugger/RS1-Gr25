@@ -13,7 +13,7 @@ forest_gaps:
   # Spawn when the robot is within this distance of the *selected* path centre.
   trigger_distance_m: 5.0
   # Slightly wider than the ~5.68 m geometric opening so the Husky cannot squeeze
-  # through after inflation (footprint ±0.55 m, inflation 0.75 m).
+  # through after inflation (footprint ±0.55 m, inflation 1.60 m).
   obstacle:
     size_x: 0.5
     size_y: 6.2

@@ -6,10 +6,10 @@ lethal obstacles. This bridges B.E.E.R. fire detection into the costmaps
 without inventing a second planner.
 
 Sources of hazard points (union):
-1. ``known_fire_poses`` — world/map-frame XY positions of simulated fires
+1. ``known_fire_poses`` - world/map-frame XY positions of simulated fires
    (always marked, so thin flames still create a keep-out even if lidar
    intermittently misses them).
-2. Thermal ``/fire_detected`` — when true, marks a disc ahead of the robot
+2. Thermal ``/fire_detected`` - when true, marks a disc ahead of the robot
    using the nearest lidar return in a forward cone (live detection path).
 """
 
