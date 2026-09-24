@@ -25,7 +25,7 @@ from rclpy.node import Node
 
 
 HELP = """
-WASD teleop — click this terminal, then drive:
+WASD teleop - click this terminal, then drive:
   W/S  forward/back          A/D  turn left/right
   Q/E  slower/faster linear  Z/C  slower/faster turn
   Space  stop                Ctrl-C  quit
