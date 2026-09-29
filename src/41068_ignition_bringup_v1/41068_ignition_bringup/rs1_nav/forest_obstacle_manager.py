@@ -3,7 +3,7 @@
 Places a real Gazebo box that blocks Path A or Path B (the two forest-wall
 gaps at x≈8 in custom_world_1). Activation is spatial: the obstacle spawns
 only when the Husky is within ``trigger_distance_m`` of the **selected** path
-centre. Nav2 is never told which gap to use — lidar → costmap → replan does
+centre. Nav2 is never told which gap to use - lidar → costmap → replan does
 the work.
 
 State machine:
@@ -156,7 +156,7 @@ class ForestObstacleManager:
         """Arm a pending obstacle for Path A, Path B, or a random path.
 
         ``path_key`` is ``gap_a``, ``gap_b``, or None (random). Rejects if an
-        obstacle is already pending or active — clear first.
+        obstacle is already pending or active - clear first.
         """
         if self.state in (ObstacleState.REQUESTED, ObstacleState.WAITING, ObstacleState.ACTIVE):
             msg = (
@@ -177,7 +177,7 @@ class ForestObstacleManager:
         self.state = ObstacleState.WAITING
         self.last_distance_m = None
         self.status_message = (
-            f'Obstacle: {gap.label} requested — waiting ≤'
+            f'Obstacle: {gap.label} requested - waiting ≤'
             f'{self.config.trigger_distance_m:.0f} m'
         )
         self._log(
@@ -290,7 +290,7 @@ class ForestObstacleManager:
         self.active_names.append(name)
         self.state = ObstacleState.ACTIVE
         self.status_message = (
-            f'Obstacle: ACTIVE — {gap.label} blocked ({name})'
+            f'Obstacle: ACTIVE - {gap.label} blocked ({name})'
         )
         self._log(
             f'Spawned {name} blocking {gap.key} at ({gap.x:.2f}, {gap.y:.2f}) '
