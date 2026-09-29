@@ -1,7 +1,9 @@
 """Small geometry helpers shared by the mission demo and the tests."""
 
+from __future__ import annotations
+
 import math
-from typing import Iterable, Optional, Sequence, Tuple
+from typing import Iterable, List, Optional, Sequence, Tuple
 
 
 def yaw_from_quaternion(x: float, y: float, z: float, w: float) -> float:
@@ -56,6 +58,119 @@ def path_closest_approach(
         cx, cy = ax + t * dx, ay + t * dy
         best = min(best, math.hypot(tx - cx, ty - cy))
     return best
+
+
+def costmap_obstacle_cells(
+    data: Sequence[int],
+    size_x: int,
+    size_y: int,
+    origin_x: float,
+    origin_y: float,
+    resolution: float,
+    *,
+    lethal_threshold: int = 254,
+) -> List[Tuple[float, float]]:
+    """World-frame centres of costmap cells at or above `lethal_threshold`.
+
+    Nav2 marks true obstacles at 254 (LETHAL_OBSTACLE). 253 is the inscribed
+    footprint halo; soft inflation is 1..252. For geometric clearance to the
+    sensed obstacle surface, use 254.
+    """
+    try:
+        import numpy as np
+        arr = np.asarray(data, dtype=np.uint8).reshape((size_y, size_x))
+        mask = (arr >= lethal_threshold) & (arr < 255)
+        iys, ixs = np.nonzero(mask)
+        return [
+            (origin_x + (float(ix) + 0.5) * resolution,
+             origin_y + (float(iy) + 0.5) * resolution)
+            for ix, iy in zip(ixs.tolist(), iys.tolist())
+        ]
+    except Exception:
+        cells: List[Tuple[float, float]] = []
+        for iy in range(size_y):
+            row = iy * size_x
+            for ix in range(size_x):
+                cost = int(data[row + ix])
+                if cost >= lethal_threshold and cost < 255:
+                    cells.append((
+                        origin_x + (ix + 0.5) * resolution,
+                        origin_y + (iy + 0.5) * resolution,
+                    ))
+        return cells
+
+
+def clearance_to_points(
+    query: Tuple[float, float],
+    obstacles: Sequence[Tuple[float, float]],
+) -> Optional[float]:
+    """Euclidean distance from `query` to the nearest obstacle point."""
+    if not obstacles:
+        return None
+    qx, qy = query
+    best = float('inf')
+    for ox, oy in obstacles:
+        d = math.hypot(qx - ox, qy - oy)
+        if d < best:
+            best = d
+    return best if best < float('inf') else None
+
+
+def path_obstacle_clearances(
+    path_points: Sequence[Tuple[float, float]],
+    obstacles: Sequence[Tuple[float, float]],
+    *,
+    sample_stride: int = 1,
+) -> Tuple[Optional[float], Optional[float], Optional[float]]:
+    """Min / mean / max distance from path samples to nearest obstacle cell.
+
+    Returns (None, None, None) when the path or obstacle set is empty.
+    """
+    if not path_points or not obstacles:
+        return None, None, None
+    stride = max(1, int(sample_stride))
+    samples = path_points[::stride]
+    if samples[-1] is not path_points[-1]:
+        samples = list(samples) + [path_points[-1]]
+    distances = []
+    for pt in samples:
+        d = clearance_to_points(pt, obstacles)
+        if d is not None:
+            distances.append(d)
+    if not distances:
+        return None, None, None
+    return min(distances), sum(distances) / len(distances), max(distances)
+
+
+def path_cost_stats(
+    path_points: Sequence[Tuple[float, float]],
+    cost_at,
+    *,
+    sample_stride: int = 1,
+    ignore_unknown: bool = True,
+) -> Tuple[Optional[int], Optional[float], int]:
+    """Max / mean cost under the path, and count of high-cost (>200) samples.
+
+    `cost_at(x, y) -> Optional[int]` is typically NavObserver.costmap_cost_at.
+    """
+    if not path_points:
+        return None, None, 0
+    stride = max(1, int(sample_stride))
+    samples = path_points[::stride]
+    costs: List[int] = []
+    high = 0
+    for x, y in samples:
+        c = cost_at(x, y)
+        if c is None:
+            continue
+        if ignore_unknown and c >= 255:
+            continue
+        costs.append(int(c))
+        if c > 200:
+            high += 1
+    if not costs:
+        return None, None, 0
+    return max(costs), sum(costs) / len(costs), high
 
 
 def path_heading(points: Sequence[Tuple[float, float]], index: int = 0) -> float:

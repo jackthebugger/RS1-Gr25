@@ -31,14 +31,12 @@ from .nav_observer import NavObserver, PathSnapshot
 # How far a new plan must depart from the previous one to count as a genuine
 # reroute rather than the same route republished.
 #
-# Nav2 replans every second for the whole mission, so most new plans are simply
-# the remaining suffix of the old one: the length drops by roughly a second of
-# travel each time while the geometry is unchanged. Judging by length would
-# therefore report a "replan" continuously and mean nothing -- measured here,
-# normal following shortens the plan by 1.2 m per cycle while diverging from the
-# old route by only 0.04-0.16 m. Sideways divergence is the signal that the
-# route itself changed; 1.5 m is well above the observed noise and well below
-# the several metres a detour around an obstacle produces.
+# Nav2 may republish truncated suffixes of the same route while following it.
+# Sideways divergence is the signal that the route itself changed; 1.5 m is well
+# above the observed noise and well below the several metres a detour around an
+# obstacle produces. With the route-stable BT, ComputePathToPose only runs when
+# the current path is invalid (or the goal changes), so geometric "replans" now
+# correspond to genuine blockage-driven reroutes rather than 1 Hz re-optimisation.
 REPLAN_DIVERGENCE = 1.5  # metres
 
 # Slightly looser than the controller's 0.25 m xy_goal_tolerance, so arriving
