@@ -5,21 +5,35 @@ One command starts the simulation, waits for sensors / SLAM / Nav2, sends a
 goal, and reports whether the robot arrived. Every wait is bounded; the
 simulation is torn down as soon as the mission is decided.
 
-    # start at the origin, drive south in simple_trees (default)
-    python3 scripts/basic_autonomy_demo.py
+Run from *any* directory after sourcing the workspace (preferred):
 
-    # configure start and goal
-    python3 scripts/basic_autonomy_demo.py \
+    source /opt/ros/humble/setup.bash
+    source ~/git/RS1-Gr25/install/setup.bash
+    ros2 run 41068_ignition_bringup basic_autonomy_demo.py
+
+    # attach to a simulation that is already running (Terminal 1)
+    # Prefer ONE line so a trailing space after '\\' cannot drop --attach:
+    ros2 run 41068_ignition_bringup basic_autonomy_demo.py --attach --world custom_world_1 --goal 18 0 0
+
+Or from the package directory:
+
+    cd ~/git/RS1-Gr25/src/41068_ignition_bringup_v1/41068_ignition_bringup
+    python3 scripts/basic_autonomy_demo.py --attach --goal -4.5 -4.5 0
+
+Other examples:
+
+    # start at the origin, drive south in simple_trees (default)
+    ros2 run 41068_ignition_bringup basic_autonomy_demo.py
+
+    # configure start and goal (launches its own sim)
+    ros2 run 41068_ignition_bringup basic_autonomy_demo.py \\
         --start 0 0 0 --goal 0 -5 0 --world simple_trees
 
     # inject a real obstacle mid-route and require a replan
-    python3 scripts/basic_autonomy_demo.py --replan
-
-    # attach to a simulation that is already running
-    python3 scripts/basic_autonomy_demo.py --attach --goal 8 6 0
+    ros2 run 41068_ignition_bringup basic_autonomy_demo.py --replan
 
     # original course random-walk (requires sim + Nav2 already up)
-    python3 scripts/basic_autonomy_demo.py --attach --mode random_walk
+    ros2 run 41068_ignition_bringup basic_autonomy_demo.py --attach --mode random_walk
 
 RViz "Nav2 Goal" still works independently of this script: click a pose on the
 map in frame husky1_map.
@@ -61,20 +75,22 @@ from rs1_nav import (
     PathBlocker,
     init_ros,
 )
-from rs1_nav.sim import bringup, log
+from rs1_nav.sim import log
+# bringup is imported lazily in main() so --attach never pulls in orphan-sweep
+# side effects beyond the log helper.
 
 
 DEFAULT_GOALS = {
     'simple_trees': (0.0, -5.0, 0.0),
     'large_demo': (8.0, 6.0, 0.0),
-    'custom_world_1': (0.0, -5.0, 0.0),
+    'custom_world_1': (18.0, 0.0, 0.0),
 }
 # Replan needs a longer southbound run so the mid-path wall still leaves
 # open ground between the barrier and the goal.
 DEFAULT_REPLAN_GOALS = {
     'simple_trees': (0.0, -6.0, 0.0),
     'large_demo': (8.0, 6.0, 0.0),
-    'custom_world_1': (0.0, -6.0, 0.0),
+    'custom_world_1': (18.0, 0.0, 0.0),
 }
 
 
@@ -522,11 +538,11 @@ def _parse_args(argv=None) -> argparse.Namespace:
                         help='single_goal (default), replan, or the original random_walk')
     parser.add_argument('--replan', action='store_true',
                         help='Shorthand for --mode replan: inject an obstacle mid-route')
-    parser.add_argument('--world', default='simple_trees',
+    parser.add_argument('--world', default='custom_world_1',
                         choices=('simple_trees', 'large_demo', 'custom_world_1'))
     parser.add_argument('--robot', default='husky1')
     parser.add_argument('--start', nargs=3, type=float, metavar=('X', 'Y', 'YAW'),
-                        default=[0.0, 0.0, 0.0],
+                        default=[-18.0, 3.0, 0.0],
                         help='Husky spawn pose (metres, radians). Ignored with --attach.')
     parser.add_argument('--goal', nargs=3, type=float, metavar=('X', 'Y', 'YAW'),
                         default=None,
@@ -536,6 +552,9 @@ def _parse_args(argv=None) -> argparse.Namespace:
                         help='Open the Gazebo GUI (off by default for reliability)')
     parser.add_argument('--attach', action='store_true',
                         help='Do not launch simulation; attach to one that is already running')
+    parser.add_argument('--force-restart', action='store_true',
+                        help='Without --attach: allow killing an already-running sim '
+                             'and launching a new one (default is to refuse)')
     parser.add_argument('--timeout', type=float, default=0.0,
                         help='Mission timeout in seconds (0 = derived from distance)')
     parser.add_argument('--startup-timeout', type=float, default=180.0,
@@ -561,11 +580,36 @@ def main(args=None) -> int:
             f'goal=({parsed.goal[0]:.2f}, {parsed.goal[1]:.2f}, {parsed.goal[2]:.2f})')
         return _run_structured_mission(parsed)
 
+    # Without --attach this process would call SimSupervisor.start() →
+    # sweep_orphans(), which SIGTERM/SIGKILLs any running ign gazebo / Nav2
+    # (including a Terminal-1 interactive launch). Refuse that footgun.
+    from rs1_nav.sim import find_orphans
+    already = find_orphans()
+    sim_like = [
+        (pid, cmd) for pid, cmd in already
+        if any(p in cmd for p in (
+            'ign gazebo', 'ign-gazebo', 'gz sim',
+            '41068_ignition_husky', '41068_ignition.launch',
+            'async_slam_toolbox_node', 'bt_navigator',
+        ))
+    ]
+    if sim_like and not getattr(parsed, 'force_restart', False):
+        log('FAIL  a simulation / Nav2 stack is already running.')
+        log('      Starting this demo without --attach would kill it '
+            '(sweep_orphans pre-launch).')
+        log('      Use Terminal 2:')
+        log('        ros2 run 41068_ignition_bringup basic_autonomy_demo.py '
+            '--attach --world custom_world_1 --goal 18 0 0')
+        log('      Or pass --force-restart to tear down the existing stack '
+            'and launch a new one from this process.')
+        return 2
+
     log(f'Starting simulation: world={parsed.world} start='
         f'({parsed.start[0]:.2f}, {parsed.start[1]:.2f}, {parsed.start[2]:.2f}) '
         f'goal=({parsed.goal[0]:.2f}, {parsed.goal[1]:.2f}, {parsed.goal[2]:.2f}) '
         f'mode={parsed.mode}')
 
+    from rs1_nav.sim import bringup
     sup = bringup(
         world=parsed.world,
         nav2=True,
