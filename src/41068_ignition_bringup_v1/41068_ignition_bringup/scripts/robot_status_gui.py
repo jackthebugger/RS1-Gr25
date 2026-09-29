@@ -208,8 +208,19 @@ class RobotStatusWindow(tk.Tk):
         self.mission_var = tk.StringVar(value='Mission: ready')
         self.goal_status_var = tk.StringVar(value='Goal: none')
         self.dyn_obstacle_var = tk.StringVar(value='Obstacle: READY')
+        self.fire_status_var = tk.StringVar(value='Fire status: No fire detected')
         self.feedback_var = tk.StringVar(value='')
 
+        self.fire_status_label = tk.Label(
+            self.info_frame,
+            textvariable=self.fire_status_var,
+            font=('Arial', 13, 'bold'),
+            bg='#ffffff',
+            fg='#047857',
+            anchor='w',
+            padx=16,
+            pady=5,
+        )
         self.labels = [
             tk.Label(self.info_frame, textvariable=self.robot_name_var, font=('Arial', 12), bg='#ffffff', fg='#111827', anchor='w', padx=16, pady=3),
             tk.Label(self.info_frame, textvariable=self.destination_var, font=('Arial', 12), bg='#ffffff', fg='#111827', anchor='w', padx=16, pady=3),
@@ -221,6 +232,7 @@ class RobotStatusWindow(tk.Tk):
             tk.Label(self.info_frame, textvariable=self.goal_status_var, font=('Arial', 12), bg='#ffffff', fg='#111827', anchor='w', padx=16, pady=3),
             tk.Label(self.info_frame, textvariable=self.mission_var, font=('Arial', 12, 'bold'), bg='#ffffff', fg='#111827', anchor='w', padx=16, pady=3),
             tk.Label(self.info_frame, textvariable=self.dyn_obstacle_var, font=('Arial', 12, 'bold'), bg='#ffffff', fg='#111827', anchor='w', padx=16, pady=3),
+            self.fire_status_label,
         ]
         self.feedback_label = tk.Label(
             self.info_frame, textvariable=self.feedback_var, font=('Arial', 11),
@@ -397,6 +409,16 @@ class RobotStatusWindow(tk.Tk):
         else:
             self.dyn_obstacle_var.set(f'Obstacle: {status}')
 
+    def set_fire_status(self, active: bool, path_label: Optional[str] = None) -> None:
+        if active and path_label:
+            self.fire_status_var.set(
+                f'WARNING: FIRE DETECTED - {path_label.upper()} UNSAFE'
+            )
+            self.fire_status_label.configure(fg='#b91c1c')
+        else:
+            self.fire_status_var.set('Fire status: No fire detected')
+            self.fire_status_label.configure(fg='#047857')
+
     def set_feedback(self, message: str, *, error: bool = False) -> None:
         self.feedback_var.set(message)
         self.feedback_label.configure(fg='#b91c1c' if error else '#047857')
@@ -547,6 +569,7 @@ class RobotStatusNode(Node):
             logger=lambda m: self.get_logger().info(m),
         )
         self.gui.set_dyn_obstacle_status(self.obstacle_manager.status_message)
+        self._sync_fire_status()
 
         self.create_subscription(Odometry, odom_topic, self._odom_callback, 10)
         self.create_subscription(LaserScan, scan_topic, self._scan_callback, qos_profile_sensor_data)
@@ -687,6 +710,7 @@ class RobotStatusNode(Node):
         else:
             ok, message = self.obstacle_manager.request_obstacle(path_key)
         self.gui.set_dyn_obstacle_status(message)
+        self._sync_fire_status()
         self.gui.set_feedback(message if ok else message, error=not ok)
         if ok:
             self.get_logger().info(f'{label}: {message}')
@@ -703,13 +727,22 @@ class RobotStatusNode(Node):
     def clear_obstacles(self) -> None:
         ok, message = self.obstacle_manager.clear_obstacles()
         self.gui.set_dyn_obstacle_status(message)
+        self._sync_fire_status()
         self.gui.set_feedback('Obstacles cleared' if ok else message, error=not ok)
         self.obstacle_manager.status_message = 'Obstacle: READY'
+
+    def _sync_fire_status(self) -> None:
+        gap = self.obstacle_manager.selected_gap
+        self.gui.set_fire_status(
+            self.obstacle_manager.state == ObstacleState.ACTIVE,
+            gap.label if gap else None,
+        )
 
     def _obstacle_tick(self) -> None:
         pose = self.latest_pose
         robot_xy = (pose[0], pose[1]) if pose is not None else None
         status = self.obstacle_manager.tick(robot_xy)
+        self._sync_fire_status()
         if status:
             self.gui.set_dyn_obstacle_status(status)
             if self.obstacle_manager.state == ObstacleState.ACTIVE:
