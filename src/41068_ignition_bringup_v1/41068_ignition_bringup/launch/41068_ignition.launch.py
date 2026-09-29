@@ -182,6 +182,8 @@ def add_navigation_instance(
             'config_filename_suffix': '_' + robot_namespace,
             'slam': LaunchConfiguration('slam'),
             'nav2': LaunchConfiguration('nav2'),
+            'use_prior_map': LaunchConfiguration('use_prior_map'),
+            'fire_avoidance': LaunchConfiguration('fire_avoidance'),
         }.items(),
     )
 
@@ -347,6 +349,19 @@ def generate_launch_description():
         description='Seconds after launch before starting namespaced SLAM/Nav2. '
                     'Must be after spawn (3 s) so Gazebo has settled; 15 s is '
                     'enough for large_demo Fuel models on software GL.',
+    ))
+    ld.add_action(DeclareLaunchArgument(
+        'use_prior_map',
+        default_value='false',
+        description='When true (and nav2), publish maps/my_map on prior_map for '
+                    'the global StaticLayer. Default false here so generic '
+                    'bringup stays unchanged; husky wrapper enables it.',
+    ))
+    ld.add_action(DeclareLaunchArgument(
+        'fire_avoidance',
+        default_value='false',
+        description='When true (and nav2), start B.E.E.R. fire detector + '
+                    'fire_hazard_nav_bridge under the robot namespace.',
     ))
 
     gui_launch_arg = DeclareLaunchArgument(

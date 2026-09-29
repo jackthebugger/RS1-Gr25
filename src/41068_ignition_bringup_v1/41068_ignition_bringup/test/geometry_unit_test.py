@@ -34,6 +34,25 @@ def main() -> int:
                          abs(ahead[0] - 4.0) < 1e-6 and abs(ahead[1] - 0.5) < 1e-6
                          and abs(heading - math.pi / 2) < 1e-6, f'{ahead} h={heading}'))
 
+    from rs1_nav.geometry import (
+        clearance_to_points,
+        costmap_obstacle_cells,
+        path_obstacle_clearances,
+    )
+    # 3×3 grid, lethal at centre cell (1,1); resolution 1.0, origin (0,0)
+    data = [0, 0, 0, 0, 254, 0, 0, 0, 0]
+    cells = costmap_obstacle_cells(data, 3, 3, 0.0, 0.0, 1.0)
+    results.append(check('costmap_obstacle_cells finds lethal centre',
+                         len(cells) == 1 and abs(cells[0][0] - 1.5) < 1e-6
+                         and abs(cells[0][1] - 1.5) < 1e-6, f'{cells}'))
+    d = clearance_to_points((0.0, 0.0), cells)
+    results.append(check('clearance_to_points from origin',
+                         d is not None and abs(d - math.hypot(1.5, 1.5)) < 1e-6, f'{d}'))
+    mn, mean, mx = path_obstacle_clearances(
+        [(0.0, 1.5), (1.5, 1.5), (3.0, 1.5)], cells)
+    results.append(check('path_obstacle_clearances hits lethal cell centre',
+                         mn is not None and abs(mn - 0.0) < 1e-6, f'min={mn}'))
+
     ok = all(results)
     print(f'GEOMETRY UNIT TEST {"PASSED" if ok else "FAILED"}')
     return 0 if ok else 1
