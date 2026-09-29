@@ -74,4 +74,17 @@ def generate_launch_description():
                 'forest_gaps_config': gaps_config,
             }],
         ),
+        Node(
+            package='beer_fire_detection',
+            executable='fire_detector',
+            name='beer_fire_detector',
+            output='screen',
+            parameters=[{
+                'use_sim_time': use_sim_time,
+                'thermal_topic': '/husky1/thermal/image',
+                'fire_threshold_kelvin': 400.0,
+                'minimum_hot_pixels': 20,
+                'thermal_resolution': 0.01,
+            }],
+        ),
     ])

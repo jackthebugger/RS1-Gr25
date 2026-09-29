@@ -22,6 +22,8 @@ from nav2_msgs.action import NavigateToPose
 from nav_msgs.msg import Odometry
 from rclpy.action import ActionClient
 from rclpy.node import Node
+from rclpy.parameter import Parameter
+from rcl_interfaces.srv import SetParameters
 from rclpy.qos import qos_profile_sensor_data
 from sensor_msgs.msg import Image, LaserScan
 
@@ -63,16 +65,16 @@ class RobotStatus:
     time_to_destination: str = 'Pending'
     battery: float = 100.0
     obstacle_detected: bool = False
+    fire_detected: bool = False
 
     def to_display_lines(self) -> List[str]:
         return [
             f'Robot Name: {self.robot_name}',
-            f'Destination: {self.destination}',
             f'Speed: {format_speed(self.speed)}',
             f'Distance to Destination: {self.distance_to_destination:.1f} m',
             f'Time to Destination: {self.time_to_destination}',
-            f'Battery: {self.battery:.0f}%',
             f'Obstacle detected: {"yes" if self.obstacle_detected else "no"}',
+            f'Fire detected: {"yes" if self.fire_detected else "no"}',
         ]
 
 
@@ -199,12 +201,11 @@ class RobotStatusWindow(tk.Tk):
         self.info_frame.pack(fill='x', padx=20, pady=(0, 10))
 
         self.robot_name_var = tk.StringVar(value='Robot Name: Rescue Bot')
-        self.destination_var = tk.StringVar(value='Destination: Safehouse')
         self.speed_var = tk.StringVar(value='Speed: 0.00 m/s')
         self.distance_var = tk.StringVar(value='Distance to Destination: 0.0 m')
         self.time_var = tk.StringVar(value='Time to Destination: Pending')
-        self.battery_var = tk.StringVar(value='Battery: 100%')
         self.obstacle_var = tk.StringVar(value='Obstacle detected: no')
+        self.fire_var = tk.StringVar(value='Fire detected: no')
         self.mission_var = tk.StringVar(value='Mission: ready')
         self.goal_status_var = tk.StringVar(value='Goal: none')
         self.dyn_obstacle_var = tk.StringVar(value='Obstacle: READY')
@@ -473,6 +474,38 @@ class RobotStatusWindow(tk.Tk):
             return
         self.camera_label.configure(image=self.camera_photo, text='')
 
+    def update_map(self, grid: OccupancyGrid) -> None:
+        width = int(grid.info.width)
+        height = int(grid.info.height)
+        if width <= 0 or height <= 0 or len(grid.data) < width * height:
+            return
+
+        display_width = min(320, width)
+        display_height = min(240, height)
+        pixels = bytearray()
+        for display_y in range(display_height):
+            source_y = height - 1 - (display_y * height // display_height)
+            for display_x in range(display_width):
+                source_x = display_x * width // display_width
+                occupancy = grid.data[source_y * width + source_x]
+                if occupancy < 0:
+                    value = 150
+                elif occupancy >= 50:
+                    value = 0
+                else:
+                    value = 255
+                pixels.extend((value, value, value))
+
+        ppm = (
+            f'P6\n{display_width} {display_height}\n255\n'.encode() + pixels
+        )
+        try:
+            self.map_photo = tk.PhotoImage(data=ppm, format='PPM')
+        except tk.TclError:
+            self.map_label.configure(text='Map: invalid occupancy grid', image='')
+            return
+        self.map_label.configure(image=self.map_photo, text='')
+
     def update_status(
         self,
         speed: float = 0.0,
@@ -481,15 +514,15 @@ class RobotStatusWindow(tk.Tk):
         time_to_destination: str = 'Pending',
         battery: float = 100.0,
         obstacle_detected: bool = False,
+        fire_detected: bool = False,
         robot_name: str = 'Rescue Bot',
     ) -> None:
         self.robot_name_var.set(f'Robot Name: {robot_name}')
-        self.destination_var.set(f'Destination: {destination}')
         self.speed_var.set(f'Speed: {format_speed(speed)}')
         self.distance_var.set(f'Distance to Destination: {distance_to_destination:.1f} m')
         self.time_var.set(f'Time to Destination: {time_to_destination}')
-        self.battery_var.set(f'Battery: {battery:.0f}%')
         self.obstacle_var.set(f'Obstacle detected: {"yes" if obstacle_detected else "no"}')
+        self.fire_var.set(f'Fire detected: {"yes" if fire_detected else "no"}')
 
     def set_status(self, status: RobotStatus) -> None:
         self.update_status(
@@ -499,6 +532,7 @@ class RobotStatusWindow(tk.Tk):
             time_to_destination=status.time_to_destination,
             battery=status.battery,
             obstacle_detected=status.obstacle_detected,
+            fire_detected=status.fire_detected,
             robot_name=status.robot_name,
         )
 
@@ -513,6 +547,7 @@ class RobotStatusNode(Node):
         self.status = RobotStatus(robot_name=robot_name)
         self.latest_speed = 0.0
         self.latest_obstacle_detected = False
+        self.latest_fire_detected = False
         self.latest_distance = 0.0
         self.latest_time = 'Pending'
         self.latest_pose: Optional[Tuple[float, float, float]] = None
@@ -539,6 +574,16 @@ class RobotStatusNode(Node):
         self.default_goal_y = float(goal_y)
         self.default_goal_yaw = float(goal_yaw)
         self.navigate_client = ActionClient(self, NavigateToPose, navigate_action)
+        self.speed_clients = {
+            'controller': self.create_client(
+                SetParameters, '/husky1/controller_server/set_parameters'
+            ),
+            'smoother': self.create_client(
+                SetParameters, '/husky1/velocity_smoother/set_parameters'
+            ),
+        }
+        self.speed_limits = {'slow': 0.15, 'medium': 0.30, 'fast': 0.60}
+        self.selected_speed = 'slow'
         self.status.distance_to_destination = 0.0
         self.status.time_to_destination = 'Pending'
         self.status.battery = 100.0
@@ -553,7 +598,9 @@ class RobotStatusNode(Node):
 
         odom_topic = self.declare_parameter('odom_topic', 'odom').value
         scan_topic = self.declare_parameter('scan_topic', 'scan').value
+        fire_topic = self.declare_parameter('fire_topic', '/fire_detected').value
         camera_topic = self.declare_parameter('camera_topic', 'camera/image').value
+        map_topic = self.declare_parameter('map_topic', 'map').value
         obstacle_threshold = self.declare_parameter('obstacle_threshold', 1.0).value
         self.obstacle_threshold = float(obstacle_threshold)
 
@@ -574,7 +621,9 @@ class RobotStatusNode(Node):
         self.create_subscription(Odometry, odom_topic, self._odom_callback, 10)
         self.create_subscription(LaserScan, scan_topic, self._scan_callback, qos_profile_sensor_data)
         self.create_subscription(LaserScan, 'base_scan', self._scan_callback, qos_profile_sensor_data)
+        self.create_subscription(Bool, fire_topic, self._fire_callback, 10)
         self.create_subscription(Image, camera_topic, self._camera_callback, qos_profile_sensor_data)
+        self.create_subscription(OccupancyGrid, map_topic, self._map_callback, 10)
         self.create_timer(0.1, self._update_gui)
         self.create_timer(0.2, self._obstacle_tick)
 
@@ -599,7 +648,7 @@ class RobotStatusNode(Node):
             self._pending_goal = (x, y, yaw)
             self.start_request_pending = True
             self.gui.set_mission_status('waiting for Nav2')
-            self.gui.set_feedback('Navigation unavailable — waiting for Nav2', error=True)
+            self.gui.set_feedback('Navigation unavailable - waiting for Nav2', error=True)
             if self.start_wait_timer is None:
                 self.start_wait_timer = self.create_timer(1.0, self._retry_pending_goal)
             return
@@ -628,7 +677,7 @@ class RobotStatusNode(Node):
         self.gui.set_mission_status('starting')
         self.gui.set_mission_running(True)
         self.gui.set_feedback(
-            f'Mission started — navigating to X={x:g} Y={y:g} Yaw={yaw:g}'
+            f'Mission started - navigating to X={x:g} Y={y:g} Yaw={yaw:g}'
         )
         self.get_logger().info(
             f'Submitting goal ({x:.2f}, {y:.2f}, {yaw:.2f}) from {source}'
@@ -808,7 +857,7 @@ class RobotStatusNode(Node):
         yaw = yaw_from_quaternion(
             p.orientation.x, p.orientation.y, p.orientation.z, p.orientation.w,
         )
-        # Gazebo OdometryPublisher reports world-frame pose — matches gap coords.
+        # Gazebo OdometryPublisher reports world-frame pose - matches gap coords.
         self.latest_pose = (float(p.position.x), float(p.position.y), yaw)
 
     def _scan_callback(self, msg: LaserScan) -> None:
@@ -819,6 +868,12 @@ class RobotStatusNode(Node):
 
     def _camera_callback(self, msg: Image) -> None:
         self.gui.update_camera(msg)
+
+    def _fire_callback(self, msg: Bool) -> None:
+        self.latest_fire_detected = bool(msg.data)
+
+    def _map_callback(self, msg: OccupancyGrid) -> None:
+        self.gui.update_map(msg)
 
     def _update_gui(self) -> None:
         self.status.speed = self.latest_speed
