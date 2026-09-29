@@ -264,12 +264,12 @@ class SimSupervisor:
 
 def bringup(
     *,
-    world: str = 'simple_trees',
+    world: str = 'custom_world_1',
     nav2: bool = True,
     rviz: bool = False,
     gui: bool = False,
-    husky_x: float = 0.0,
-    husky_y: float = 0.0,
+    husky_x: float = -18.0,
+    husky_y: float = 3.0,
     husky_yaw: float = 0.0,
     max_runtime: float = 600.0,
     log_path: str = '/tmp/nav_demo_sim.log',

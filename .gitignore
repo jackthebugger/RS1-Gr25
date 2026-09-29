@@ -1,28 +1,45 @@
-# ROS 2 and colcon build output
+# Colcon / ROS 2 generated artifacts (never commit these)
 /build/
 /install/
 /log/
-/src/build/
-/src/install/
-/src/log/
+
+# Nested accidental colcon runs inside package folders
 **/build/
 **/install/
 **/log/
 
-# Python bytecode, caches, and local packaging output
+# Python
 __pycache__/
 *.py[cod]
+*$py.class
 *.egg-info/
+.eggs/
+*.egg
 .pytest_cache/
+.mypy_cache/
+.ruff_cache/
 
-# CMake-generated files outside the main build directory
-CMakeFiles/
-CMakeCache.txt
-cmake_install.cmake
-Makefile
-compile_commands.json
+# Editors / OS / machine-local IDE settings
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+*:Zone.Identifier
 
-# Local editor and environment files
-.vscode/settings.json
+# Local env / secrets
 .env
 .env.*
+*.log
+
+# Scratch / non-project files
+/hello
+MASTER_PROJECT_KNOWLEDGE_BASE.md
+NAVIGATION_ENGINEERING_LOG.md
+NAVIGATION_IMPLEMENTATION.md
+NAVIGATION_UI_IMPLEMENTATION.md
+
+# Local Cursor overrides (un-ignore gitignored docs for @ mentions)
+.cursorignore
