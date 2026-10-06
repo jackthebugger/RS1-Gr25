@@ -518,7 +518,12 @@ class RobotStatusWindow(tk.Tk):
             return
         self.camera_label.configure(image=self.camera_photo, text='')
 
-    def update_map(self, grid: OccupancyGrid) -> None:
+    def update_map(
+        self,
+        grid: OccupancyGrid,
+        robot_pose: Optional[Tuple[float, float, float]] = None,
+        goal_pose: Optional[Tuple[float, float, float]] = None,
+    ) -> None:
         width = int(grid.info.width)
         height = int(grid.info.height)
         if width <= 0 or height <= 0 or len(grid.data) < width * height:
@@ -533,12 +538,47 @@ class RobotStatusWindow(tk.Tk):
                 source_x = display_x * width // display_width
                 occupancy = grid.data[source_y * width + source_x]
                 if occupancy < 0:
-                    value = 150
+                    color = (100, 116, 139)  # unknown
                 elif occupancy >= 50:
-                    value = 0
+                    color = (127, 29, 29)  # occupied / hazard red
                 else:
-                    value = 255
-                pixels.extend((value, value, value))
+                    color = (241, 245, 249)  # traversable space
+                pixels.extend(color)
+
+        def map_pixel(pose: Optional[Tuple[float, float, float]]) -> Optional[Tuple[int, int]]:
+            if pose is None or grid.info.resolution <= 0.0:
+                return None
+            pixel_x = int(
+                (pose[0] - grid.info.origin.position.x)
+                / (grid.info.resolution * width)
+                * display_width
+            )
+            pixel_y = display_height - 1 - int(
+                (pose[1] - grid.info.origin.position.y)
+                / (grid.info.resolution * height)
+                * display_height
+            )
+            if 0 <= pixel_x < display_width and 0 <= pixel_y < display_height:
+                return pixel_x, pixel_y
+            return None
+
+        def draw_marker(point: Optional[Tuple[int, int]], color: Tuple[int, int, int]) -> None:
+            if point is None:
+                return
+            center_x, center_y = point
+            radius = 6
+            for offset_y in range(-radius, radius + 1):
+                for offset_x in range(-radius, radius + 1):
+                    if offset_x * offset_x + offset_y * offset_y > radius * radius:
+                        continue
+                    pixel_x = center_x + offset_x
+                    pixel_y = center_y + offset_y
+                    if 0 <= pixel_x < display_width and 0 <= pixel_y < display_height:
+                        index = (pixel_y * display_width + pixel_x) * 3
+                        pixels[index:index + 3] = bytes(color)
+
+        draw_marker(map_pixel(goal_pose), (22, 163, 74))
+        draw_marker(map_pixel(robot_pose), (37, 99, 235))
 
         ppm = (
             f'P6\n{display_width} {display_height}\n255\n'.encode() + pixels
@@ -931,7 +971,7 @@ class RobotStatusNode(Node):
         self.latest_fire_detected = bool(msg.data)
 
     def _map_callback(self, msg: OccupancyGrid) -> None:
-        self.gui.update_map(msg)
+        self.gui.update_map(msg, robot_pose=self.latest_pose, goal_pose=self.active_goal)
 
     def _update_gui(self) -> None:
         self.status.speed = self.latest_speed
