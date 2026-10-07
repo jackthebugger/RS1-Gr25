@@ -19,13 +19,14 @@ import rclpy
 from action_msgs.msg import GoalStatus
 from geometry_msgs.msg import PoseStamped
 from nav2_msgs.action import NavigateToPose
-from nav_msgs.msg import Odometry
+from nav_msgs.msg import OccupancyGrid, Odometry
 from rclpy.action import ActionClient
 from rclpy.node import Node
 from rclpy.parameter import Parameter
 from rcl_interfaces.srv import SetParameters
 from rclpy.qos import qos_profile_sensor_data
 from sensor_msgs.msg import Image, LaserScan
+from std_msgs.msg import Bool
 
 import tkinter as tk
 
@@ -197,13 +198,33 @@ class RobotStatusWindow(tk.Tk):
         self.camera_label.pack(fill='both', expand=True)
         self.camera_photo = None
 
+        self.map_frame = tk.Frame(
+            body,
+            width=320,
+            height=240,
+            bg='#111827',
+        )
+        self.map_frame.pack(padx=20, pady=(0, 10))
+        self.map_frame.pack_propagate(False)
+        self.map_label = tk.Label(
+            self.map_frame,
+            text='Map: waiting for data',
+            bg='#111827',
+            fg='#ffffff',
+            anchor='center',
+        )
+        self.map_label.pack(fill='both', expand=True)
+        self.map_photo = None
+
         self.info_frame = tk.Frame(body, bg='#ffffff', bd=1, relief='solid')
         self.info_frame.pack(fill='x', padx=20, pady=(0, 10))
 
         self.robot_name_var = tk.StringVar(value='Robot Name: Rescue Bot')
+        self.destination_var = tk.StringVar(value='Destination: Safehouse')
         self.speed_var = tk.StringVar(value='Speed: 0.00 m/s')
         self.distance_var = tk.StringVar(value='Distance to Destination: 0.0 m')
         self.time_var = tk.StringVar(value='Time to Destination: Pending')
+        self.battery_var = tk.StringVar(value='Battery: 100%')
         self.obstacle_var = tk.StringVar(value='Obstacle detected: no')
         self.fire_var = tk.StringVar(value='Fire detected: no')
         self.mission_var = tk.StringVar(value='Mission: ready')
