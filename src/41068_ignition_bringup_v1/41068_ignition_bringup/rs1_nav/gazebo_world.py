@@ -60,18 +60,80 @@ class ObstacleSpec:
         return None
 
     def to_sdf(self) -> str:
-        """Single-line SDF. Static, so it cannot be shoved aside by the robot."""
+        """Single-line SDF for a static, lidar-visible thermal fire barrier."""
         size = f'{self.size_x} {self.size_y} {self.size_z}'
+
+        def flame(
+            name: str,
+            y: float,
+            z: float,
+            radius: float,
+            scale_y: float,
+            scale_z: float,
+            color: str,
+            emissive: str,
+        ) -> str:
+            return (
+                f'<visual name="{name}"><pose>0 {y:.2f} {z:.2f} 0 0 0</pose>'
+                f'<geometry><sphere><radius>{radius:.2f}</radius></sphere></geometry>'
+                f'<scale>0.90 {scale_y:.2f} {scale_z:.2f}</scale>'
+                f'<material><ambient>{color}</ambient><diffuse>{color}</diffuse>'
+                f'<emissive>{emissive}</emissive></material>'
+                '<plugin filename="ignition-gazebo-thermal-system" '
+                'name="ignition::gazebo::systems::Thermal">'
+                '<temperature>600</temperature></plugin></visual>'
+            )
+
+        flame_visuals = []
+        # Dense lower row: the overlapping ellipsoids close the visual gap
+        # at the ground and span the full 6.6 m collision width.
+        lower_colors = (
+            ('0.85 0.02 0.00 1', '1.00 0.02 0.00 1'),
+            ('1.00 0.16 0.00 1', '1.00 0.08 0.00 1'),
+            ('1.00 0.32 0.00 1', '1.00 0.16 0.00 1'),
+        )
+        for index, y in enumerate((-3.10, -2.07, -1.03, 0.0, 1.03, 2.07, 3.10)):
+            color, emissive = lower_colors[index % len(lower_colors)]
+            flame_visuals.append(
+                flame(f'flame_lower_{index}', y, -0.55, 0.50, 1.20, 0.95,
+                      color, emissive)
+            )
+
+        # Offset middle row for continuous overlap and irregular flame heights.
+        middle_colors = (
+            ('1.00 0.18 0.00 1', '1.00 0.10 0.00 1'),
+            ('1.00 0.45 0.00 1', '1.00 0.22 0.00 1'),
+            ('1.00 0.72 0.02 1', '1.00 0.38 0.00 1'),
+        )
+        for index, (y, z, scale_z) in enumerate((
+            (-2.60, -0.04, 1.30), (-1.55, 0.08, 1.55),
+            (-0.52, -0.02, 1.25), (0.52, 0.12, 1.60),
+            (1.55, 0.00, 1.35), (2.60, 0.06, 1.50),
+        )):
+            color, emissive = middle_colors[index % len(middle_colors)]
+            flame_visuals.append(
+                flame(f'flame_middle_{index}', y, z, 0.54, 1.15, scale_z,
+                      color, emissive)
+            )
+
+        # A smaller upper row keeps the silhouette flame-like without opening
+        # gaps in the lower collision region.
+        for index, (y, z, scale_z) in enumerate((
+            (-2.15, 0.52, 1.25), (-0.72, 0.68, 1.45),
+            (0.72, 0.58, 1.30), (2.15, 0.65, 1.40),
+        )):
+            flame_visuals.append(
+                flame(f'flame_upper_{index}', y, z, 0.46, 1.10, scale_z,
+                      '1.00 0.30 0.00 1', '1.00 0.16 0.00 1')
+            )
+        flame_visuals = ''.join(flame_visuals)
         return (
             '<?xml version="1.0" ?>'
             f'<sdf version="1.8"><model name="{self.name}"><static>true</static>'
             '<link name="link">'
             f'<collision name="collision"><geometry><box><size>{size}'
             '</size></box></geometry></collision>'
-            f'<visual name="visual"><geometry><box><size>{size}'
-            '</size></box></geometry>'
-            '<material><ambient>0.9 0.3 0.1 1</ambient>'
-            '<diffuse>0.9 0.3 0.1 1</diffuse></material></visual>'
+            f'{flame_visuals}'
             '</link></model></sdf>'
         )
 
