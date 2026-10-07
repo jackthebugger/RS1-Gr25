@@ -194,8 +194,8 @@ class RobotStatusWindow(tk.Tk):
 
         self.camera_frame = tk.Frame(
             self.robot_section,
-            width=320,
-            height=160,
+            width=620,
+            height=300,
             bg='#111827',
         )
         self.camera_frame.pack(padx=20, pady=(0, 10))
@@ -210,7 +210,7 @@ class RobotStatusWindow(tk.Tk):
         self.camera_label.pack(fill='both', expand=True)
         self.camera_photo = None
 
-        self.map_frame = tk.Frame(self.robot_section, width=320, height=160, bg='#111827')
+        self.map_frame = tk.Frame(self.robot_section, width=620, height=300, bg='#111827')
         self.map_frame.pack(padx=20, pady=(0, 10))
         self.map_frame.pack_propagate(False)
         self.map_label = tk.Label(
@@ -376,6 +376,30 @@ class RobotStatusWindow(tk.Tk):
             row=1, column=1, sticky='ew', padx=(6, 0), pady=4, ipady=4,
         )
 
+        self.sim_updates = []
+        self.sim_update_var = tk.StringVar(value='No simulation updates yet')
+        self.sim_update_frame = tk.LabelFrame(
+            self.sim_section,
+            text='SIM UPDATE',
+            bg='#fee2e2',
+            fg='#991b1b',
+            font=('Arial', 11, 'bold'),
+            padx=10,
+            pady=8,
+        )
+        self.sim_update_frame.pack(fill='x', padx=20, pady=(0, 20))
+        tk.Label(
+            self.sim_update_frame,
+            textvariable=self.sim_update_var,
+            justify='left',
+            anchor='w',
+            font=('Courier New', 10),
+            bg='#111827',
+            fg='#e2e8f0',
+            padx=10,
+            pady=8,
+        ).pack(fill='x')
+
         self.update_status()
         self._bind_mousewheel_tree(body)
         self.after_idle(self._refresh_scroll_region)
@@ -463,7 +487,10 @@ class RobotStatusWindow(tk.Tk):
         return
 
     def set_dyn_obstacle_status(self, status: str) -> None:
-        return
+        if status:
+            self.sim_updates.append(str(status))
+            self.sim_updates = self.sim_updates[-5:]
+            self.sim_update_var.set('\n'.join(self.sim_updates))
 
     def set_feedback(self, message: str, *, error: bool = False) -> None:
         self.recent_status_var.set(f'Recent Status: {message}')
@@ -529,8 +556,8 @@ class RobotStatusWindow(tk.Tk):
         if width <= 0 or height <= 0 or len(grid.data) < width * height:
             return
 
-        display_width = min(320, width)
-        display_height = min(240, height)
+        display_width = min(600, width)
+        display_height = min(290, height)
         pixels = bytearray()
         for display_y in range(display_height):
             source_y = height - 1 - (display_y * height // display_height)
