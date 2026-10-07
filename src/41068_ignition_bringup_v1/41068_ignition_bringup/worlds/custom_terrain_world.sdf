@@ -1,0 +1,87 @@
+<?xml version="1.0"?>
+<sdf version='1.8'>
+  <!-- custom_terrain_world — NSW-style bush trail heightmap (terrain_sources_2).
+       Ground: 60 x 60 m heightmap, 0.76 m relief. Nav arena: 60 x 30 m perimeter.
+       Regenerate heights: scripts/generate_custom_terrain_heightmap.py
+       Spawn: husky_x:=-18 husky_y:=3 husky_z:=0.56 husky_yaw:=0.0 -->
+  <world name="custom_terrain_world">
+    <light name="sun" type="directional">
+      <cast_shadows>0</cast_shadows>
+      <pose>0 0 100 0 -0 0</pose>
+      <diffuse>0.8 0.8 0.8 1</diffuse>
+      <specular>0.4 0.4 0.4 1</specular>
+      <direction>-0.5 0.1 -0.9</direction>
+    </light>
+    <gravity>0 0 -9.81</gravity>
+    <magnetic_field>6e-06 2.3e-05 -4.2e-05</magnetic_field>
+    <atmosphere type="adiabatic"/>
+    <physics name="default_physics" type="ignored">
+      <max_step_size>0.01</max_step_size>
+      <real_time_factor>1</real_time_factor>
+      <real_time_update_rate>100</real_time_update_rate>
+    </physics>
+    <scene>
+      <ambient>0.7 0.7 0.7 1</ambient>
+      <background>0.6 0.8 1.0 1</background>
+      <shadows>0</shadows>
+      <grid>0</grid>
+    </scene>
+
+    <spherical_coordinates>
+      <latitude_deg>0.0</latitude_deg>
+      <longitude_deg>0.0</longitude_deg>
+      <elevation>10.0</elevation>
+      <heading_deg>0</heading_deg>
+      <surface_model>EARTH_WGS84</surface_model>
+    </spherical_coordinates>
+
+    <include>
+      <uri>model://custom_terrain</uri>
+      <name>custom_terrain</name>
+      <pose>0 0 0 0 0 0</pose>
+    </include>
+
+    <include>
+      <uri>model://map_perimeter</uri>
+      <name>map_perimeter</name>
+      <pose>0 0 0 0 0 0</pose>
+    </include>
+
+    <include>
+      <uri>model://forest_wall</uri>
+      <name>forest_wall_1</name>
+      <pose>-4 10 0.14 0 0 1.570796</pose>
+    </include>
+    <include>
+      <uri>model://forest_wall</uri>
+      <name>forest_wall_2</name>
+      <pose>-4 -5 0.123 0 0 1.570796</pose>
+    </include>
+    <include>
+      <uri>model://forest_wall</uri>
+      <name>forest_wall_3</name>
+      <pose>-4 -10 0.344 0 0 1.570796</pose>
+    </include>
+    <include>
+      <uri>model://forest_wall</uri>
+      <name>forest_wall_4</name>
+      <pose>8 13 0.181 0 0 1.570796</pose>
+    </include>
+    <include>
+      <uri>model://forest_wall</uri>
+      <name>forest_wall_5</name>
+      <pose>8 -2 0.248 0 0 1.570796</pose>
+    </include>
+    <include>
+      <uri>model://forest_wall</uri>
+      <name>forest_wall_6</name>
+      <pose>8 -17 0.525 0 0 1.570796</pose>
+    </include>
+
+    <include>
+      <uri>model://simple_tree</uri>
+      <name>oak8</name>
+      <pose>3.54698 5 0.061 0 0 0.1</pose>
+    </include>
+  </world>
+</sdf>

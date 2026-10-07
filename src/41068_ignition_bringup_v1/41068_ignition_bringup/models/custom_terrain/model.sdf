@@ -1,0 +1,32 @@
+<?xml version="1.0"?>
+<sdf version="1.7">
+  <model name="custom_terrain">
+    <static>true</static>
+    <link name="link">
+      <collision name="collision">
+        <geometry>
+          <heightmap>
+            <uri>model://custom_terrain/materials/heights.png</uri>
+            <size>60 60 0.76</size>
+            <pos>0 0 0</pos>
+          </heightmap>
+        </geometry>
+      </collision>
+      <visual name="visual">
+        <cast_shadows>false</cast_shadows>
+        <geometry>
+          <heightmap>
+            <uri>model://custom_terrain/materials/heights.png</uri>
+            <size>60 60 0.76</size>
+            <pos>0 0 0</pos>
+            <texture>
+              <diffuse>model://custom_terrain/materials/grass_diffuse.png</diffuse>
+              <normal>model://custom_terrain/materials/flat_normal.png</normal>
+              <size>60</size>
+            </texture>
+          </heightmap>
+        </geometry>
+      </visual>
+    </link>
+  </model>
+</sdf>

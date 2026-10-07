@@ -1,0 +1,18 @@
+{
+  "trail_mean_m": 0.04901606211213275,
+  "bank_plateau_mean_m": 1.047407226428514,
+  "trail_to_bank_delta_m": 0.9983911643163812,
+  "dem_min_m": 0.010914862685435733,
+  "dem_max_m": 1.1299999998429973,
+  "sdf_size_z_m": 1.1190521040254477,
+  "slope": {
+    "p50": 0.13323069926656217,
+    "p95": 56.934989614407584,
+    "max": 65.0360865819435,
+    "pct_above_15": 15.638923645019531
+  },
+  "spawn_ground_z_m": 0.05,
+  "recommended_husky_z": 0.5,
+  "lidar_plane_agl_m": 0.845,
+  "wall_clears_lidar": true
+}
