@@ -20,14 +20,12 @@ from action_msgs.msg import GoalStatus
 from geometry_msgs.msg import PoseStamped
 from nav2_msgs.action import NavigateToPose
 from nav_msgs.msg import OccupancyGrid, Odometry
-from nav_msgs.msg import OccupancyGrid, Odometry
 from rclpy.action import ActionClient
 from rclpy.node import Node
 from rclpy.parameter import Parameter
 from rcl_interfaces.srv import SetParameters
 from rclpy.qos import qos_profile_sensor_data
 from sensor_msgs.msg import Image, LaserScan
-from std_msgs.msg import Bool
 from std_msgs.msg import Bool
 
 import tkinter as tk
@@ -224,6 +222,21 @@ class RobotStatusWindow(tk.Tk):
         )
         self.map_label.pack(fill='both', expand=True)
         self.map_photo = None
+
+        self.thermal_frame = tk.Frame(
+            self.robot_section, width=620, height=300, bg='#111827',
+        )
+        self.thermal_frame.pack(padx=20, pady=(0, 10))
+        self.thermal_frame.pack_propagate(False)
+        self.thermal_label = tk.Label(
+            self.thermal_frame,
+            text='Thermal camera: waiting for image',
+            bg='#111827',
+            fg='#ffffff',
+            anchor='center',
+        )
+        self.thermal_label.pack(fill='both', expand=True)
+        self.thermal_photo = None
 
         self.info_frame = tk.Frame(self.robot_section, bg='#ffffff', bd=1, relief='solid')
         self.info_frame.pack(fill='x', padx=20, pady=(0, 10))
@@ -498,6 +511,12 @@ class RobotStatusWindow(tk.Tk):
     def set_feedback(self, message: str, *, error: bool = False) -> None:
         self.recent_status_var.set(f'Recent Status: {message}')
 
+    def set_fire_status(self, detected: bool, location: Optional[str] = None) -> None:
+        if detected and location:
+            self.fire_var.set(f'Fire detected: yes ({location})')
+        else:
+            self.fire_var.set(f'Fire detected: {"yes" if detected else "no"}')
+
     def read_goal_fields(self) -> Tuple[str, str, str]:
         return (
             self.goal_x_var.get(),
@@ -547,6 +566,46 @@ class RobotStatusWindow(tk.Tk):
             self.camera_label.configure(text='Camera: invalid image frame', image='')
             return
         self.camera_label.configure(image=self.camera_photo, text='')
+
+    def update_thermal(self, image: Image) -> None:
+        if image.encoding != 'mono16' or image.width <= 0 or image.height <= 0:
+            self.thermal_label.configure(
+                text=f'Thermal camera: unsupported {image.encoding}', image=''
+            )
+            return
+
+        values = []
+        for row in range(image.height):
+            start = row * image.step
+            row_bytes = image.data[start:start + image.width * 2]
+            values.extend(
+                row_bytes[index] | (row_bytes[index + 1] << 8)
+                for index in range(0, len(row_bytes) - 1, 2)
+            )
+        if not values:
+            return
+
+        low = min(values)
+        high = max(values)
+        span = max(1, high - low)
+        pixels = bytearray()
+        for value in values:
+            intensity = (value - low) / span
+            if intensity < 0.33:
+                red, green, blue = 0, int(intensity * 3 * 180), 180
+            elif intensity < 0.66:
+                red, green, blue = int((intensity - 0.33) * 3 * 255), 180, 30
+            else:
+                red, green, blue = 255, int(180 - (intensity - 0.66) * 3 * 140), 20
+            pixels.extend((red, green, blue))
+
+        ppm = f'P6\n{image.width} {image.height}\n255\n'.encode() + pixels
+        try:
+            self.thermal_photo = tk.PhotoImage(data=ppm, format='PPM')
+        except tk.TclError:
+            self.thermal_label.configure(text='Thermal camera: invalid frame', image='')
+            return
+        self.thermal_label.configure(image=self.thermal_photo, text='')
 
     def update_map(
         self,
@@ -713,6 +772,7 @@ class RobotStatusNode(Node):
         scan_topic = self.declare_parameter('scan_topic', 'scan').value
         fire_topic = self.declare_parameter('fire_topic', '/fire_detected').value
         camera_topic = self.declare_parameter('camera_topic', 'camera/image').value
+        thermal_topic = self.declare_parameter('thermal_topic', 'thermal/image').value
         map_topic = self.declare_parameter('map_topic', 'map').value
         obstacle_threshold = self.declare_parameter('obstacle_threshold', 1.0).value
         self.obstacle_threshold = float(obstacle_threshold)
@@ -736,6 +796,7 @@ class RobotStatusNode(Node):
         self.create_subscription(LaserScan, 'base_scan', self._scan_callback, qos_profile_sensor_data)
         self.create_subscription(Bool, fire_topic, self._fire_callback, 10)
         self.create_subscription(Image, camera_topic, self._camera_callback, qos_profile_sensor_data)
+        self.create_subscription(Image, thermal_topic, self._thermal_callback, qos_profile_sensor_data)
         self.create_subscription(OccupancyGrid, map_topic, self._map_callback, 10)
         self.create_timer(0.1, self._update_gui)
         self.create_timer(0.2, self._obstacle_tick)
@@ -1007,6 +1068,9 @@ class RobotStatusNode(Node):
 
     def _camera_callback(self, msg: Image) -> None:
         self.gui.update_camera(msg)
+
+    def _thermal_callback(self, msg: Image) -> None:
+        self.gui.update_thermal(msg)
 
     def _fire_callback(self, msg: Bool) -> None:
         self.latest_fire_detected = bool(msg.data)
