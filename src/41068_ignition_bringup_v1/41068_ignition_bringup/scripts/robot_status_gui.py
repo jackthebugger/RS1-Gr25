@@ -11,6 +11,7 @@ from __future__ import annotations
 import math
 import os
 import sys
+import time
 from dataclasses import dataclass
 from math import cos, sin
 from typing import Iterable, List, Optional, Tuple
@@ -26,7 +27,7 @@ from rclpy.parameter import Parameter
 from rcl_interfaces.srv import SetParameters
 from rclpy.qos import qos_profile_sensor_data
 from sensor_msgs.msg import Image, LaserScan
-from std_msgs.msg import Bool
+from std_msgs.msg import Bool, String
 
 import tkinter as tk
 
@@ -45,14 +46,16 @@ from rs1_nav.forest_obstacle_manager import (  # noqa: E402
 from rs1_nav.geometry import yaw_from_quaternion  # noqa: E402
 
 
-# Defaults for custom_world_1 primary scenario (also used as Start Mission goal).
-DEFAULT_GOAL_X = 18.0
-DEFAULT_GOAL_Y = 0.0
+# Defaults for bush_trail_world (current husky launch default). On-trail goal
+# from Entry 019 — (18, 0) is occupied on the regenerated PGM.
+DEFAULT_GOAL_X = 16.0
+DEFAULT_GOAL_Y = -0.1
 DEFAULT_GOAL_YAW = 0.0
+DEFAULT_WORLD_NAME = 'bush_trail_world'
 
-# Soft bounds for coordinate validation (60×30 m ground, X±30 Y±15).
+# Soft bounds for coordinate validation (60×60 m bush_trail / forest arena).
 MAP_X_MIN, MAP_X_MAX = -29.0, 29.0
-MAP_Y_MIN, MAP_Y_MAX = -14.0, 14.0
+MAP_Y_MIN, MAP_Y_MAX = -29.0, 29.0
 
 
 @dataclass
@@ -639,6 +642,13 @@ class RobotStatusNode(Node):
         self.start_wait_timer = None
         self._pending_goal: Optional[Tuple[float, float, float]] = None
         self.active_goal: Optional[Tuple[float, float, float]] = None
+        # When path_bank (or another client) preempts our NavigateToPose, keep
+        # the mission alive and watch pose until arrival instead of flashing FAIL.
+        self._user_stop = False
+        self._monitor_arrival = False
+        self._monitor_idle_since: Optional[float] = None
+        self._monitor_last_pose: Optional[Tuple[float, float]] = None
+        self._path_bank_status = ''
 
         goal_frame = self.declare_parameter('goal_frame', 'husky1_map').value
         goal_x = self.declare_parameter('goal_x', DEFAULT_GOAL_X).value
@@ -647,7 +657,7 @@ class RobotStatusNode(Node):
         navigate_action = self.declare_parameter(
             'navigate_action', 'navigate_to_pose'
         ).value
-        world_name = self.declare_parameter('world_name', 'custom_world_1').value
+        world_name = self.declare_parameter('world_name', DEFAULT_WORLD_NAME).value
         gaps_config = self.declare_parameter('forest_gaps_config', '').value
         obstacle_seed = self.declare_parameter('obstacle_seed', -1).value
         force_gap = self.declare_parameter('force_gap', '').value
@@ -656,6 +666,7 @@ class RobotStatusNode(Node):
         self.default_goal_x = float(goal_x)
         self.default_goal_y = float(goal_y)
         self.default_goal_yaw = float(goal_yaw)
+        self.world_name = str(world_name).strip() or DEFAULT_WORLD_NAME
         self.navigate_client = ActionClient(self, NavigateToPose, navigate_action)
         self.speed_clients = {
             'controller': self.create_client(
@@ -681,16 +692,17 @@ class RobotStatusNode(Node):
 
         odom_topic = self.declare_parameter('odom_topic', 'odom').value
         scan_topic = self.declare_parameter('scan_topic', 'scan').value
-        fire_topic = self.declare_parameter('fire_topic', '/fire_detected').value
+        # Relative topic under the robot namespace (launch PushRosNamespace).
+        fire_topic = self.declare_parameter('fire_topic', 'fire_detected').value
         camera_topic = self.declare_parameter('camera_topic', 'camera/image').value
         map_topic = self.declare_parameter('map_topic', 'map').value
         obstacle_threshold = self.declare_parameter('obstacle_threshold', 1.0).value
         self.obstacle_threshold = float(obstacle_threshold)
 
         config_path = str(gaps_config).strip() or None
-        gap_config = load_forest_gap_config(config_path)
-        if world_name:
-            gap_config.world_name = str(world_name)
+        gap_config = load_forest_gap_config(
+            config_path, world_name=self.world_name,
+        )
         seed = int(obstacle_seed)
         self.obstacle_manager = ForestObstacleManager(
             gap_config,
@@ -706,8 +718,10 @@ class RobotStatusNode(Node):
         self.create_subscription(Bool, fire_topic, self._fire_callback, 10)
         self.create_subscription(Image, camera_topic, self._camera_callback, qos_profile_sensor_data)
         self.create_subscription(OccupancyGrid, map_topic, self._map_callback, 10)
+        self.create_subscription(String, 'path_bank/status', self._path_bank_status_callback, 10)
         self.create_timer(0.1, self._update_gui)
         self.create_timer(0.2, self._obstacle_tick)
+        self.create_timer(0.5, self._arrival_monitor_tick)
 
         self.get_logger().info(
             f'Robot status GUI started for {self.robot_name}. '
@@ -746,7 +760,7 @@ class RobotStatusNode(Node):
 
     def submit_goal(self, x: float, y: float, yaw: float, *, source: str) -> None:
         """Single NavigateToPose pathway used by START MISSION."""
-        if self.goal_handle is not None:
+        if self.goal_handle is not None or self._monitor_arrival:
             self.gui.set_feedback('Goal rejected: mission already running', error=True)
             self.gui.set_mission_status('running')
             self.gui.set_mission_running(True)
@@ -763,6 +777,10 @@ class RobotStatusNode(Node):
 
         self.start_request_pending = False
         self._pending_goal = None
+        self._user_stop = False
+        self._monitor_arrival = False
+        self._monitor_idle_since = None
+        self._monitor_last_pose = None
         if self.start_wait_timer is not None:
             self.start_wait_timer.cancel()
             self.start_wait_timer = None
@@ -799,7 +817,12 @@ class RobotStatusNode(Node):
 
     def toggle_mission(self) -> None:
         """Unified START MISSION / STOP MISSION control."""
-        if self.gui._mission_running or self.goal_handle is not None or self.start_request_pending:
+        if (
+            self.gui._mission_running
+            or self.goal_handle is not None
+            or self.start_request_pending
+            or self._monitor_arrival
+        ):
             self.stop_mission()
             return
         self.start_mission_from_fields()
@@ -839,6 +862,9 @@ class RobotStatusNode(Node):
             self.submit_goal(x, y, yaw, source='retry')
 
     def stop_mission(self) -> None:
+        self._user_stop = True
+        self._monitor_arrival = False
+        self._monitor_idle_since = None
         self.start_request_pending = False
         self._pending_goal = None
         if self.start_wait_timer is not None:
@@ -846,6 +872,7 @@ class RobotStatusNode(Node):
             self.start_wait_timer = None
 
         if self.goal_handle is None:
+            self.active_goal = None
             self.gui.set_mission_status('ready')
             self.gui.set_mission_running(False)
             self.gui.set_feedback('Mission stopped')
@@ -935,16 +962,83 @@ class RobotStatusNode(Node):
     def _result_callback(self, future) -> None:
         status = future.result().status
         self.goal_handle = None
-        self.gui.set_mission_running(False)
         if status == GoalStatus.STATUS_SUCCEEDED:
+            self._monitor_arrival = False
+            self.active_goal = None
+            self.gui.set_mission_running(False)
             self.gui.set_mission_status('complete')
             self.gui.set_feedback('Goal reached')
-        elif status == GoalStatus.STATUS_CANCELED:
+            return
+        if status == GoalStatus.STATUS_CANCELED and self._user_stop:
+            self._monitor_arrival = False
+            self.active_goal = None
+            self.gui.set_mission_running(False)
             self.gui.set_mission_status('ready')
             self.gui.set_feedback('Mission stopped')
-        else:
+            return
+        # Preempted by path_bank_manager or another NavigateToPose client —
+        # keep the mission panel live and watch pose until arrival / idle fail.
+        if self.active_goal is not None and not self._user_stop:
+            self._monitor_arrival = True
+            self._monitor_idle_since = None
+            self._monitor_last_pose = None
+            self.gui.set_mission_running(True)
+            self.gui.set_mission_status('running')
+            detail = 'path-bank/Nav2 preempt'
+            if self._path_bank_status:
+                first = self._path_bank_status.splitlines()[0][:60]
+                detail = first
+            self.gui.set_feedback(f'Mission continuing ({detail})')
+            self.get_logger().info(
+                f'NavigateToPose ended status={status}; monitoring arrival'
+            )
+            return
+        self._monitor_arrival = False
+        self.active_goal = None
+        self.gui.set_mission_running(False)
+        self.gui.set_mission_status('failed')
+        self.gui.set_feedback('Goal failed', error=True)
+
+    def _path_bank_status_callback(self, msg: String) -> None:
+        self._path_bank_status = msg.data or ''
+
+    def _arrival_monitor_tick(self) -> None:
+        """Complete/fail missions after another client took NavigateToPose."""
+        if not self._monitor_arrival or self.active_goal is None:
+            return
+        pose = self.latest_pose
+        if pose is None:
+            return
+        gx, gy, _gyaw = self.active_goal
+        dist = math.hypot(pose[0] - gx, pose[1] - gy)
+        self.latest_distance = dist
+        if dist < 0.6:
+            self._monitor_arrival = False
+            self.active_goal = None
+            self.gui.set_mission_running(False)
+            self.gui.set_mission_status('complete')
+            self.gui.set_feedback('Goal reached')
+            return
+        now = time.monotonic()
+        if self._monitor_last_pose is None:
+            self._monitor_last_pose = (pose[0], pose[1])
+            self._monitor_idle_since = now
+            return
+        moved = math.hypot(
+            pose[0] - self._monitor_last_pose[0],
+            pose[1] - self._monitor_last_pose[1],
+        )
+        if moved > 0.15:
+            self._monitor_last_pose = (pose[0], pose[1])
+            self._monitor_idle_since = now
+            return
+        if self._monitor_idle_since is not None and (now - self._monitor_idle_since) > 90.0:
+            self._monitor_arrival = False
+            self.gui.set_mission_running(False)
             self.gui.set_mission_status('failed')
-            self.gui.set_feedback('Goal failed', error=True)
+            self.gui.set_feedback(
+                f'Goal stalled {dist:.1f} m from target', error=True
+            )
 
     # -- sensors ----------------------------------------------------------
 
