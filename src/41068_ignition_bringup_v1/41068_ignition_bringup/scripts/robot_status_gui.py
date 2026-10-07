@@ -20,12 +20,14 @@ from action_msgs.msg import GoalStatus
 from geometry_msgs.msg import PoseStamped
 from nav2_msgs.action import NavigateToPose
 from nav_msgs.msg import OccupancyGrid, Odometry
+from nav_msgs.msg import OccupancyGrid, Odometry
 from rclpy.action import ActionClient
 from rclpy.node import Node
 from rclpy.parameter import Parameter
 from rcl_interfaces.srv import SetParameters
 from rclpy.qos import qos_profile_sensor_data
 from sensor_msgs.msg import Image, LaserScan
+from std_msgs.msg import Bool
 from std_msgs.msg import Bool
 
 import tkinter as tk
@@ -229,6 +231,7 @@ class RobotStatusWindow(tk.Tk):
         self.speed_var = tk.StringVar(value='Speed: 0.00 m/s')
         self.distance_var = tk.StringVar(value='Distance to Destination: 0.0 m')
         self.time_var = tk.StringVar(value='Time to Destination: Pending')
+        self.battery_var = tk.StringVar(value='Battery: 100%')
         self.obstacle_var = tk.StringVar(value='Obstacle detected: no')
         self.fire_var = tk.StringVar(value='Fire detected: no')
         self.mission_var = tk.StringVar(value='Mission: STOPPED')
@@ -726,6 +729,7 @@ class RobotStatusNode(Node):
             logger=lambda m: self.get_logger().info(m),
         )
         self.gui.set_dyn_obstacle_status(self.obstacle_manager.status_message)
+        self._sync_fire_status()
 
         self.create_subscription(Odometry, odom_topic, self._odom_callback, 10)
         self.create_subscription(LaserScan, scan_topic, self._scan_callback, qos_profile_sensor_data)
@@ -894,6 +898,7 @@ class RobotStatusNode(Node):
         else:
             ok, message = self.obstacle_manager.request_obstacle(path_key)
         self.gui.set_dyn_obstacle_status(message)
+        self._sync_fire_status()
         self.gui.set_feedback(message if ok else message, error=not ok)
         if ok:
             self.get_logger().info(f'{label}: {message}')
@@ -910,13 +915,22 @@ class RobotStatusNode(Node):
     def clear_obstacles(self) -> None:
         ok, message = self.obstacle_manager.clear_obstacles()
         self.gui.set_dyn_obstacle_status(message)
+        self._sync_fire_status()
         self.gui.set_feedback('Obstacles cleared' if ok else message, error=not ok)
         self.obstacle_manager.status_message = 'Obstacle: READY'
+
+    def _sync_fire_status(self) -> None:
+        gap = self.obstacle_manager.selected_gap
+        self.gui.set_fire_status(
+            self.obstacle_manager.state == ObstacleState.ACTIVE,
+            gap.label if gap else None,
+        )
 
     def _obstacle_tick(self) -> None:
         pose = self.latest_pose
         robot_xy = (pose[0], pose[1]) if pose is not None else None
         status = self.obstacle_manager.tick(robot_xy)
+        self._sync_fire_status()
         if status:
             self.gui.set_dyn_obstacle_status(status)
             if self.obstacle_manager.state == ObstacleState.ACTIVE:
