@@ -51,5 +51,12 @@
       <name>map_perimeter_60</name>
       <pose>0 0 0 0 0 0</pose>
     </include>
+
+    <!-- Lidar-visible trail boundary posts (from trail_mask). -->
+    <include>
+      <uri>model://bush_trail_nav_walls</uri>
+      <name>bush_trail_nav_walls</name>
+      <pose>0 0 0 0 0 0</pose>
+    </include>
   </world>
 </sdf>

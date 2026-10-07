@@ -17,6 +17,7 @@ from __future__ import annotations
 
 import math
 import struct
+import time
 from typing import List, Optional, Sequence, Tuple
 
 import rclpy
@@ -81,6 +82,10 @@ class FireHazardNavBridge(Node):
         self.declare_parameter('thermal_cone_half_angle', 0.6)  # rad
         self.declare_parameter('thermal_max_range', 8.0)
         self.declare_parameter('thermal_default_range', 3.0)
+        # Hold last positive detection so a brief thermal flash (or a test
+        # publisher) is not immediately overwritten by a False from the
+        # detector node.
+        self.declare_parameter('fire_hold_s', 8.0)
 
         robot = str(self.get_parameter('robot_name').value).strip().strip('/') or 'husky1'
         map_frame = str(self.get_parameter('map_frame').value).strip() or f'{robot}_map'
@@ -99,6 +104,8 @@ class FireHazardNavBridge(Node):
             self.known_fires.append((float(raw_poses[i]), float(raw_poses[i + 1])))
 
         self.fire_detected = False
+        self._fire_true_until = 0.0
+        self._fire_hold_s = float(self.get_parameter('fire_hold_s').value)
         self.latest_scan: Optional[LaserScan] = None
 
         self.tf_buffer = tf2_ros.Buffer()
@@ -139,7 +146,11 @@ class FireHazardNavBridge(Node):
         self.latest_scan = msg
 
     def _on_fire(self, msg: Bool) -> None:
-        self.fire_detected = bool(msg.data)
+        if bool(msg.data):
+            self.fire_detected = True
+            self._fire_true_until = time.monotonic() + max(0.0, self._fire_hold_s)
+        elif time.monotonic() >= self._fire_true_until:
+            self.fire_detected = False
 
     def _lookup_base(self) -> Optional[TransformStamped]:
         try:

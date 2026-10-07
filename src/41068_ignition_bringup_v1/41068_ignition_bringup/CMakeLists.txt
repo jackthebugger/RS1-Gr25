@@ -31,6 +31,8 @@ install(
     scripts/wasd_teleop.py
     scripts/fire_hazard_nav_bridge.py
     scripts/prior_map_publisher.py
+    scripts/path_bank_manager.py
+    scripts/rebuild_bush_trail_nav_geometry.py
     scripts/generate_hilly_heightmap.py
     scripts/generate_custom_terrain_heightmap.py
     scripts/generate_terrain_sources_3.py

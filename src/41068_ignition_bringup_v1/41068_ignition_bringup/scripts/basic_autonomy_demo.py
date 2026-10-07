@@ -87,7 +87,8 @@ DEFAULT_GOALS = {
     # Same corridor layout as custom_world_1; terrain is heightmapped.
     'custom_world_hilly': (18.0, 0.0, 0.0),
     'custom_terrain_world': (18.0, 0.0, 0.0),
-    'bush_trail_world': (18.0, 0.0, 0.0),
+    # On-trail east of spawn (Entry 019): (18,0) was off-trail plateau.
+    'bush_trail_world': (16.0, -0.1, 0.0),
 }
 # Replan needs a longer southbound run so the mid-path wall still leaves
 # open ground between the barrier and the goal.
@@ -97,7 +98,8 @@ DEFAULT_REPLAN_GOALS = {
     'custom_world_1': (18.0, 0.0, 0.0),
     'custom_world_hilly': (18.0, 0.0, 0.0),
     'custom_terrain_world': (18.0, 0.0, 0.0),
-    'bush_trail_world': (18.0, 0.0, 0.0),
+    # On-trail east of spawn (Entry 019): (18,0) was off-trail plateau.
+    'bush_trail_world': (16.0, -0.1, 0.0),
 }
 
 
