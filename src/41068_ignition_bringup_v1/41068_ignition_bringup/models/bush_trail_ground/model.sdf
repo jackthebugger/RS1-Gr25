@@ -1,0 +1,37 @@
+<?xml version="1.0"?>
+<sdf version="1.7">
+  <!-- Origin-centred 60 x 60 m heightmap. Z = 0.74 m (black→0, white→0.74).
+       Source: terrain_sources_3/01_heightmap_greyscale.png
+       Install: scripts/install_terrain_sources_3_gazebo.py
+       Keep collision and visual size/pos identical (Fortress heightmap quirk). -->
+  <model name="bush_trail_ground">
+    <static>true</static>
+    <link name="link">
+      <collision name="collision">
+        <geometry>
+          <heightmap>
+            <uri>model://bush_trail_ground/materials/heights.png</uri>
+            <size>60 60 1.119</size>
+            <pos>0 0 0</pos>
+          </heightmap>
+        </geometry>
+      </collision>
+
+      <visual name="visual">
+        <cast_shadows>false</cast_shadows>
+        <geometry>
+          <heightmap>
+            <uri>model://bush_trail_ground/materials/heights.png</uri>
+            <size>60 60 1.119</size>
+            <pos>0 0 0</pos>
+            <texture>
+              <diffuse>model://bush_trail_ground/materials/grass_diffuse.png</diffuse>
+              <normal>model://bush_trail_ground/materials/flat_normal.png</normal>
+              <size>60</size>
+            </texture>
+          </heightmap>
+        </geometry>
+      </visual>
+    </link>
+  </model>
+</sdf>

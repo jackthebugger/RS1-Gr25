@@ -1,0 +1,28 @@
+HEIGHT_RULE for 03_colour_surface_map.png
+
+Blue water = LOWEST elevation.
+Tan/brown maintained trail = LOW to LOW-MID, relatively flat and smooth.
+Dark/medium green bushland = MID elevation with gentle rolling variation.
+Lighter green clearing = LOW to MID.
+Grey/brown rocky areas = MID-HIGH to HIGH.
+Pale exposed rocky rises = HIGH.
+Vegetation canopy adds no additional ground elevation.
+Buildings/structures are surface/layout features, not terrain elevation.
+
+Terrain locations: The primary low/traversable corridor follows the broad
+connected trail network through the centre of the map, including the west/left-centre
+clearing used as the preferred flat spawn region.
+Highest terrain: The highest rolling ground is concentrated mainly toward the
+eastern/right-central side, with additional raised terrain around the outer
+bushland rather than isolated mountain peaks.
+
+Gazebo authority: terrain_sources_2/01_heightmap_greyscale.png
+  → scripts/generate_custom_terrain_heightmap.py
+  → models/custom_terrain/materials/heights.png
+  → world custom_terrain_world (60×60 m mesh, 0.76 m Z scale)
+
+Image axis → Gazebo (origin-centred world):
+  image column 0 = X = -30 m (west)
+  image column max = X = +30 m (east)
+  image row 0 = Y = +30 m (north)
+  image row max = Y = -30 m (south)
