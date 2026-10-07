@@ -28,6 +28,7 @@ install(
     scripts/odometry_tf_broadcaster.py
     scripts/obstacle_injector.py
     scripts/robot_status_gui.py
+    scripts/thermal_camera_gui.py
     scripts/wasd_teleop.py
     scripts/fire_hazard_nav_bridge.py
     scripts/prior_map_publisher.py
