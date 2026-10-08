@@ -195,14 +195,27 @@ class RobotStatusWindow(tk.Tk):
         )
         self.sim_section.pack(fill='x', padx=12, pady=(0, 20))
 
-        self.camera_frame = tk.Frame(
-            self.robot_section,
-            width=320,
-            height=160,
+        self.views_frame = tk.Frame(self.robot_section, bg='#dbeafe')
+        self.views_frame.pack(fill='x', padx=8, pady=(0, 10))
+        for column in range(3):
+            self.views_frame.columnconfigure(column, weight=1)
+
+        self.map_frame = tk.Frame(self.views_frame, width=250, height=220, bg='#111827')
+        self.map_frame.grid(row=0, column=0, padx=4, sticky='nsew')
+        self.map_frame.grid_propagate(False)
+        self.map_label = tk.Label(
+            self.map_frame,
+            text='LiDAR map: waiting for SLAM',
             bg='#111827',
+            fg='#ffffff',
+            anchor='center',
         )
-        self.camera_frame.pack(padx=20, pady=(0, 10))
-        self.camera_frame.pack_propagate(False)
+        self.map_label.pack(fill='both', expand=True)
+        self.map_photo = None
+
+        self.camera_frame = tk.Frame(self.views_frame, width=250, height=220, bg='#111827')
+        self.camera_frame.grid(row=0, column=1, padx=4, sticky='nsew')
+        self.camera_frame.grid_propagate(False)
         self.camera_label = tk.Label(
             self.camera_frame,
             text='Camera: waiting for image',
@@ -213,18 +226,20 @@ class RobotStatusWindow(tk.Tk):
         self.camera_label.pack(fill='both', expand=True)
         self.camera_photo = None
 
-        self.map_frame = tk.Frame(self.robot_section, width=320, height=160, bg='#111827')
-        self.map_frame.pack(padx=20, pady=(0, 10))
-        self.map_frame.pack_propagate(False)
-        self.map_label = tk.Label(
-            self.map_frame,
-            text='Map: waiting for SLAM',
+        self.thermal_frame = tk.Frame(
+            self.views_frame, width=250, height=220, bg='#111827',
+        )
+        self.thermal_frame.grid(row=0, column=2, padx=4, sticky='nsew')
+        self.thermal_frame.grid_propagate(False)
+        self.thermal_label = tk.Label(
+            self.thermal_frame,
+            text='Thermal camera: waiting for image',
             bg='#111827',
             fg='#ffffff',
             anchor='center',
         )
-        self.map_label.pack(fill='both', expand=True)
-        self.map_photo = None
+        self.thermal_label.pack(fill='both', expand=True)
+        self.thermal_photo = None
 
         self.info_frame = tk.Frame(self.robot_section, bg='#ffffff', bd=1, relief='solid')
         self.info_frame.pack(fill='x', padx=20, pady=(0, 10))
@@ -232,6 +247,7 @@ class RobotStatusWindow(tk.Tk):
         self.speed_var = tk.StringVar(value='Speed: 0.00 m/s')
         self.distance_var = tk.StringVar(value='Distance to Destination: 0.0 m')
         self.time_var = tk.StringVar(value='Time to Destination: Pending')
+        self.battery_var = tk.StringVar(value='Battery: 100%')
         self.obstacle_var = tk.StringVar(value='Obstacle detected: no')
         self.fire_var = tk.StringVar(value='Fire detected: no')
         self.mission_var = tk.StringVar(value='Mission: STOPPED')
@@ -327,7 +343,7 @@ class RobotStatusWindow(tk.Tk):
         # --- Dynamic Obstacles: Path A / Path B / Random / Clear ---
         self.obstacle_frame = tk.LabelFrame(
             self.sim_section,
-            text='Dynamic Obstacles',
+            text='DYNAMIC FIRE',
             bg='#f3f4f6',
             fg='#1f2937',
             font=('Arial', 11, 'bold'),
@@ -340,7 +356,7 @@ class RobotStatusWindow(tk.Tk):
 
         self.block_path_a_button = tk.Button(
             self.obstacle_frame,
-            text='BLOCK PATH A',
+            text='BLOCK FIRE A',
             state='disabled',
             command=lambda: None,
             height=2,
@@ -350,7 +366,7 @@ class RobotStatusWindow(tk.Tk):
         )
         self.block_path_b_button = tk.Button(
             self.obstacle_frame,
-            text='BLOCK PATH B',
+            text='BLOCK FIRE B',
             state='disabled',
             command=lambda: None,
             height=2,
@@ -360,7 +376,7 @@ class RobotStatusWindow(tk.Tk):
         )
         self.random_block_button = tk.Button(
             self.obstacle_frame,
-            text='RANDOM BLOCK',
+            text='RANDOM FIRE',
             state='disabled',
             command=lambda: None,
             height=2,
@@ -370,7 +386,7 @@ class RobotStatusWindow(tk.Tk):
         )
         self.clear_obstacle_button = tk.Button(
             self.obstacle_frame,
-            text='CLEAR OBSTACLES',
+            text='CLEAR FIRE',
             state='disabled',
             command=lambda: None,
             height=2,
@@ -378,6 +394,30 @@ class RobotStatusWindow(tk.Tk):
         self.clear_obstacle_button.grid(
             row=1, column=1, sticky='ew', padx=(6, 0), pady=4, ipady=4,
         )
+
+        self.sim_updates = []
+        self.sim_update_var = tk.StringVar(value='No simulation updates yet')
+        self.sim_update_frame = tk.LabelFrame(
+            self.sim_section,
+            text='SIM UPDATE',
+            bg='#fee2e2',
+            fg='#991b1b',
+            font=('Arial', 11, 'bold'),
+            padx=10,
+            pady=8,
+        )
+        self.sim_update_frame.pack(fill='x', padx=20, pady=(0, 20))
+        tk.Label(
+            self.sim_update_frame,
+            textvariable=self.sim_update_var,
+            justify='left',
+            anchor='w',
+            font=('Courier New', 10),
+            bg='#111827',
+            fg='#e2e8f0',
+            padx=10,
+            pady=8,
+        ).pack(fill='x')
 
         self.update_status()
         self._bind_mousewheel_tree(body)
@@ -466,10 +506,19 @@ class RobotStatusWindow(tk.Tk):
         return
 
     def set_dyn_obstacle_status(self, status: str) -> None:
-        return
+        if status:
+            self.sim_updates.append(str(status).replace('Obstacle', 'Fire'))
+            self.sim_updates = self.sim_updates[-5:]
+            self.sim_update_var.set('\n'.join(self.sim_updates))
 
     def set_feedback(self, message: str, *, error: bool = False) -> None:
         self.recent_status_var.set(f'Recent Status: {message}')
+
+    def set_fire_status(self, detected: bool, location: Optional[str] = None) -> None:
+        if detected and location:
+            self.fire_var.set(f'Fire detected: yes ({location})')
+        else:
+            self.fire_var.set(f'Fire detected: {"yes" if detected else "no"}')
 
     def read_goal_fields(self) -> Tuple[str, str, str]:
         return (
@@ -521,6 +570,46 @@ class RobotStatusWindow(tk.Tk):
             return
         self.camera_label.configure(image=self.camera_photo, text='')
 
+    def update_thermal(self, image: Image) -> None:
+        if image.encoding != 'mono16' or image.width <= 0 or image.height <= 0:
+            self.thermal_label.configure(
+                text=f'Thermal camera: unsupported {image.encoding}', image=''
+            )
+            return
+
+        values = []
+        for row in range(image.height):
+            start = row * image.step
+            row_bytes = image.data[start:start + image.width * 2]
+            values.extend(
+                row_bytes[index] | (row_bytes[index + 1] << 8)
+                for index in range(0, len(row_bytes) - 1, 2)
+            )
+        if not values:
+            return
+
+        low = min(values)
+        high = max(values)
+        span = max(1, high - low)
+        pixels = bytearray()
+        for value in values:
+            intensity = (value - low) / span
+            if intensity < 0.33:
+                red, green, blue = 0, int(intensity * 3 * 180), 180
+            elif intensity < 0.66:
+                red, green, blue = int((intensity - 0.33) * 3 * 255), 180, 30
+            else:
+                red, green, blue = 255, int(180 - (intensity - 0.66) * 3 * 140), 20
+            pixels.extend((red, green, blue))
+
+        ppm = f'P6\n{image.width} {image.height}\n255\n'.encode() + pixels
+        try:
+            self.thermal_photo = tk.PhotoImage(data=ppm, format='PPM')
+        except tk.TclError:
+            self.thermal_label.configure(text='Thermal camera: invalid frame', image='')
+            return
+        self.thermal_label.configure(image=self.thermal_photo, text='')
+
     def update_map(
         self,
         grid: OccupancyGrid,
@@ -532,8 +621,8 @@ class RobotStatusWindow(tk.Tk):
         if width <= 0 or height <= 0 or len(grid.data) < width * height:
             return
 
-        display_width = min(320, width)
-        display_height = min(240, height)
+        display_width = min(240, width)
+        display_height = min(210, height)
         pixels = bytearray()
         for display_y in range(display_height):
             source_y = height - 1 - (display_y * height // display_height)
@@ -695,6 +784,7 @@ class RobotStatusNode(Node):
         # Relative topic under the robot namespace (launch PushRosNamespace).
         fire_topic = self.declare_parameter('fire_topic', 'fire_detected').value
         camera_topic = self.declare_parameter('camera_topic', 'camera/image').value
+        thermal_topic = self.declare_parameter('thermal_topic', 'thermal/image').value
         map_topic = self.declare_parameter('map_topic', 'map').value
         obstacle_threshold = self.declare_parameter('obstacle_threshold', 1.0).value
         self.obstacle_threshold = float(obstacle_threshold)
@@ -711,12 +801,14 @@ class RobotStatusNode(Node):
             logger=lambda m: self.get_logger().info(m),
         )
         self.gui.set_dyn_obstacle_status(self.obstacle_manager.status_message)
+        self._sync_fire_status()
 
         self.create_subscription(Odometry, odom_topic, self._odom_callback, 10)
         self.create_subscription(LaserScan, scan_topic, self._scan_callback, qos_profile_sensor_data)
         self.create_subscription(LaserScan, 'base_scan', self._scan_callback, qos_profile_sensor_data)
         self.create_subscription(Bool, fire_topic, self._fire_callback, 10)
         self.create_subscription(Image, camera_topic, self._camera_callback, qos_profile_sensor_data)
+        self.create_subscription(Image, thermal_topic, self._thermal_callback, qos_profile_sensor_data)
         self.create_subscription(OccupancyGrid, map_topic, self._map_callback, 10)
         self.create_subscription(String, 'path_bank/status', self._path_bank_status_callback, 10)
         self.create_timer(0.1, self._update_gui)
@@ -894,6 +986,7 @@ class RobotStatusNode(Node):
         else:
             ok, message = self.obstacle_manager.request_obstacle(path_key)
         self.gui.set_dyn_obstacle_status(message)
+        self._sync_fire_status()
         self.gui.set_feedback(message if ok else message, error=not ok)
         if ok:
             self.get_logger().info(f'{label}: {message}')
@@ -910,13 +1003,22 @@ class RobotStatusNode(Node):
     def clear_obstacles(self) -> None:
         ok, message = self.obstacle_manager.clear_obstacles()
         self.gui.set_dyn_obstacle_status(message)
+        self._sync_fire_status()
         self.gui.set_feedback('Obstacles cleared' if ok else message, error=not ok)
         self.obstacle_manager.status_message = 'Obstacle: READY'
+
+    def _sync_fire_status(self) -> None:
+        gap = self.obstacle_manager.selected_gap
+        self.gui.set_fire_status(
+            self.obstacle_manager.state == ObstacleState.ACTIVE,
+            gap.label if gap else None,
+        )
 
     def _obstacle_tick(self) -> None:
         pose = self.latest_pose
         robot_xy = (pose[0], pose[1]) if pose is not None else None
         status = self.obstacle_manager.tick(robot_xy)
+        self._sync_fire_status()
         if status:
             self.gui.set_dyn_obstacle_status(status)
             if self.obstacle_manager.state == ObstacleState.ACTIVE:
@@ -1060,6 +1162,9 @@ class RobotStatusNode(Node):
 
     def _camera_callback(self, msg: Image) -> None:
         self.gui.update_camera(msg)
+
+    def _thermal_callback(self, msg: Image) -> None:
+        self.gui.update_thermal(msg)
 
     def _fire_callback(self, msg: Bool) -> None:
         self.latest_fire_detected = bool(msg.data)
