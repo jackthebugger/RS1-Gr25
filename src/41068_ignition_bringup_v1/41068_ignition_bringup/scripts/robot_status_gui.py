@@ -19,7 +19,7 @@ import rclpy
 from action_msgs.msg import GoalStatus
 from geometry_msgs.msg import PoseStamped
 from nav2_msgs.action import NavigateToPose
-from nav_msgs.msg import OccupancyGrid, Odometry
+from nav_msgs.msg import OccupancyGrid, Odometry, Path
 from rclpy.action import ActionClient
 from rclpy.node import Node
 from rclpy.parameter import Parameter
@@ -197,20 +197,18 @@ class RobotStatusWindow(tk.Tk):
         for column in range(3):
             self.views_frame.columnconfigure(column, weight=1)
 
-        self.map_frame = tk.Frame(self.views_frame, width=250, height=220, bg='#111827')
+        self.map_frame = tk.Frame(self.views_frame, width=200, height=260, bg='#111827')
         self.map_frame.grid(row=0, column=0, padx=4, sticky='nsew')
         self.map_frame.grid_propagate(False)
         self.map_label = tk.Label(
-            self.map_frame,
-            text='LiDAR map: waiting for SLAM',
-            bg='#111827',
-            fg='#ffffff',
-            anchor='center',
+            self.map_frame, text='LiDAR map: waiting for SLAM',
+            bg='#111827', fg='#ffffff', anchor='center',
         )
         self.map_label.pack(fill='both', expand=True)
         self.map_photo = None
+        self.latest_path = None
 
-        self.camera_frame = tk.Frame(self.views_frame, width=250, height=220, bg='#111827')
+        self.camera_frame = tk.Frame(self.views_frame, width=200, height=260, bg='#111827')
         self.camera_frame.grid(row=0, column=1, padx=4, sticky='nsew')
         self.camera_frame.grid_propagate(False)
         self.camera_label = tk.Label(
@@ -223,9 +221,7 @@ class RobotStatusWindow(tk.Tk):
         self.camera_label.pack(fill='both', expand=True)
         self.camera_photo = None
 
-        self.thermal_frame = tk.Frame(
-            self.views_frame, width=250, height=220, bg='#111827',
-        )
+        self.thermal_frame = tk.Frame(self.views_frame, width=200, height=260, bg='#111827')
         self.thermal_frame.grid(row=0, column=2, padx=4, sticky='nsew')
         self.thermal_frame.grid_propagate(False)
         self.thermal_label = tk.Label(
@@ -267,8 +263,23 @@ class RobotStatusWindow(tk.Tk):
         for label in self.labels:
             label.pack(fill='x')
 
+        self.mission_controls = tk.LabelFrame(
+            self.robot_section, text='MISSION CONTROLS', bg='#dbeafe', fg='#1e3a8a',
+            font=('Arial', 11, 'bold'), padx=8, pady=4,
+        )
+        self.mission_controls.pack(fill='x', padx=20, pady=(0, 8))
+        self.mission_controls_open = True
+        self.mission_controls_toggle = tk.Button(
+            self.mission_controls, text='MISSION CONTROLS  -',
+            command=self.toggle_mission_controls, bg='#bfdbfe', fg='#1e3a8a',
+            relief='flat', font=('Arial', 11, 'bold'), anchor='w',
+        )
+        self.mission_controls_toggle.pack(fill='x')
+        self.mission_controls_body = tk.Frame(self.mission_controls, bg='#dbeafe')
+        self.mission_controls_body.pack(fill='x')
+
         self.speed_frame = tk.LabelFrame(
-            self.robot_section, text='Speed control', bg='#f3f4f6', fg='#1f2937',
+            self.mission_controls_body, text='Speed control', bg='#f3f4f6', fg='#1f2937',
             font=('Arial', 11, 'bold'), padx=8, pady=4,
         )
         self.speed_frame.pack(fill='x', padx=20, pady=(0, 8))
@@ -289,7 +300,7 @@ class RobotStatusWindow(tk.Tk):
 
         # --- Navigation Goal (X/Y/Yaw + unified Start/Stop) ---
         self.goal_frame = tk.LabelFrame(
-            self.robot_section,
+            self.mission_controls_body,
             text='Navigation Goal',
             bg='#f3f4f6',
             fg='#1f2937',
@@ -319,7 +330,7 @@ class RobotStatusWindow(tk.Tk):
         self.goal_frame.columnconfigure(1, weight=1)
 
         self.mission_button = tk.Button(
-            self.goal_frame,
+            self.info_frame,
             text='START MISSION',
             state='disabled',
             command=lambda: None,
@@ -332,9 +343,7 @@ class RobotStatusWindow(tk.Tk):
             relief='raised',
             bd=3,
         )
-        self.mission_button.grid(
-            row=3, column=0, columnspan=2, sticky='ew', pady=(10, 0), ipady=2,
-        )
+        self.mission_button.pack(fill='x', padx=12, pady=(8, 10), ipady=2)
         self._mission_running = False
 
         # --- Dynamic Obstacles: Path A / Path B / Random / Clear ---
@@ -453,6 +462,16 @@ class RobotStatusWindow(tk.Tk):
     def set_mission_callback(self, toggle_callback) -> None:
         self.mission_button.configure(command=toggle_callback, state='normal')
 
+    def toggle_mission_controls(self) -> None:
+        self.mission_controls_open = not self.mission_controls_open
+        if self.mission_controls_open:
+            self.mission_controls_body.pack(fill='x')
+            self.mission_controls_toggle.configure(text='MISSION CONTROLS  -')
+        else:
+            self.mission_controls_body.pack_forget()
+            self.mission_controls_toggle.configure(text='MISSION CONTROLS  +')
+        self.after_idle(self._refresh_scroll_region)
+
     def set_speed_callback(self, callback) -> None:
         for value, button in self.speed_buttons.items():
             button.configure(
@@ -556,7 +575,15 @@ class RobotStatusWindow(tk.Tk):
                 current = bytes(value for value in current for _ in range(3))
             pixels.extend(current)
 
-        ppm = f'P6\n{image.width} {image.height}\n255\n'.encode() + pixels
+        target_width, target_height = 190, 240
+        resized = bytearray()
+        for target_y in range(target_height):
+            source_y = target_y * image.height // target_height
+            for target_x in range(target_width):
+                source_x = target_x * image.width // target_width
+                index = (source_y * image.width + source_x) * 3
+                resized.extend(pixels[index:index + 3])
+        ppm = f'P6\n{target_width} {target_height}\n255\n'.encode() + resized
         try:
             self.camera_photo = tk.PhotoImage(
                 data=ppm,
@@ -595,11 +622,30 @@ class RobotStatusWindow(tk.Tk):
                 red, green, blue = 0, int(intensity * 3 * 180), 180
             elif intensity < 0.66:
                 red, green, blue = int((intensity - 0.33) * 3 * 255), 180, 30
+                self.map_frame.place(x=0, y=0, relwidth=1, relheight=1)
+                self.thermal_frame.place(x=0, y=0, relwidth=1, relheight=1)
+                self.thermal_frame.place_forget()
+                self.map_frame.place_forget()
+
+                self.map_label = tk.Label(
+                    self.map_frame, text='LiDAR map: waiting for SLAM',
+                    bg='#111827', fg='#ffffff', anchor='center',
+                )
+                self.map_label.pack(fill='both', expand=True)
+                self.map_photo = None
             else:
                 red, green, blue = 255, int(180 - (intensity - 0.66) * 3 * 140), 20
             pixels.extend((red, green, blue))
 
-        ppm = f'P6\n{image.width} {image.height}\n255\n'.encode() + pixels
+        target_width, target_height = 190, 240
+        resized = bytearray()
+        for target_y in range(target_height):
+            source_y = target_y * image.height // target_height
+            for target_x in range(target_width):
+                source_x = target_x * image.width // target_width
+                index = (source_y * image.width + source_x) * 3
+                resized.extend(pixels[index:index + 3])
+        ppm = f'P6\n{target_width} {target_height}\n255\n'.encode() + resized
         try:
             self.thermal_photo = tk.PhotoImage(data=ppm, format='PPM')
         except tk.TclError:
@@ -607,19 +653,31 @@ class RobotStatusWindow(tk.Tk):
             return
         self.thermal_label.configure(image=self.thermal_photo, text='')
 
+    def update_path(self, path: Path) -> None:
+        self.latest_path = path
+        if getattr(self, 'latest_map', None) is not None:
+            self.update_map(
+                self.latest_map,
+                robot_pose=getattr(self, 'latest_robot_pose', None),
+                goal_pose=getattr(self, 'latest_goal_pose', None),
+            )
+
     def update_map(
         self,
         grid: OccupancyGrid,
         robot_pose: Optional[Tuple[float, float, float]] = None,
         goal_pose: Optional[Tuple[float, float, float]] = None,
     ) -> None:
+        self.latest_map = grid
+        self.latest_robot_pose = robot_pose
+        self.latest_goal_pose = goal_pose
         width = int(grid.info.width)
         height = int(grid.info.height)
         if width <= 0 or height <= 0 or len(grid.data) < width * height:
             return
 
-        display_width = min(240, width)
-        display_height = min(210, height)
+        display_width = min(190, width)
+        display_height = min(240, height)
         pixels = bytearray()
         for display_y in range(display_height):
             source_y = height - 1 - (display_y * height // display_height)
@@ -665,6 +723,15 @@ class RobotStatusWindow(tk.Tk):
                     if 0 <= pixel_x < display_width and 0 <= pixel_y < display_height:
                         index = (pixel_y * display_width + pixel_x) * 3
                         pixels[index:index + 3] = bytes(color)
+
+        if self.latest_path is not None:
+            for path_pose in self.latest_path.poses:
+                path_point = map_pixel((
+                    path_pose.pose.position.x,
+                    path_pose.pose.position.y,
+                    0.0,
+                ))
+                draw_marker(path_point, (236, 72, 153))
 
         draw_marker(map_pixel(goal_pose), (22, 163, 74))
         draw_marker(map_pixel(robot_pose), (37, 99, 235))
@@ -774,6 +841,7 @@ class RobotStatusNode(Node):
         camera_topic = self.declare_parameter('camera_topic', 'camera/image').value
         thermal_topic = self.declare_parameter('thermal_topic', 'thermal/image').value
         map_topic = self.declare_parameter('map_topic', 'map').value
+        path_topic = self.declare_parameter('path_topic', 'plan').value
         obstacle_threshold = self.declare_parameter('obstacle_threshold', 1.0).value
         self.obstacle_threshold = float(obstacle_threshold)
 
@@ -798,6 +866,7 @@ class RobotStatusNode(Node):
         self.create_subscription(Image, camera_topic, self._camera_callback, qos_profile_sensor_data)
         self.create_subscription(Image, thermal_topic, self._thermal_callback, qos_profile_sensor_data)
         self.create_subscription(OccupancyGrid, map_topic, self._map_callback, 10)
+        self.create_subscription(Path, path_topic, self._path_callback, 10)
         self.create_timer(0.1, self._update_gui)
         self.create_timer(0.2, self._obstacle_tick)
 
@@ -1077,6 +1146,9 @@ class RobotStatusNode(Node):
 
     def _map_callback(self, msg: OccupancyGrid) -> None:
         self.gui.update_map(msg, robot_pose=self.latest_pose, goal_pose=self.active_goal)
+
+    def _path_callback(self, msg: Path) -> None:
+        self.gui.update_path(msg)
 
     def _update_gui(self) -> None:
         self.status.speed = self.latest_speed
