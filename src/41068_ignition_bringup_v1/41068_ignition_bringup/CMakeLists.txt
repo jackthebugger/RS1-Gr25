@@ -32,6 +32,12 @@ install(
     scripts/wasd_teleop.py
     scripts/fire_hazard_nav_bridge.py
     scripts/prior_map_publisher.py
+    scripts/generate_hilly_heightmap.py
+    scripts/generate_custom_terrain_heightmap.py
+    scripts/generate_terrain_sources_3.py
+    scripts/install_terrain_sources_3_gazebo.py
+    scripts/enhance_bush_trail_walls.py
+    scripts/flatten_bush_trail_floors.py
   DESTINATION lib/${PROJECT_NAME}
 )
 

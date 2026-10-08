@@ -1,0 +1,24 @@
+HEIGHT_RULE for 03_colour_surface_map.png (and visual interpretation of 02)
+
+Deep green grass / open forest floor / central corridor: LOW → dark grey in heightmap
+Light green grass / sparse vegetation: LOW–MID
+Tan dirt roads and clearings: LOW → LOW–MID
+Brown/grey rocky outcrops and broad raised ground: MID–HIGH
+Pale grey rock / upper ridge areas: HIGH → light grey in heightmap
+Blue water: LOWEST → near-black in heightmap
+Dense tree canopy: ZERO additional ground height; canopy is visual surface detail only
+Buildings/structures: Treat as surface/layout features rather than terrain elevation
+  unless their footprint corresponds to an existing raised area
+
+The low east–west traversable corridor runs broadly across the middle of the map,
+with the west-centre portion deliberately flattened to provide the robot spawn lowland.
+The highest terrain is concentrated around the broad upper-right/north-east raised area,
+with no extreme peak or abrupt elevation change.
+
+AUTHORITY for generated Gazebo elevation:
+  01_heightmap_greyscale.png  (brighter = higher)
+  Processed by scripts/generate_hilly_heightmap.py → models/hilly_ground/materials/heights.png
+
+02_topo_shaded_relief.png — same landform family as 01 (QA / visual reference).
+03_colour_surface_map.png — artistic surface map; height rule above; not used as
+  pixel-elevation authority (different feature layout; canopy must not raise ground).
