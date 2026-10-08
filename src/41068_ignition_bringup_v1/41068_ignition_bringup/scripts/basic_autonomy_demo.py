@@ -84,6 +84,10 @@ DEFAULT_GOALS = {
     'simple_trees': (0.0, -5.0, 0.0),
     'large_demo': (8.0, 6.0, 0.0),
     'custom_world_1': (18.0, 0.0, 0.0),
+    # Same corridor layout as custom_world_1; terrain is heightmapped.
+    'custom_world_hilly': (18.0, 0.0, 0.0),
+    'custom_terrain_world': (18.0, 0.0, 0.0),
+    'bush_trail_world': (18.0, 0.0, 0.0),
 }
 # Replan needs a longer southbound run so the mid-path wall still leaves
 # open ground between the barrier and the goal.
@@ -91,6 +95,9 @@ DEFAULT_REPLAN_GOALS = {
     'simple_trees': (0.0, -6.0, 0.0),
     'large_demo': (8.0, 6.0, 0.0),
     'custom_world_1': (18.0, 0.0, 0.0),
+    'custom_world_hilly': (18.0, 0.0, 0.0),
+    'custom_terrain_world': (18.0, 0.0, 0.0),
+    'bush_trail_world': (18.0, 0.0, 0.0),
 }
 
 
@@ -539,7 +546,11 @@ def _parse_args(argv=None) -> argparse.Namespace:
     parser.add_argument('--replan', action='store_true',
                         help='Shorthand for --mode replan: inject an obstacle mid-route')
     parser.add_argument('--world', default='custom_world_1',
-                        choices=('simple_trees', 'large_demo', 'custom_world_1'))
+                        choices=(
+                            'simple_trees', 'large_demo', 'custom_world_1',
+                            'custom_world_hilly', 'custom_terrain_world',
+                            'bush_trail_world',
+                        ))
     parser.add_argument('--robot', default='husky1')
     parser.add_argument('--start', nargs=3, type=float, metavar=('X', 'Y', 'YAW'),
                         default=[-18.0, 3.0, 0.0],

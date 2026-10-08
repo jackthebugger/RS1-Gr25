@@ -19,13 +19,14 @@ import rclpy
 from action_msgs.msg import GoalStatus
 from geometry_msgs.msg import PoseStamped
 from nav2_msgs.action import NavigateToPose
-from nav_msgs.msg import Odometry
+from nav_msgs.msg import OccupancyGrid, Odometry
 from rclpy.action import ActionClient
 from rclpy.node import Node
 from rclpy.parameter import Parameter
 from rcl_interfaces.srv import SetParameters
 from rclpy.qos import qos_profile_sensor_data
 from sensor_msgs.msg import Image, LaserScan
+from std_msgs.msg import Bool
 
 import tkinter as tk
 
@@ -153,7 +154,7 @@ class RobotStatusWindow(tk.Tk):
         )
         self.header.pack(fill='x')
 
-        # Scrollable body: status + mission + goals + dynamic obstacle buttons.
+        # Scrollable body keeps both operator sections reachable on small displays.
         scroll_host = tk.Frame(self, bg='#f3f4f6')
         scroll_host.pack(fill='both', expand=True)
 
@@ -179,14 +180,39 @@ class RobotStatusWindow(tk.Tk):
 
         body = self._content
 
-        self.camera_frame = tk.Frame(
-            body,
-            width=320,
-            height=160,
-            bg='#111827',
+        self.robot_section = tk.LabelFrame(
+            body, text='Robot GUI', bg='#dbeafe', fg='#1e3a8a',
+            font=('Arial', 12, 'bold'), padx=6, pady=6,
         )
-        self.camera_frame.pack(padx=20, pady=(0, 10))
-        self.camera_frame.pack_propagate(False)
+        self.robot_section.pack(fill='x', padx=12, pady=(0, 10))
+
+        self.sim_section = tk.LabelFrame(
+            body, text='Sim GUI', bg='#fee2e2', fg='#991b1b',
+            font=('Arial', 12, 'bold'), padx=6, pady=6,
+        )
+        self.sim_section.pack(fill='x', padx=12, pady=(0, 20))
+
+        self.views_frame = tk.Frame(self.robot_section, bg='#dbeafe')
+        self.views_frame.pack(fill='x', padx=8, pady=(0, 10))
+        for column in range(3):
+            self.views_frame.columnconfigure(column, weight=1)
+
+        self.map_frame = tk.Frame(self.views_frame, width=250, height=220, bg='#111827')
+        self.map_frame.grid(row=0, column=0, padx=4, sticky='nsew')
+        self.map_frame.grid_propagate(False)
+        self.map_label = tk.Label(
+            self.map_frame,
+            text='LiDAR map: waiting for SLAM',
+            bg='#111827',
+            fg='#ffffff',
+            anchor='center',
+        )
+        self.map_label.pack(fill='both', expand=True)
+        self.map_photo = None
+
+        self.camera_frame = tk.Frame(self.views_frame, width=250, height=220, bg='#111827')
+        self.camera_frame.grid(row=0, column=1, padx=4, sticky='nsew')
+        self.camera_frame.grid_propagate(False)
         self.camera_label = tk.Label(
             self.camera_frame,
             text='Camera: waiting for image',
@@ -197,44 +223,73 @@ class RobotStatusWindow(tk.Tk):
         self.camera_label.pack(fill='both', expand=True)
         self.camera_photo = None
 
-        self.info_frame = tk.Frame(body, bg='#ffffff', bd=1, relief='solid')
+        self.thermal_frame = tk.Frame(
+            self.views_frame, width=250, height=220, bg='#111827',
+        )
+        self.thermal_frame.grid(row=0, column=2, padx=4, sticky='nsew')
+        self.thermal_frame.grid_propagate(False)
+        self.thermal_label = tk.Label(
+            self.thermal_frame,
+            text='Thermal camera: waiting for image',
+            bg='#111827',
+            fg='#ffffff',
+            anchor='center',
+        )
+        self.thermal_label.pack(fill='both', expand=True)
+        self.thermal_photo = None
+
+        self.info_frame = tk.Frame(self.robot_section, bg='#ffffff', bd=1, relief='solid')
         self.info_frame.pack(fill='x', padx=20, pady=(0, 10))
 
-        self.robot_name_var = tk.StringVar(value='Robot Name: Rescue Bot')
         self.speed_var = tk.StringVar(value='Speed: 0.00 m/s')
         self.distance_var = tk.StringVar(value='Distance to Destination: 0.0 m')
         self.time_var = tk.StringVar(value='Time to Destination: Pending')
+        self.battery_var = tk.StringVar(value='Battery: 100%')
         self.obstacle_var = tk.StringVar(value='Obstacle detected: no')
         self.fire_var = tk.StringVar(value='Fire detected: no')
-        self.mission_var = tk.StringVar(value='Mission: ready')
-        self.goal_status_var = tk.StringVar(value='Goal: none')
-        self.dyn_obstacle_var = tk.StringVar(value='Obstacle: READY')
-        self.feedback_var = tk.StringVar(value='')
+        self.mission_var = tk.StringVar(value='Mission: STOPPED')
+        self.recent_status_var = tk.StringVar(value='Recent Status: system ready')
 
-        self.labels = [
-            tk.Label(self.info_frame, textvariable=self.robot_name_var, font=('Arial', 12), bg='#ffffff', fg='#111827', anchor='w', padx=16, pady=3),
-            tk.Label(self.info_frame, textvariable=self.destination_var, font=('Arial', 12), bg='#ffffff', fg='#111827', anchor='w', padx=16, pady=3),
-            tk.Label(self.info_frame, textvariable=self.speed_var, font=('Arial', 12), bg='#ffffff', fg='#111827', anchor='w', padx=16, pady=3),
-            tk.Label(self.info_frame, textvariable=self.distance_var, font=('Arial', 12), bg='#ffffff', fg='#111827', anchor='w', padx=16, pady=3),
-            tk.Label(self.info_frame, textvariable=self.time_var, font=('Arial', 12), bg='#ffffff', fg='#111827', anchor='w', padx=16, pady=3),
-            tk.Label(self.info_frame, textvariable=self.battery_var, font=('Arial', 12), bg='#ffffff', fg='#111827', anchor='w', padx=16, pady=3),
-            tk.Label(self.info_frame, textvariable=self.obstacle_var, font=('Arial', 12), bg='#ffffff', fg='#111827', anchor='w', padx=16, pady=3),
-            tk.Label(self.info_frame, textvariable=self.goal_status_var, font=('Arial', 12), bg='#ffffff', fg='#111827', anchor='w', padx=16, pady=3),
-            tk.Label(self.info_frame, textvariable=self.mission_var, font=('Arial', 12, 'bold'), bg='#ffffff', fg='#111827', anchor='w', padx=16, pady=3),
-            tk.Label(self.info_frame, textvariable=self.dyn_obstacle_var, font=('Arial', 12, 'bold'), bg='#ffffff', fg='#111827', anchor='w', padx=16, pady=3),
-        ]
-        self.feedback_label = tk.Label(
-            self.info_frame, textvariable=self.feedback_var, font=('Arial', 11),
-            bg='#ffffff', fg='#b45309', anchor='w', padx=16, pady=3,
+        self.mission_label = tk.Label(
+            self.info_frame, textvariable=self.mission_var,
+            font=('Arial', 22, 'bold'), bg='#dc2626', fg='#ffffff',
+            anchor='w', padx=16, pady=10,
         )
-        self.labels.append(self.feedback_label)
+        self.labels = [
+            self.mission_label,
+            tk.Label(self.info_frame, textvariable=self.distance_var, font=('Arial', 18, 'bold'), bg='#ffffff', fg='#0f172a', anchor='w', padx=16, pady=8),
+            tk.Label(self.info_frame, textvariable=self.time_var, font=('Arial', 18, 'bold'), bg='#ffffff', fg='#0f172a', anchor='w', padx=16, pady=8),
+            tk.Label(self.info_frame, textvariable=self.obstacle_var, font=('Arial', 12), bg='#ffffff', fg='#111827', anchor='w', padx=16, pady=3),
+            tk.Label(self.info_frame, textvariable=self.fire_var, font=('Arial', 12), bg='#ffffff', fg='#111827', anchor='w', padx=16, pady=3),
+            tk.Label(self.info_frame, textvariable=self.recent_status_var, font=('Arial', 12), bg='#ffffff', fg='#2563eb', anchor='w', padx=16, pady=6),
+        ]
 
         for label in self.labels:
             label.pack(fill='x')
 
+        self.speed_frame = tk.LabelFrame(
+            self.robot_section, text='Speed control', bg='#f3f4f6', fg='#1f2937',
+            font=('Arial', 11, 'bold'), padx=8, pady=4,
+        )
+        self.speed_frame.pack(fill='x', padx=20, pady=(0, 8))
+        tk.Label(
+            self.speed_frame, textvariable=self.speed_var, font=('Arial', 16, 'bold'),
+            bg='#f3f4f6', fg='#0f172a', anchor='w', padx=8, pady=4,
+        ).pack(fill='x')
+        self.speed_choice_var = tk.StringVar(value='slow')
+        self.speed_buttons = {}
+        for value, label in (('slow', 'Slow'), ('medium', 'Medium'), ('fast', 'Fast')):
+            button = tk.Radiobutton(
+                self.speed_frame, text=label, variable=self.speed_choice_var,
+                value=value, state='disabled', bg='#f3f4f6', fg='#111827',
+                font=('Arial', 12, 'bold'), height=2,
+            )
+            button.pack(side='left', expand=True, fill='x')
+            self.speed_buttons[value] = button
+
         # --- Navigation Goal (X/Y/Yaw + unified Start/Stop) ---
         self.goal_frame = tk.LabelFrame(
-            body,
+            self.robot_section,
             text='Navigation Goal',
             bg='#f3f4f6',
             fg='#1f2937',
@@ -269,6 +324,13 @@ class RobotStatusWindow(tk.Tk):
             state='disabled',
             command=lambda: None,
             height=2,
+            bg='#16a34a',
+            activebackground='#15803d',
+            fg='#ffffff',
+            activeforeground='#ffffff',
+            font=('Arial', 12, 'bold'),
+            relief='raised',
+            bd=3,
         )
         self.mission_button.grid(
             row=3, column=0, columnspan=2, sticky='ew', pady=(10, 0), ipady=2,
@@ -277,8 +339,8 @@ class RobotStatusWindow(tk.Tk):
 
         # --- Dynamic Obstacles: Path A / Path B / Random / Clear ---
         self.obstacle_frame = tk.LabelFrame(
-            body,
-            text='Dynamic Obstacles',
+            self.sim_section,
+            text='DYNAMIC FIRE',
             bg='#f3f4f6',
             fg='#1f2937',
             font=('Arial', 11, 'bold'),
@@ -291,7 +353,7 @@ class RobotStatusWindow(tk.Tk):
 
         self.block_path_a_button = tk.Button(
             self.obstacle_frame,
-            text='BLOCK PATH A',
+            text='BLOCK FIRE A',
             state='disabled',
             command=lambda: None,
             height=2,
@@ -301,7 +363,7 @@ class RobotStatusWindow(tk.Tk):
         )
         self.block_path_b_button = tk.Button(
             self.obstacle_frame,
-            text='BLOCK PATH B',
+            text='BLOCK FIRE B',
             state='disabled',
             command=lambda: None,
             height=2,
@@ -311,7 +373,7 @@ class RobotStatusWindow(tk.Tk):
         )
         self.random_block_button = tk.Button(
             self.obstacle_frame,
-            text='RANDOM BLOCK',
+            text='RANDOM FIRE',
             state='disabled',
             command=lambda: None,
             height=2,
@@ -321,7 +383,7 @@ class RobotStatusWindow(tk.Tk):
         )
         self.clear_obstacle_button = tk.Button(
             self.obstacle_frame,
-            text='CLEAR OBSTACLES',
+            text='CLEAR FIRE',
             state='disabled',
             command=lambda: None,
             height=2,
@@ -329,6 +391,30 @@ class RobotStatusWindow(tk.Tk):
         self.clear_obstacle_button.grid(
             row=1, column=1, sticky='ew', padx=(6, 0), pady=4, ipady=4,
         )
+
+        self.sim_updates = []
+        self.sim_update_var = tk.StringVar(value='No simulation updates yet')
+        self.sim_update_frame = tk.LabelFrame(
+            self.sim_section,
+            text='SIM UPDATE',
+            bg='#fee2e2',
+            fg='#991b1b',
+            font=('Arial', 11, 'bold'),
+            padx=10,
+            pady=8,
+        )
+        self.sim_update_frame.pack(fill='x', padx=20, pady=(0, 20))
+        tk.Label(
+            self.sim_update_frame,
+            textvariable=self.sim_update_var,
+            justify='left',
+            anchor='w',
+            font=('Courier New', 10),
+            bg='#111827',
+            fg='#e2e8f0',
+            padx=10,
+            pady=8,
+        ).pack(fill='x')
 
         self.update_status()
         self._bind_mousewheel_tree(body)
@@ -367,6 +453,16 @@ class RobotStatusWindow(tk.Tk):
     def set_mission_callback(self, toggle_callback) -> None:
         self.mission_button.configure(command=toggle_callback, state='normal')
 
+    def set_speed_callback(self, callback) -> None:
+        for value, button in self.speed_buttons.items():
+            button.configure(
+                command=lambda selected=value: callback(selected),
+                state='normal',
+            )
+
+    def set_speed(self, value: str) -> None:
+        self.speed_choice_var.set(value)
+
     def set_obstacle_callbacks(
         self,
         path_a_callback,
@@ -382,25 +478,44 @@ class RobotStatusWindow(tk.Tk):
     def set_mission_running(self, running: bool) -> None:
         self._mission_running = bool(running)
         if running:
-            self.mission_button.configure(text='STOP MISSION', state='normal')
+            self.mission_button.configure(
+                text='STOP MISSION', bg='#dc2626', activebackground='#b91c1c',
+                state='normal',
+            )
         else:
-            self.mission_button.configure(text='START MISSION', state='normal')
+            self.mission_button.configure(
+                text='START MISSION', bg='#16a34a', activebackground='#15803d',
+                state='normal',
+            )
 
     def set_mission_status(self, status: str) -> None:
-        self.mission_var.set(f'Mission: {status}')
+        normalized = status.strip().lower()
+        if normalized in ('running', 'starting', 'complete'):
+            color = '#16a34a'
+        elif normalized in ('waiting for nav2', 'stopping'):
+            color = '#d97706'
+        else:
+            color = '#dc2626'
+        self.mission_var.set(f'Mission: {status.upper()}')
+        self.mission_label.configure(bg=color)
 
     def set_goal_status(self, status: str) -> None:
-        self.goal_status_var.set(f'Goal: {status}')
+        return
 
     def set_dyn_obstacle_status(self, status: str) -> None:
-        if status.startswith('Obstacle:'):
-            self.dyn_obstacle_var.set(status)
-        else:
-            self.dyn_obstacle_var.set(f'Obstacle: {status}')
+        if status:
+            self.sim_updates.append(str(status).replace('Obstacle', 'Fire'))
+            self.sim_updates = self.sim_updates[-5:]
+            self.sim_update_var.set('\n'.join(self.sim_updates))
 
     def set_feedback(self, message: str, *, error: bool = False) -> None:
-        self.feedback_var.set(message)
-        self.feedback_label.configure(fg='#b91c1c' if error else '#047857')
+        self.recent_status_var.set(f'Recent Status: {message}')
+
+    def set_fire_status(self, detected: bool, location: Optional[str] = None) -> None:
+        if detected and location:
+            self.fire_var.set(f'Fire detected: yes ({location})')
+        else:
+            self.fire_var.set(f'Fire detected: {"yes" if detected else "no"}')
 
     def read_goal_fields(self) -> Tuple[str, str, str]:
         return (
@@ -452,14 +567,59 @@ class RobotStatusWindow(tk.Tk):
             return
         self.camera_label.configure(image=self.camera_photo, text='')
 
-    def update_map(self, grid: OccupancyGrid) -> None:
+    def update_thermal(self, image: Image) -> None:
+        if image.encoding != 'mono16' or image.width <= 0 or image.height <= 0:
+            self.thermal_label.configure(
+                text=f'Thermal camera: unsupported {image.encoding}', image=''
+            )
+            return
+
+        values = []
+        for row in range(image.height):
+            start = row * image.step
+            row_bytes = image.data[start:start + image.width * 2]
+            values.extend(
+                row_bytes[index] | (row_bytes[index + 1] << 8)
+                for index in range(0, len(row_bytes) - 1, 2)
+            )
+        if not values:
+            return
+
+        low = min(values)
+        high = max(values)
+        span = max(1, high - low)
+        pixels = bytearray()
+        for value in values:
+            intensity = (value - low) / span
+            if intensity < 0.33:
+                red, green, blue = 0, int(intensity * 3 * 180), 180
+            elif intensity < 0.66:
+                red, green, blue = int((intensity - 0.33) * 3 * 255), 180, 30
+            else:
+                red, green, blue = 255, int(180 - (intensity - 0.66) * 3 * 140), 20
+            pixels.extend((red, green, blue))
+
+        ppm = f'P6\n{image.width} {image.height}\n255\n'.encode() + pixels
+        try:
+            self.thermal_photo = tk.PhotoImage(data=ppm, format='PPM')
+        except tk.TclError:
+            self.thermal_label.configure(text='Thermal camera: invalid frame', image='')
+            return
+        self.thermal_label.configure(image=self.thermal_photo, text='')
+
+    def update_map(
+        self,
+        grid: OccupancyGrid,
+        robot_pose: Optional[Tuple[float, float, float]] = None,
+        goal_pose: Optional[Tuple[float, float, float]] = None,
+    ) -> None:
         width = int(grid.info.width)
         height = int(grid.info.height)
         if width <= 0 or height <= 0 or len(grid.data) < width * height:
             return
 
-        display_width = min(320, width)
-        display_height = min(240, height)
+        display_width = min(240, width)
+        display_height = min(210, height)
         pixels = bytearray()
         for display_y in range(display_height):
             source_y = height - 1 - (display_y * height // display_height)
@@ -467,12 +627,47 @@ class RobotStatusWindow(tk.Tk):
                 source_x = display_x * width // display_width
                 occupancy = grid.data[source_y * width + source_x]
                 if occupancy < 0:
-                    value = 150
+                    color = (100, 116, 139)  # unknown
                 elif occupancy >= 50:
-                    value = 0
+                    color = (127, 29, 29)  # occupied / hazard red
                 else:
-                    value = 255
-                pixels.extend((value, value, value))
+                    color = (241, 245, 249)  # traversable space
+                pixels.extend(color)
+
+        def map_pixel(pose: Optional[Tuple[float, float, float]]) -> Optional[Tuple[int, int]]:
+            if pose is None or grid.info.resolution <= 0.0:
+                return None
+            pixel_x = int(
+                (pose[0] - grid.info.origin.position.x)
+                / (grid.info.resolution * width)
+                * display_width
+            )
+            pixel_y = display_height - 1 - int(
+                (pose[1] - grid.info.origin.position.y)
+                / (grid.info.resolution * height)
+                * display_height
+            )
+            if 0 <= pixel_x < display_width and 0 <= pixel_y < display_height:
+                return pixel_x, pixel_y
+            return None
+
+        def draw_marker(point: Optional[Tuple[int, int]], color: Tuple[int, int, int]) -> None:
+            if point is None:
+                return
+            center_x, center_y = point
+            radius = 6
+            for offset_y in range(-radius, radius + 1):
+                for offset_x in range(-radius, radius + 1):
+                    if offset_x * offset_x + offset_y * offset_y > radius * radius:
+                        continue
+                    pixel_x = center_x + offset_x
+                    pixel_y = center_y + offset_y
+                    if 0 <= pixel_x < display_width and 0 <= pixel_y < display_height:
+                        index = (pixel_y * display_width + pixel_x) * 3
+                        pixels[index:index + 3] = bytes(color)
+
+        draw_marker(map_pixel(goal_pose), (22, 163, 74))
+        draw_marker(map_pixel(robot_pose), (37, 99, 235))
 
         ppm = (
             f'P6\n{display_width} {display_height}\n255\n'.encode() + pixels
@@ -495,7 +690,6 @@ class RobotStatusWindow(tk.Tk):
         fire_detected: bool = False,
         robot_name: str = 'Rescue Bot',
     ) -> None:
-        self.robot_name_var.set(f'Robot Name: {robot_name}')
         self.speed_var.set(f'Speed: {format_speed(speed)}')
         self.distance_var.set(f'Distance to Destination: {distance_to_destination:.1f} m')
         self.time_var.set(f'Time to Destination: {time_to_destination}')
@@ -578,6 +772,7 @@ class RobotStatusNode(Node):
         scan_topic = self.declare_parameter('scan_topic', 'scan').value
         fire_topic = self.declare_parameter('fire_topic', '/fire_detected').value
         camera_topic = self.declare_parameter('camera_topic', 'camera/image').value
+        thermal_topic = self.declare_parameter('thermal_topic', 'thermal/image').value
         map_topic = self.declare_parameter('map_topic', 'map').value
         obstacle_threshold = self.declare_parameter('obstacle_threshold', 1.0).value
         self.obstacle_threshold = float(obstacle_threshold)
@@ -594,12 +789,14 @@ class RobotStatusNode(Node):
             logger=lambda m: self.get_logger().info(m),
         )
         self.gui.set_dyn_obstacle_status(self.obstacle_manager.status_message)
+        self._sync_fire_status()
 
         self.create_subscription(Odometry, odom_topic, self._odom_callback, 10)
         self.create_subscription(LaserScan, scan_topic, self._scan_callback, qos_profile_sensor_data)
         self.create_subscription(LaserScan, 'base_scan', self._scan_callback, qos_profile_sensor_data)
         self.create_subscription(Bool, fire_topic, self._fire_callback, 10)
         self.create_subscription(Image, camera_topic, self._camera_callback, qos_profile_sensor_data)
+        self.create_subscription(Image, thermal_topic, self._thermal_callback, qos_profile_sensor_data)
         self.create_subscription(OccupancyGrid, map_topic, self._map_callback, 10)
         self.create_timer(0.1, self._update_gui)
         self.create_timer(0.2, self._obstacle_tick)
@@ -610,6 +807,32 @@ class RobotStatusNode(Node):
             f'{self.default_goal_yaw}). Listening to {odom_topic} and '
             f'{scan_topic}/base_scan. World={gap_config.world_name}.'
         )
+
+    def set_speed(self, speed: str) -> None:
+        if speed not in self.speed_limits:
+            return
+        self.selected_speed = speed
+        self.gui.set_speed(speed)
+        linear_limit = self.speed_limits[speed]
+        parameter_sets = (
+            self.speed_clients['smoother'],
+            [Parameter(
+                'max_velocity', Parameter.Type.DOUBLE_ARRAY,
+                [linear_limit, 0.0, 1.2],
+            )],
+        ), (
+            self.speed_clients['controller'],
+            [Parameter(
+                'FollowPath.desired_linear_vel', Parameter.Type.DOUBLE,
+                linear_limit,
+            )],
+        )
+        for client, values in parameter_sets:
+            if client.service_is_ready():
+                request = SetParameters.Request()
+                request.parameters = [value.to_parameter_msg() for value in values]
+                client.call_async(request)
+        self.gui.set_feedback(f'Speed set to {speed}')
 
     # -- shared goal submission -------------------------------------------
 
@@ -736,6 +959,7 @@ class RobotStatusNode(Node):
         else:
             ok, message = self.obstacle_manager.request_obstacle(path_key)
         self.gui.set_dyn_obstacle_status(message)
+        self._sync_fire_status()
         self.gui.set_feedback(message if ok else message, error=not ok)
         if ok:
             self.get_logger().info(f'{label}: {message}')
@@ -752,13 +976,22 @@ class RobotStatusNode(Node):
     def clear_obstacles(self) -> None:
         ok, message = self.obstacle_manager.clear_obstacles()
         self.gui.set_dyn_obstacle_status(message)
+        self._sync_fire_status()
         self.gui.set_feedback('Obstacles cleared' if ok else message, error=not ok)
         self.obstacle_manager.status_message = 'Obstacle: READY'
+
+    def _sync_fire_status(self) -> None:
+        gap = self.obstacle_manager.selected_gap
+        self.gui.set_fire_status(
+            self.obstacle_manager.state == ObstacleState.ACTIVE,
+            gap.label if gap else None,
+        )
 
     def _obstacle_tick(self) -> None:
         pose = self.latest_pose
         robot_xy = (pose[0], pose[1]) if pose is not None else None
         status = self.obstacle_manager.tick(robot_xy)
+        self._sync_fire_status()
         if status:
             self.gui.set_dyn_obstacle_status(status)
             if self.obstacle_manager.state == ObstacleState.ACTIVE:
@@ -836,11 +1069,14 @@ class RobotStatusNode(Node):
     def _camera_callback(self, msg: Image) -> None:
         self.gui.update_camera(msg)
 
+    def _thermal_callback(self, msg: Image) -> None:
+        self.gui.update_thermal(msg)
+
     def _fire_callback(self, msg: Bool) -> None:
         self.latest_fire_detected = bool(msg.data)
 
     def _map_callback(self, msg: OccupancyGrid) -> None:
-        self.gui.update_map(msg)
+        self.gui.update_map(msg, robot_pose=self.latest_pose, goal_pose=self.active_goal)
 
     def _update_gui(self) -> None:
         self.status.speed = self.latest_speed
@@ -867,6 +1103,8 @@ def main(args=None):
     gui = RobotStatusWindow(robot_name)
     node = RobotStatusNode(gui, robot_name)
     gui.set_mission_callback(node.toggle_mission)
+    gui.set_speed_callback(node.set_speed)
+    node.set_speed('slow')
     gui.set_obstacle_callbacks(
         node.block_path_a,
         node.block_path_b,

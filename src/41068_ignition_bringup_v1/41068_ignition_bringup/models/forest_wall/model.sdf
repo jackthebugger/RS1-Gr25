@@ -1,10 +1,11 @@
 <?xml version="1.0"?>
 <sdf version="1.7">
-  <!-- Vertical wall with real thickness so gpu_lidar / Nav2 can see it.
-       Old 0.01 m sheet was effectively invisible to the scan. -->
+
   <model name="forest_wall">
     <static>true</static>
+
     <link name="link">
+
       <collision name="collision">
         <pose>0 0 2 0 0 0</pose>
         <geometry>
@@ -13,19 +14,34 @@
           </box>
         </geometry>
       </collision>
+
       <visual name="visual">
         <pose>0 0 2 0 0 0</pose>
         <cast_shadows>false</cast_shadows>
+
         <geometry>
           <box>
             <size>9.32 0.5 4</size>
           </box>
         </geometry>
+
         <material>
-          <ambient>0.25 0.35 0.20 1</ambient>
-          <diffuse>0.35 0.45 0.25 1</diffuse>
+          <ambient>1 1 1 1</ambient>
+          <diffuse>1 1 1 1</diffuse>
+
+          <pbr>
+            <metal>
+              <albedo_map>materials/textures/forest_wall.png</albedo_map>
+              <roughness>1.0</roughness>
+              <metalness>0.0</metalness>
+            </metal>
+          </pbr>
         </material>
+
       </visual>
+
     </link>
+
   </model>
+
 </sdf>
