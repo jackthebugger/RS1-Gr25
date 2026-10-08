@@ -39,9 +39,16 @@ def generate_launch_description():
     ))
     ld.add_action(DeclareLaunchArgument(
         'world',
-        default_value='custom_world_1',
-        description='Which world to load',
-        choices=['simple_trees', 'large_demo', 'custom_world_1'],
+        default_value='bush_trail_world',
+        description=(
+            'Which world to load. Heightmap spawn Z hints: '
+            'bush_trail_world:=0.50, custom_terrain_world:=0.56, '
+            'custom_world_hilly:=0.74, custom_world_1:=0.4'
+        ),
+        choices=[
+            'simple_trees', 'large_demo', 'custom_world_1',
+            'custom_world_hilly', 'custom_terrain_world', 'bush_trail_world',
+        ],
     ))
     ld.add_action(DeclareLaunchArgument(
         'gui',
@@ -54,7 +61,7 @@ def generate_launch_description():
     passthrough_args = (
         ('husky_x', '-18.0', 'Husky spawn X position in metres'),
         ('husky_y', '3.0', 'Husky spawn Y position in metres'),
-        ('husky_z', '0.4', 'Husky spawn Z position in metres'),
+        ('husky_z', '0.50', 'Husky spawn Z position in metres (0.50 for bush_trail_world)'),
         ('husky_yaw', '0.0', 'Husky spawn yaw in radians'),
         ('use_prior_map', 'true',
          'Publish maps/my_map on prior_map for RViz/operators (not used by NavFn)'),

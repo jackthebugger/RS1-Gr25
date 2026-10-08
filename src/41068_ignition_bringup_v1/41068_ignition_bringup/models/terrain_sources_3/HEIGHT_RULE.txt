@@ -1,0 +1,41 @@
+HEIGHT_RULE for terrain_sources_3 (authoritative DEM-derived maps)
+
+Elevation authority: 01_heightmap_greyscale.png
+  black = lowest, white = highest
+  DEM enhanced for lidar-visible trail walls (enhance_bush_trail_walls.py):
+    trail floor ≈ 0.05 m, bank plateau ≈ 1.05 m (Δ ≈ 1.0 m ≥ lidar AGL 0.845 m)
+  Domain: 60 x 60 m  heightmap 1024x1024 (Gazebo install 1025x1025)
+  Seed: 42
+
+Colour / feature → elevation mapping (matches generated DEM):
+  Blue / teal water .............. LOWEST (smooth banks ~2.2 m)
+  Tan / beige maintained trail ... LOW, relatively flat; ~0.08–0.15 m below
+                                   local surround; soft shoulders ~1.3 m;
+                                   major width ~3.5 m
+  Light green clearings .......... LOW to LOW–MID (mild flatten)
+  Dark / medium green bushland ... MID (broad rolls; canopy adds NO ground height)
+  Grey / brown rocky outcrops .... MID–HIGH to HIGH
+  Pale cliff / ridge rock ........ HIGH
+  Buildings / structures ......... surface layout only (local flatten, not mountains)
+
+Geography preserved from reference:
+  - Primary trail network (west junction + E–W mid corridor + eastern loops)
+  - Water bodies at centre-left pond, NE lake, corner ponds
+  - Rocky high ground at NW/SW cliffs and scattered outcrops
+  - West / left-centre spawn flattened ≥3.5 m radius at approx
+    Gazebo XY (-18.0, 3.0)
+
+Slope QA (numerical):
+  p50=1.99°  p95=9.93°  max=19.94°
+  percent >15° = 0.264%
+
+Mask coverage (fraction of pixels):
+  trail=0.2081  water=0.0219
+  rock=0.0493  clearing=0.0202
+
+Image axis → Gazebo (origin-centred):
+  column 0 = X = -30 m (west)    column max = X = +30 m (east)
+  row 0    = Y = +30 m (north)   row max    = Y = -30 m (south)
+
+02_topo_shaded_relief.png — hillshade of the SAME DEM (upper-left light).
+03_colour_surface_map.png — surface colours from SAME DEM + masks (not fantasy noise).
