@@ -1,0 +1,112 @@
+<?xml version="1.0"?>
+<sdf version="1.7">
+  <!-- Closed perimeter for 60 x 60 m heightmaps (origin-centred, X ±30, Y ±30).
+       0.5 m thick boxes so gpu_lidar / SLAM see the boundary. -->
+  <model name="map_perimeter_60">
+    <static>true</static>
+
+    <!-- West wall: x = -30, spans full Y (60 m) -->
+    <link name="west">
+      <collision name="collision">
+        <pose>0 0 2 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>0.5 60 4</size>
+          </box>
+        </geometry>
+      </collision>
+      <visual name="visual">
+        <pose>0 0 2 0 0 0</pose>
+        <cast_shadows>false</cast_shadows>
+        <geometry>
+          <box>
+            <size>0.5 60 4</size>
+          </box>
+        </geometry>
+        <material>
+          <ambient>0.35 0.30 0.25 1</ambient>
+          <diffuse>0.45 0.38 0.30 1</diffuse>
+        </material>
+      </visual>
+      <pose>-30 0 0 0 0 0</pose>
+    </link>
+
+    <!-- East wall: x = +30, spans full Y -->
+    <link name="east">
+      <collision name="collision">
+        <pose>0 0 2 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>0.5 60 4</size>
+          </box>
+        </geometry>
+      </collision>
+      <visual name="visual">
+        <pose>0 0 2 0 0 0</pose>
+        <cast_shadows>false</cast_shadows>
+        <geometry>
+          <box>
+            <size>0.5 60 4</size>
+          </box>
+        </geometry>
+        <material>
+          <ambient>0.35 0.30 0.25 1</ambient>
+          <diffuse>0.45 0.38 0.30 1</diffuse>
+        </material>
+      </visual>
+      <pose>30 0 0 0 0 0</pose>
+    </link>
+
+    <!-- South wall: y = -30; 61 m long so corners seal against east/west -->
+    <link name="south">
+      <collision name="collision">
+        <pose>0 0 2 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>61 0.5 4</size>
+          </box>
+        </geometry>
+      </collision>
+      <visual name="visual">
+        <pose>0 0 2 0 0 0</pose>
+        <cast_shadows>false</cast_shadows>
+        <geometry>
+          <box>
+            <size>61 0.5 4</size>
+          </box>
+        </geometry>
+        <material>
+          <ambient>0.35 0.30 0.25 1</ambient>
+          <diffuse>0.45 0.38 0.30 1</diffuse>
+        </material>
+      </visual>
+      <pose>0 -30 0 0 0 0</pose>
+    </link>
+
+    <!-- North wall: y = +30 -->
+    <link name="north">
+      <collision name="collision">
+        <pose>0 0 2 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>61 0.5 4</size>
+          </box>
+        </geometry>
+      </collision>
+      <visual name="visual">
+        <pose>0 0 2 0 0 0</pose>
+        <cast_shadows>false</cast_shadows>
+        <geometry>
+          <box>
+            <size>61 0.5 4</size>
+          </box>
+        </geometry>
+        <material>
+          <ambient>0.35 0.30 0.25 1</ambient>
+          <diffuse>0.45 0.38 0.30 1</diffuse>
+        </material>
+      </visual>
+      <pose>0 30 0 0 0 0</pose>
+    </link>
+  </model>
+</sdf>
