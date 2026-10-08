@@ -192,14 +192,27 @@ class RobotStatusWindow(tk.Tk):
         )
         self.sim_section.pack(fill='x', padx=12, pady=(0, 20))
 
-        self.camera_frame = tk.Frame(
-            self.robot_section,
-            width=620,
-            height=300,
+        self.views_frame = tk.Frame(self.robot_section, bg='#dbeafe')
+        self.views_frame.pack(fill='x', padx=8, pady=(0, 10))
+        for column in range(3):
+            self.views_frame.columnconfigure(column, weight=1)
+
+        self.map_frame = tk.Frame(self.views_frame, width=250, height=220, bg='#111827')
+        self.map_frame.grid(row=0, column=0, padx=4, sticky='nsew')
+        self.map_frame.grid_propagate(False)
+        self.map_label = tk.Label(
+            self.map_frame,
+            text='LiDAR map: waiting for SLAM',
             bg='#111827',
+            fg='#ffffff',
+            anchor='center',
         )
-        self.camera_frame.pack(padx=20, pady=(0, 10))
-        self.camera_frame.pack_propagate(False)
+        self.map_label.pack(fill='both', expand=True)
+        self.map_photo = None
+
+        self.camera_frame = tk.Frame(self.views_frame, width=250, height=220, bg='#111827')
+        self.camera_frame.grid(row=0, column=1, padx=4, sticky='nsew')
+        self.camera_frame.grid_propagate(False)
         self.camera_label = tk.Label(
             self.camera_frame,
             text='Camera: waiting for image',
@@ -210,24 +223,11 @@ class RobotStatusWindow(tk.Tk):
         self.camera_label.pack(fill='both', expand=True)
         self.camera_photo = None
 
-        self.map_frame = tk.Frame(self.robot_section, width=620, height=300, bg='#111827')
-        self.map_frame.pack(padx=20, pady=(0, 10))
-        self.map_frame.pack_propagate(False)
-        self.map_label = tk.Label(
-            self.map_frame,
-            text='Map: waiting for SLAM',
-            bg='#111827',
-            fg='#ffffff',
-            anchor='center',
-        )
-        self.map_label.pack(fill='both', expand=True)
-        self.map_photo = None
-
         self.thermal_frame = tk.Frame(
-            self.robot_section, width=620, height=300, bg='#111827',
+            self.views_frame, width=250, height=220, bg='#111827',
         )
-        self.thermal_frame.pack(padx=20, pady=(0, 10))
-        self.thermal_frame.pack_propagate(False)
+        self.thermal_frame.grid(row=0, column=2, padx=4, sticky='nsew')
+        self.thermal_frame.grid_propagate(False)
         self.thermal_label = tk.Label(
             self.thermal_frame,
             text='Thermal camera: waiting for image',
@@ -340,7 +340,7 @@ class RobotStatusWindow(tk.Tk):
         # --- Dynamic Obstacles: Path A / Path B / Random / Clear ---
         self.obstacle_frame = tk.LabelFrame(
             self.sim_section,
-            text='Dynamic Obstacles',
+            text='DYNAMIC FIRE',
             bg='#f3f4f6',
             fg='#1f2937',
             font=('Arial', 11, 'bold'),
@@ -353,7 +353,7 @@ class RobotStatusWindow(tk.Tk):
 
         self.block_path_a_button = tk.Button(
             self.obstacle_frame,
-            text='BLOCK PATH A',
+            text='BLOCK FIRE A',
             state='disabled',
             command=lambda: None,
             height=2,
@@ -363,7 +363,7 @@ class RobotStatusWindow(tk.Tk):
         )
         self.block_path_b_button = tk.Button(
             self.obstacle_frame,
-            text='BLOCK PATH B',
+            text='BLOCK FIRE B',
             state='disabled',
             command=lambda: None,
             height=2,
@@ -373,7 +373,7 @@ class RobotStatusWindow(tk.Tk):
         )
         self.random_block_button = tk.Button(
             self.obstacle_frame,
-            text='RANDOM BLOCK',
+            text='RANDOM FIRE',
             state='disabled',
             command=lambda: None,
             height=2,
@@ -383,7 +383,7 @@ class RobotStatusWindow(tk.Tk):
         )
         self.clear_obstacle_button = tk.Button(
             self.obstacle_frame,
-            text='CLEAR OBSTACLES',
+            text='CLEAR FIRE',
             state='disabled',
             command=lambda: None,
             height=2,
@@ -504,7 +504,7 @@ class RobotStatusWindow(tk.Tk):
 
     def set_dyn_obstacle_status(self, status: str) -> None:
         if status:
-            self.sim_updates.append(str(status))
+            self.sim_updates.append(str(status).replace('Obstacle', 'Fire'))
             self.sim_updates = self.sim_updates[-5:]
             self.sim_update_var.set('\n'.join(self.sim_updates))
 
@@ -618,8 +618,8 @@ class RobotStatusWindow(tk.Tk):
         if width <= 0 or height <= 0 or len(grid.data) < width * height:
             return
 
-        display_width = min(600, width)
-        display_height = min(290, height)
+        display_width = min(240, width)
+        display_height = min(210, height)
         pixels = bytearray()
         for display_y in range(display_height):
             source_y = height - 1 - (display_y * height // display_height)
