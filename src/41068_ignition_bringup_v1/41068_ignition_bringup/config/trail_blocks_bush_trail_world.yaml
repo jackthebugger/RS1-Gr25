@@ -1,0 +1,28 @@
+# Dynamic block points for bush_trail_world Status UI (Path A / Path B).
+#
+# Centres sit on the two ranked path-bank corridors from spawn (−18, 3) to
+# goal (16, −0.1), chosen as mutually exclusive mid-route points so blocking
+# one leaves the other open (Entry 019 geometry).
+#
+# Obstacle size matches the validated thin cross-path barrier used in
+# path_bank_nav_test (not the wide forest-gap seal).
+
+forest_gaps:
+  world_name: bush_trail_world
+  trigger_distance_m: 6.0
+  obstacle:
+    size_x: 0.45
+    size_y: 2.2
+    size_z: 1.6
+    name_prefix: dynamic_obstacle_
+  gaps:
+    gap_a:
+      label: Path A
+      x: -1.3
+      y: -11.5
+      yaw: 0.0
+    gap_b:
+      label: Path B
+      x: -5.1
+      y: 21.1
+      yaw: 0.0
