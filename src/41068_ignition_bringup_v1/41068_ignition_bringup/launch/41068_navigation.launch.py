@@ -7,6 +7,7 @@ from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration, PathJoinSubstitution, PythonExpression, TextSubstitution
 from launch.conditions import IfCondition
 from launch_ros.actions import Node, PushRosNamespace, SetRemap
+from launch_ros.parameter_descriptions import ParameterValue
 from launch_ros.substitutions import FindPackageShare
 from nav2_common.launch import RewrittenYaml
 
@@ -88,6 +89,30 @@ def generate_launch_description():
         description='Publish saved occupancy map on prior_map for StaticLayer'
     )
 
+    prior_map_file_launch_arg = DeclareLaunchArgument(
+        'prior_map_file',
+        default_value='bush_trail_world.yaml',
+        description=(
+            'Map YAML under share/41068_ignition_bringup/maps/ used by '
+            'prior_map_publisher (StaticLayer baseline + path bank)'
+        ),
+    )
+
+    path_bank_launch_arg = DeclareLaunchArgument(
+        'path_bank',
+        default_value='True',
+        description='Launch path_bank_manager for alternative-route selection'
+    )
+
+    path_bank_switch_resend_launch_arg = DeclareLaunchArgument(
+        'path_bank_switch_resend',
+        default_value='True',
+        description=(
+            'When true, path_bank_manager preempts NavigateToPose onto the next '
+            'valid banked route after live lethal invalidation (Entry 019+)'
+        ),
+    )
+
     fire_avoidance_launch_arg = DeclareLaunchArgument(
         'fire_avoidance',
         default_value='False',
@@ -126,7 +151,7 @@ def generate_launch_description():
     )
 
     prior_map_yaml = PathJoinSubstitution([
-        pkg_share, 'maps', 'my_map.yaml'
+        pkg_share, 'maps', LaunchConfiguration('prior_map_file')
     ])
 
     # Start Simultaneous Localisation and Mapping (SLAM).
@@ -191,6 +216,8 @@ def generate_launch_description():
     ])
 
     # Prior map for global StaticLayer (does not replace SLAM /map).
+    # Must start with Nav2 so TransientLocal /prior_map is available before
+    # StaticLayer initialises (Entry 003 hang was "no map received").
     prior_map = GroupAction(scoped=True, condition=_if_nav2_and('use_prior_map'), actions=[
         PushRosNamespace(namespace),
         SetRemap(src='/tf', dst='tf'),
@@ -205,6 +232,37 @@ def generate_launch_description():
                 'yaml_filename': prior_map_yaml,
                 'topic_name': 'prior_map',
                 'robot_name': namespace,
+            }],
+        ),
+    ])
+
+    # Path bank: ranked alternative routes; switches only when live costmap
+    # invalidates the active candidate (does not replan at 1 Hz).
+    path_bank = GroupAction(scoped=True, condition=_if_nav2_and('path_bank'), actions=[
+        PushRosNamespace(namespace),
+        SetRemap(src='/tf', dst='tf'),
+        SetRemap(src='/tf_static', dst='tf_static'),
+        Node(
+            package='41068_ignition_bringup',
+            executable='path_bank_manager.py',
+            name='path_bank_manager',
+            output='screen',
+            parameters=[{
+                'use_sim_time': use_sim_time,
+                'robot_name': namespace,
+                'enabled': True,
+                'max_candidates': 4,
+                'exclusion_radius_m': 2.5,
+                'min_path_separation_m': 2.0,
+                # Monitor + rank; only force a NavigateToPose resend when a
+                # still-valid banked alternative exists. Never cancel on empty
+                # bank — IsPathValid BT remains the follow/replan authority.
+                'auto_switch': True,
+                'switch_resend_goal': ParameterValue(
+                    LaunchConfiguration('path_bank_switch_resend'), value_type=bool
+                ),
+                'cancel_on_no_path': False,
+                'validity_grace_s': 15.0,
             }],
         ),
     ])
@@ -258,10 +316,16 @@ def generate_launch_description():
     ld.add_action(slam_launch_arg)
     ld.add_action(nav2_launch_arg)
     ld.add_action(use_prior_map_launch_arg)
+    ld.add_action(prior_map_file_launch_arg)
+    ld.add_action(path_bank_launch_arg)
+    ld.add_action(path_bank_switch_resend_launch_arg)
     ld.add_action(fire_avoidance_launch_arg)
+    # prior_map before navigation_group so latched OccupancyGrid exists when
+    # StaticLayer starts (avoids Entry 003 "no map received" hang).
+    ld.add_action(prior_map)
     ld.add_action(slam)
     ld.add_action(navigation_group)
-    ld.add_action(prior_map)
+    ld.add_action(path_bank)
     ld.add_action(fire_nav)
 
     return ld

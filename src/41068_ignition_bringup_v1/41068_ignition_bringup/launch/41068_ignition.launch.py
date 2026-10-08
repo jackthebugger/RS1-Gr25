@@ -183,6 +183,9 @@ def add_navigation_instance(
             'slam': LaunchConfiguration('slam'),
             'nav2': LaunchConfiguration('nav2'),
             'use_prior_map': LaunchConfiguration('use_prior_map'),
+            'prior_map_file': LaunchConfiguration('prior_map_file'),
+            'path_bank': LaunchConfiguration('path_bank'),
+            'path_bank_switch_resend': LaunchConfiguration('path_bank_switch_resend'),
             'fire_avoidance': LaunchConfiguration('fire_avoidance'),
         }.items(),
     )
@@ -356,9 +359,27 @@ def generate_launch_description():
     ld.add_action(DeclareLaunchArgument(
         'use_prior_map',
         default_value='false',
-        description='When true (and nav2), publish maps/my_map on prior_map for '
-                    'the global StaticLayer. Default false here so generic '
+        description='When true (and nav2), publish prior_map_file on prior_map '
+                    'for the global StaticLayer. Default false here so generic '
                     'bringup stays unchanged; husky wrapper enables it.',
+    ))
+    ld.add_action(DeclareLaunchArgument(
+        'prior_map_file',
+        default_value='bush_trail_world.yaml',
+        description='Map YAML in share/.../maps/ for StaticLayer + path bank.',
+    ))
+    ld.add_action(DeclareLaunchArgument(
+        'path_bank',
+        default_value='true',
+        description='When true (and nav2), launch path_bank_manager.',
+    ))
+    ld.add_action(DeclareLaunchArgument(
+        'path_bank_switch_resend',
+        default_value='true',
+        description=(
+            'When true, path_bank_manager preempts NavigateToPose onto the next '
+            'valid banked route after live lethal invalidation (Entry 019+).'
+        ),
     ))
     ld.add_action(DeclareLaunchArgument(
         'fire_avoidance',

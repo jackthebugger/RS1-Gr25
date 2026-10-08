@@ -97,26 +97,54 @@ def default_custom_world_gaps() -> Dict[str, GapSpec]:
     }
 
 
-def default_config_path() -> Optional[str]:
-    """Locate packaged forest_gaps YAML via ament, else source-tree relative."""
+_WORLD_GAP_FILES = {
+    'custom_world_1': 'forest_gaps_custom_world_1.yaml',
+    'bush_trail_world': 'trail_blocks_bush_trail_world.yaml',
+}
+
+
+def _config_dir() -> str:
     try:
         from ament_index_python.packages import get_package_share_directory
         share = get_package_share_directory('41068_ignition_bringup')
-        candidate = os.path.join(share, 'config', 'forest_gaps_custom_world_1.yaml')
-        if os.path.isfile(candidate):
-            return candidate
+        packaged = os.path.join(share, 'config')
+        if os.path.isdir(packaged):
+            return packaged
     except Exception:
         pass
-    here = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    candidate = os.path.join(here, 'config', 'forest_gaps_custom_world_1.yaml')
-    return candidate if os.path.isfile(candidate) else None
+    return os.path.join(
+        os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+        'config',
+    )
 
 
-def load_forest_gap_config(path: Optional[str] = None) -> ForestGapConfig:
-    resolved = path or default_config_path()
+def default_config_path(world_name: Optional[str] = None) -> Optional[str]:
+    """Locate gap/block YAML for ``world_name`` (default: bush_trail_world)."""
+    world = (world_name or 'bush_trail_world').strip() or 'bush_trail_world'
+    filename = _WORLD_GAP_FILES.get(world, _WORLD_GAP_FILES['bush_trail_world'])
+    candidate = os.path.join(_config_dir(), filename)
+    if os.path.isfile(candidate):
+        return candidate
+    # Fall back to forest gaps if bush-trail file missing in older installs.
+    fallback = os.path.join(_config_dir(), 'forest_gaps_custom_world_1.yaml')
+    return fallback if os.path.isfile(fallback) else None
+
+
+def load_forest_gap_config(
+    path: Optional[str] = None,
+    *,
+    world_name: Optional[str] = None,
+) -> ForestGapConfig:
+    resolved = path or default_config_path(world_name)
     if resolved and os.path.isfile(resolved):
-        return ForestGapConfig.from_yaml(resolved)
-    return ForestGapConfig(gaps=default_custom_world_gaps())
+        cfg = ForestGapConfig.from_yaml(resolved)
+        if world_name:
+            cfg.world_name = str(world_name)
+        return cfg
+    return ForestGapConfig(
+        world_name=str(world_name or 'custom_world_1'),
+        gaps=default_custom_world_gaps(),
+    )
 
 
 class ForestObstacleManager:

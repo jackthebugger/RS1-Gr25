@@ -38,10 +38,13 @@ def test_parse_coordinate_rejects_invalid():
 
 
 def test_validate_goal_bounds():
-    assert gui.validate_goal(18.0, 0.0, 0.0) is None
+    assert gui.validate_goal(16.0, -0.1, 0.0) is None
+    assert gui.validate_goal(18.0, 0.0, 0.0) is None  # still valid coords (forest)
     assert gui.validate_goal(100.0, 0.0, 0.0) is not None
     assert gui.validate_goal(0.0, 50.0, 0.0) is not None
     assert gui.validate_goal(0.0, 0.0, 20.0) is not None
+    # bush_trail 60×60 allows |Y| up to ~29
+    assert gui.validate_goal(0.0, 21.0, 0.0) is None
 
 
 def test_default_gaps_match_world_geometry():
@@ -54,10 +57,20 @@ def test_default_gaps_match_world_geometry():
 
 
 def test_load_forest_gap_config_from_source_tree():
-    cfg = load_forest_gap_config()
+    cfg = load_forest_gap_config(world_name='custom_world_1')
+    assert cfg.world_name == 'custom_world_1'
     assert cfg.trigger_distance_m == 5.0
     assert set(cfg.gaps.keys()) == {PATH_A, PATH_B}
     assert cfg.gaps[PATH_A].label == 'Path A'
+
+
+def test_load_bush_trail_block_config():
+    cfg = load_forest_gap_config(world_name='bush_trail_world')
+    assert cfg.world_name == 'bush_trail_world'
+    assert set(cfg.gaps.keys()) == {PATH_A, PATH_B}
+    assert cfg.gaps[PATH_A].y < 0.0  # southern corridor Path A
+    assert cfg.gaps[PATH_B].y > 0.0  # northern corridor Path B
+    assert cfg.size_z >= 1.5
 
 
 def test_obstacle_manager_path_a_5m_trigger_and_clear():
@@ -140,8 +153,8 @@ def test_ui_has_unified_mission_and_four_obstacle_buttons():
     assert win.block_path_b_button.cget('text') == 'BLOCK PATH B'
     assert win.random_block_button.cget('text') == 'RANDOM BLOCK'
     assert win.clear_obstacle_button.cget('text') == 'CLEAR OBSTACLES'
-    assert win.goal_x_var.get() == '18'
-    assert win.goal_y_var.get() == '0'
+    assert win.goal_x_var.get() == '16'
+    assert win.goal_y_var.get() in ('-0.1', '-0.10')
     assert win.goal_yaw_var.get() == '0'
     win.set_mission_running(True)
     assert win.mission_button.cget('text') == 'STOP MISSION'
