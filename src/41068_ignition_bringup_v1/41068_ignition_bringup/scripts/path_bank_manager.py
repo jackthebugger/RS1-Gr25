@@ -6,19 +6,22 @@ Authority model
 * Nav2 (NavFn + IsPathValid BT + RPP) still owns follow/replan *timing*.
 * This node owns the *candidate set*: generate once, rank, mark blocked,
   select next valid candidate when the active route is collision-invalid on
-  the live global costmap.
+  the live global costmap (plugins + KeepoutFilter obstacle memory).
 
 It does NOT replan every second. Validity is checked at ``check_hz`` (default
-2 Hz). A switch only happens when the active bank path intersects lethal /
-inscribed cost on the live costmap.
+2 Hz). A switch only happens when the active bank path intersects lethal
+cost on the live costmap.
 
 On switch:
-  1. Mark current candidate BLOCKED for this mission
+  1. Mark current candidate BLOCKED (ROUTE_MARKED_BLOCKED)
   2. Pick next highest-scored AVAILABLE candidate that is still valid live
-  3. Cancel NavigateToPose and re-send the same goal (NavFn then plans around
-     the already-sensed obstacle; bank state prevents treating a blocked
-     corridor as a preferred option in status/logging)
-  If no candidate remains valid → publish NO_PATH_AVAILABLE and cancel nav.
+  3. Preempt NavigateToPose onto the same goal (NavFn sees keepout + live)
+  If no candidate remains valid → publish NO_PATH_AVAILABLE (advisory)
+
+Entry 021 — evidence unblock:
+  BLOCKED→AVAILABLE only when ``obstacle_memory/mask`` no longer occupies the
+  corridor AND ``costmap_raw`` reports the path valid. Never use Gazebo GT or
+  "a new plan exists". Unlock does **not** auto-preempt back to that path.
 
 Static vs live
 --------------
@@ -53,6 +56,7 @@ from rs1_nav.path_bank import (
     PathCandidate,
     build_path_bank,
     nav2_costmap_to_grid,
+    occupancy_mask_intersects_path,
     occupancy_msg_to_grid,
     path_is_valid,
 )
@@ -103,7 +107,13 @@ class PathBankManager(Node):
         self.declare_parameter('auto_switch', True)
         self.declare_parameter('switch_resend_goal', False)
         self.declare_parameter('validity_grace_s', 15.0)
+        # Entry 023: after A→B switch, pause validity so Keepout/local costmap
+        # and NavFn settle before the new active path can be re-blocked.
+        self.declare_parameter('post_switch_grace_s', 8.0)
         self.declare_parameter('cancel_on_no_path', False)
+        # Keep 254 (LETHAL). Using 253 (inscribed) false-blocks alternate
+        # bank routes on soft inflation and yields active_id=None (T2 flake).
+        self.declare_parameter('lethal_threshold', 254)
 
         def _as_bool(value) -> bool:
             if isinstance(value, str):
@@ -117,17 +127,25 @@ class PathBankManager(Node):
         self._auto_switch = _as_bool(self.get_parameter('auto_switch').value)
         self._switch_resend = _as_bool(self.get_parameter('switch_resend_goal').value)
         self._grace_s = float(self.get_parameter('validity_grace_s').value)
+        self._post_switch_grace_s = float(
+            self.get_parameter('post_switch_grace_s').value)
         self._cancel_on_no_path = _as_bool(self.get_parameter('cancel_on_no_path').value)
         self._bank_ready_at: Optional[float] = None
+        # Entry 023: absolute monotonic deadline after a bank switch.
+        self._switch_grace_until: float = 0.0
         # Ignore NavigateToPose result callbacks from goals we intentionally
         # superseded during a bank switch (preempt/abort is expected).
         self._ignore_goal_results = 0
+        # Entry 023: one abort→resend per mission goal to recover ownership
+        # when the post-switch NavigateToPose aborts while FOLLOWING_PATH.
+        self._abort_resend_used = False
 
         self._cfg = PathBankConfig(
             max_candidates=int(self.get_parameter('max_candidates').value),
             exclusion_radius_m=float(self.get_parameter('exclusion_radius_m').value),
             min_path_separation_m=float(self.get_parameter('min_path_separation_m').value),
             min_clearance_m=float(self.get_parameter('min_clearance_m').value),
+            lethal_threshold=int(self.get_parameter('lethal_threshold').value),
             length_weight=float(self.get_parameter('length_weight').value),
             clearance_weight=float(self.get_parameter('clearance_weight').value),
             cost_weight=float(self.get_parameter('cost_weight').value),
@@ -138,6 +156,7 @@ class PathBankManager(Node):
 
         self._prior_map: Optional[OccupancyGrid] = None
         self._live_costmap: Optional[Costmap] = None
+        self._memory_mask: Optional[OccupancyGrid] = None
         self._bank: Optional[PathBank] = None
         self._state = MissionNavState.IDLE
         self._goal_xyyaw: Optional[Tuple[float, float, float]] = None
@@ -148,6 +167,8 @@ class PathBankManager(Node):
         self.create_subscription(OccupancyGrid, 'prior_map', self._on_prior, LATCHED)
         self.create_subscription(
             Costmap, 'global_costmap/costmap_raw', self._on_costmap, 2)
+        self.create_subscription(
+            OccupancyGrid, 'obstacle_memory/mask', self._on_memory_mask, LATCHED)
         self.create_subscription(Path, 'plan', self._on_plan, 5)
         self.create_subscription(PoseStamped, 'goal_pose', self._on_goal_pose, 10)
 
@@ -180,6 +201,9 @@ class PathBankManager(Node):
     def _on_costmap(self, msg: Costmap) -> None:
         self._live_costmap = msg
 
+    def _on_memory_mask(self, msg: OccupancyGrid) -> None:
+        self._memory_mask = msg
+
     def _on_goal_pose(self, msg: PoseStamped) -> None:
         if not self._enabled:
             return
@@ -188,6 +212,7 @@ class PathBankManager(Node):
         self._set_state(MissionNavState.PLANNING)
         self._bank = None
         self._switch_count = 0
+        self._abort_resend_used = False
         self.get_logger().info(
             f'Goal pose received ({self._goal_xyyaw[0]:.2f}, {self._goal_xyyaw[1]:.2f}); '
             'will build path bank on next plan/costmap'
@@ -221,13 +246,23 @@ class PathBankManager(Node):
         if self._state not in (
             MissionNavState.FOLLOWING_PATH,
             MissionNavState.PATH_BLOCKED,
+            MissionNavState.NO_PATH_AVAILABLE,
         ):
             return
         # Allow StaticLayer + ObstacleLayer + inflation to settle before the
         # bank starts invalidating candidates (clean-start false positives).
+        now = time.monotonic()
         if self._bank_ready_at is not None:
-            if (time.monotonic() - self._bank_ready_at) < self._grace_s:
+            if (now - self._bank_ready_at) < self._grace_s:
                 return
+        # Entry 023: post-switch settle — do not re-block the newly active path
+        # while NavFn / KeepoutFilter / local costmap catch up.
+        if now < self._switch_grace_until:
+            return
+
+        live = nav2_costmap_to_grid(self._live_costmap)
+        # Entry 021: evidence-based BLOCKED→AVAILABLE (no auto path flip).
+        self._try_evidence_unblock(live)
 
         active = self._bank.active()
         if active is None:
@@ -236,13 +271,18 @@ class PathBankManager(Node):
                 self._publish_bank_paths()
             return
 
-        live = nav2_costmap_to_grid(self._live_costmap)
         ok, reason = path_is_valid(
             active.points,
             live,
             lethal_threshold=self._cfg.lethal_threshold,
             sample_stride=self._cfg.sample_stride,
         )
+        # Keepout mask may mark cells one sample off the polyline while
+        # costmap_raw centre reads soft/253 — treat memory intersection as
+        # blockage so bank switches reliably (Entry 023 / T2).
+        if ok and self._memory_intersects_path(active.points):
+            ok = False
+            reason = 'obstacle_memory_mask'
         if ok:
             return
 
@@ -251,6 +291,9 @@ class PathBankManager(Node):
         )
         self._set_state(MissionNavState.PATH_BLOCKED)
         self._bank.mark_blocked(active.path_id, reason)
+        self.get_logger().info(
+            f'ROUTE_MARKED_BLOCKED Path {active.path_id}: {reason}'
+        )
         self._publish_bank_paths()
 
         if not self._auto_switch:
@@ -283,7 +326,67 @@ class PathBankManager(Node):
             if self._goal_handle is not None:
                 self._ignore_goal_results += 1
             self._send_goal(*self._goal_xyyaw)
+        # Entry 023: settle window before re-validating the newly active path.
+        if self._post_switch_grace_s > 0.0:
+            self._switch_grace_until = time.monotonic() + self._post_switch_grace_s
         self._set_state(MissionNavState.FOLLOWING_PATH)
+
+    def _memory_intersects_path(self, points: List[Tuple[float, float]]) -> bool:
+        """True if obstacle_memory mask marks occupied near the path.
+
+        Checks a 1-cell neighbourhood around each sample so thin keepout marks
+        one cell off the polyline still count (Entry 023 T2 reliability).
+        """
+        mask = self._memory_mask
+        if mask is None or not mask.data:
+            return False
+        info = mask.info
+        return occupancy_mask_intersects_path(
+            points,
+            width=int(info.width),
+            height=int(info.height),
+            resolution=float(info.resolution),
+            origin_x=float(info.origin.position.x),
+            origin_y=float(info.origin.position.y),
+            data=mask.data,
+            sample_stride=self._cfg.sample_stride,
+            occupied_threshold=50,
+            neighbourhood=1,
+        )
+
+    def _try_evidence_unblock(self, live_grid) -> None:
+        """BLOCKED→AVAILABLE only when memory + costmap_raw both clear.
+
+        Does not change active_id or preempt NavigateToPose (no auto return).
+        """
+        if self._bank is None:
+            return
+        unlocked = False
+        for cand in self._bank.candidates:
+            if cand.state != CandidateState.BLOCKED:
+                continue
+            if self._memory_intersects_path(cand.points):
+                continue
+            ok, _reason = path_is_valid(
+                cand.points,
+                live_grid,
+                lethal_threshold=self._cfg.lethal_threshold,
+                sample_stride=self._cfg.sample_stride,
+            )
+            if not ok:
+                continue
+            if self._bank.mark_available(cand.path_id, 'evidence_clear'):
+                unlocked = True
+                self.get_logger().info(
+                    f'ROUTE_MARKED_AVAILABLE Path {cand.path_id} '
+                    '(memory+costmap_raw agree clear; not auto-selected)'
+                )
+        if unlocked:
+            self._publish_bank_paths()
+            # If we were NO_PATH_AVAILABLE and something unlocked, resume follow.
+            if self._state == MissionNavState.NO_PATH_AVAILABLE:
+                if self._bank.active() is not None or self._bank.available():
+                    self._set_state(MissionNavState.FOLLOWING_PATH)
 
     # -- bank construction -------------------------------------------------
 
@@ -327,12 +430,15 @@ class PathBankManager(Node):
             )
             self._publish_bank_paths()
             self._bank_ready_at = time.monotonic()
+            self._abort_resend_used = False
+            self._switch_grace_until = 0.0
             self._set_state(MissionNavState.FOLLOWING_PATH)
         finally:
             self._building = False
 
     def _pick_next_valid(self, live_grid) -> Optional[PathCandidate]:
-        # Re-validate remaining AVAILABLE candidates against live costmap.
+        # Re-validate remaining AVAILABLE candidates against live costmap AND
+        # obstacle_memory mask (Entry 023: same gate as active-path checks).
         remaining = sorted(
             [c for c in self._bank.candidates if c.state == CandidateState.AVAILABLE],
             key=lambda c: c.score,
@@ -345,6 +451,9 @@ class PathBankManager(Node):
                 lethal_threshold=self._cfg.lethal_threshold,
                 sample_stride=self._cfg.sample_stride,
             )
+            if ok and self._memory_intersects_path(cand.points):
+                ok = False
+                reason = 'obstacle_memory_mask'
             if not ok:
                 self._bank.mark_blocked(cand.path_id, f'precheck:{reason}')
                 self.get_logger().info(
@@ -417,6 +526,23 @@ class PathBankManager(Node):
             GoalStatus.STATUS_CANCELED,
             GoalStatus.STATUS_ABORTED,
         ):
+            # Entry 023: if we own the mission goal and are FOLLOWING_PATH,
+            # resend once so an unexpected abort does not leave the robot
+            # frozen with no NavigateToPose client.
+            if (
+                self._state == MissionNavState.FOLLOWING_PATH
+                and self._goal_xyyaw is not None
+                and self._ignore_goal_results == 0
+                and not self._abort_resend_used
+            ):
+                self._abort_resend_used = True
+                self.get_logger().warn(
+                    f'NavigateToPose ended with status={status} while '
+                    f'{self._state.value}; resending goal once '
+                    '(Entry 023 ownership recovery)'
+                )
+                self._send_goal(*self._goal_xyyaw)
+                return
             # External client (test/UI) may own the original goal; bank
             # switch preempt is not a mission failure by itself.
             self.get_logger().warn(
