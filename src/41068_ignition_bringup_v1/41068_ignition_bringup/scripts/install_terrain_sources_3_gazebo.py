@@ -1,8 +1,16 @@
 #!/usr/bin/env python3
 """Install terrain_sources_3 DEM into models/bush_trail_ground for Gazebo.
 
+DEPRECATED for navigation geometry (Entry 019). Prefer:
+
+  python3 scripts/rebuild_bush_trail_nav_geometry.py
+
+which writes flat trail floors, lidar-clearing banks (~1.60 m), aligned
+PGM/YAML (origin [-30,-30]), and optional trail wall posts. This installer
+still assumes a legacy 0.74 m height span and will *not* keep Nav2/PGM in sync.
+
 Authority: models/terrain_sources_3/01_heightmap_greyscale.png
-  (already DEM-encoded; black=low, white=high, span 0.74 m in HEIGHT_RULE).
+  (DEM-encoded; black=low, white=high; legacy span 0.74 m in HEIGHT_RULE).
 
 Produces:
   models/bush_trail_ground/materials/heights.png  (1025x1025 L)
@@ -67,6 +75,12 @@ def main() -> int:
 
     if not args.source.is_file():
         raise SystemExit(f'Missing source DEM: {args.source}')
+
+    print(
+        'WARNING: install_terrain_sources_3_gazebo.py is legacy (0.74 m span). '
+        'For Nav2-aligned trails/walls/PGM use rebuild_bush_trail_nav_geometry.py.',
+        file=sys.stderr,
+    )
 
     im = Image.open(args.source).convert('L')
     arr = np.asarray(im, dtype=np.float64)

@@ -51,5 +51,13 @@
       <name>map_perimeter_60</name>
       <pose>0 0 0 0 0 0</pose>
     </include>
+
+    <!-- Trail boundary trees: trunk boxes are lidar/collision; leaf canopies
+         are visual-only and above the planar lidar plane (nav unchanged). -->
+    <include>
+      <uri>model://bush_trail_nav_walls</uri>
+      <name>bush_trail_nav_walls</name>
+      <pose>0 0 0 0 0 0</pose>
+    </include>
   </world>
 </sdf>

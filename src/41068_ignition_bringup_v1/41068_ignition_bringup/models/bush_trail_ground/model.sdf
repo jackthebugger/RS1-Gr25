@@ -11,7 +11,7 @@
         <geometry>
           <heightmap>
             <uri>model://bush_trail_ground/materials/heights.png</uri>
-            <size>60 60 1.119</size>
+            <size>60 60 1.586</size>
             <pos>0 0 0</pos>
           </heightmap>
         </geometry>
@@ -22,7 +22,7 @@
         <geometry>
           <heightmap>
             <uri>model://bush_trail_ground/materials/heights.png</uri>
-            <size>60 60 1.119</size>
+            <size>60 60 1.586</size>
             <pos>0 0 0</pos>
             <texture>
               <diffuse>model://bush_trail_ground/materials/grass_diffuse.png</diffuse>
