@@ -256,6 +256,7 @@ def add_status_gui_instance(
                 'goal_frame': robot_namespace + '_map',
                 'odom_topic': 'odom',
                 'scan_topic': 'scan',
+                'map_topic': 'global_costmap/costmap',
             }],
         )],
         condition=_if_true(robot_arg),

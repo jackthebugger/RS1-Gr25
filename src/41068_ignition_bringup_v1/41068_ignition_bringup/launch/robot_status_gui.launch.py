@@ -46,6 +46,7 @@ def _launch_setup(context, *args, **kwargs):
                 'robot_name': robot,
                 'odom_topic': 'odom',
                 'scan_topic': 'scan',
+                'map_topic': 'global_costmap/costmap',
                 'obstacle_threshold': obstacle_threshold,
                 'goal_frame': 'husky1_map',
                 'goal_x': goal_x,
