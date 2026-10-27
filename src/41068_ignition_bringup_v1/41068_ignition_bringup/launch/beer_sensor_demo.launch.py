@@ -17,6 +17,11 @@ def generate_launch_description():
     config_path = PathJoinSubstitution([pkg, 'config'])
     use_sim_time = LaunchConfiguration('use_sim_time')
 
+    pkg_share = FindPackageShare('41068_ignition_bringup')
+    models_path = PathJoinSubstitution([pkg_share, 'models'])
+    ld.add_action(SetEnvironmentVariable(name='IGN_GAZEBO_RESOURCE_PATH', value=models_path))
+    ld.add_action(SetEnvironmentVariable(name='GZ_SIM_RESOURCE_PATH', value=models_path))
+
     ld.add_action(DeclareLaunchArgument('use_sim_time', default_value='True'))
 
     # Resolve package models (grass_plane, tree_burning, etc.).
