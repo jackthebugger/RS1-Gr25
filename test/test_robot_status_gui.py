@@ -124,6 +124,31 @@ def test_obstacle_manager_selected_path_trigger_not_region():
     assert world.spawn_obstacle.call_args[0][0].y == -9.5
 
 
+def test_obstacle_manager_can_block_both_paths_separately():
+    world = MagicMock()
+    world.is_available.return_value = True
+    world.spawn_obstacle.return_value = True
+    world.remove_model.return_value = True
+    cfg = ForestGapConfig(
+        trigger_distance_m=5.0,
+        gaps=default_custom_world_gaps(),
+    )
+    mgr = ForestObstacleManager(cfg, world=world)
+
+    ok, message = mgr.request_both()
+    assert ok and 'Path A' in message and 'Path B' in message
+
+    first = mgr.tick((8.0, 5.5))
+    assert mgr.state == ObstacleState.ACTIVE
+    assert first is not None and 'Path A' in first
+    assert len(mgr.active_names) == 1
+
+    second = mgr.tick((8.0, -9.5))
+    assert second is not None and 'Path B' in second
+    assert len(mgr.active_names) == 2
+    assert len(world.spawn_obstacle.call_args_list) == 2
+
+
 def test_random_gap_selection_covers_both():
     world = MagicMock()
     world.is_available.return_value = True

@@ -85,17 +85,20 @@ class ObstacleSpec:
             )
 
         flame_visuals = []
-        # Dense lower row: the overlapping ellipsoids close the visual gap
-        # at the ground and span the full 6.6 m collision width.
+        # Dense lower row: overlapping ellipsoids span the full 6.6 m
+        # collision width so the fire does not look passable between balls.
         lower_colors = (
             ('0.85 0.02 0.00 1', '1.00 0.02 0.00 1'),
             ('1.00 0.16 0.00 1', '1.00 0.08 0.00 1'),
             ('1.00 0.32 0.00 1', '1.00 0.16 0.00 1'),
         )
-        for index, y in enumerate((-3.10, -2.07, -1.03, 0.0, 1.03, 2.07, 3.10)):
+        for index, y in enumerate(
+            (-3.30, -2.75, -2.20, -1.65, -1.10, -0.55, 0.0,
+             0.55, 1.10, 1.65, 2.20, 2.75, 3.30)
+        ):
             color, emissive = lower_colors[index % len(lower_colors)]
             flame_visuals.append(
-                flame(f'flame_lower_{index}', y, -0.55, 0.50, 1.20, 0.95,
+                flame(f'flame_lower_{index}', y, -0.55, 0.46, 1.45, 0.95,
                       color, emissive)
             )
 
@@ -106,24 +109,30 @@ class ObstacleSpec:
             ('1.00 0.72 0.02 1', '1.00 0.38 0.00 1'),
         )
         for index, (y, z, scale_z) in enumerate((
-            (-2.60, -0.04, 1.30), (-1.55, 0.08, 1.55),
-            (-0.52, -0.02, 1.25), (0.52, 0.12, 1.60),
-            (1.55, 0.00, 1.35), (2.60, 0.06, 1.50),
+            (-3.03, -0.04, 1.30), (-2.48, 0.08, 1.55),
+            (-1.93, -0.02, 1.25), (-1.38, 0.12, 1.60),
+            (-0.83, 0.00, 1.35), (-0.28, 0.06, 1.50),
+            (0.28, -0.02, 1.30), (0.83, 0.08, 1.55),
+            (1.38, -0.02, 1.25), (1.93, 0.12, 1.60),
+            (2.48, 0.00, 1.35), (3.03, 0.06, 1.50),
         )):
             color, emissive = middle_colors[index % len(middle_colors)]
             flame_visuals.append(
-                flame(f'flame_middle_{index}', y, z, 0.54, 1.15, scale_z,
+                flame(f'flame_middle_{index}', y, z, 0.48, 1.30, scale_z,
                       color, emissive)
             )
 
-        # A smaller upper row keeps the silhouette flame-like without opening
-        # gaps in the lower collision region.
+        # A smaller upper row keeps the silhouette flame-like while retaining
+        # continuous coverage across the path.
         for index, (y, z, scale_z) in enumerate((
-            (-2.15, 0.52, 1.25), (-0.72, 0.68, 1.45),
-            (0.72, 0.58, 1.30), (2.15, 0.65, 1.40),
+            (-2.75, 0.52, 1.25), (-2.06, 0.68, 1.45),
+            (-1.37, 0.58, 1.30), (-0.69, 0.65, 1.40),
+            (0.0, 0.52, 1.25), (0.69, 0.68, 1.45),
+            (1.37, 0.58, 1.30), (2.06, 0.65, 1.40),
+            (2.75, 0.52, 1.25),
         )):
             flame_visuals.append(
-                flame(f'flame_upper_{index}', y, z, 0.46, 1.10, scale_z,
+                flame(f'flame_upper_{index}', y, z, 0.42, 1.20, scale_z,
                       '1.00 0.30 0.00 1', '1.00 0.16 0.00 1')
             )
         flame_visuals = ''.join(flame_visuals)

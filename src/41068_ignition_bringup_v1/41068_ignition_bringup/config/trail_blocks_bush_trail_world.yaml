@@ -4,15 +4,15 @@
 # goal (16, −0.1), chosen as mutually exclusive mid-route points so blocking
 # one leaves the other open (Entry 019 geometry).
 #
-# Obstacle size matches the validated thin cross-path barrier used in
-# path_bank_nav_test (not the wide forest-gap seal).
+# The fire barrier spans the full cross-trail width. This matches the flame
+# visual span and prevents the Husky from squeezing around either end.
 
 forest_gaps:
   world_name: bush_trail_world
   trigger_distance_m: 6.0
   obstacle:
     size_x: 0.45
-    size_y: 2.2
+    size_y: 6.6
     size_z: 1.6
     name_prefix: dynamic_obstacle_
   gaps:
