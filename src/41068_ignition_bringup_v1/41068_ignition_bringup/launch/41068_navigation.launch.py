@@ -254,14 +254,15 @@ def generate_launch_description():
                 'max_candidates': 4,
                 'exclusion_radius_m': 2.5,
                 'min_path_separation_m': 2.0,
-                # Monitor + rank; only force a NavigateToPose resend when a
-                # still-valid banked alternative exists. Never cancel on empty
-                # bank — IsPathValid BT remains the follow/replan authority.
+                # Monitor + rank; force a NavigateToPose resend only when a
+                # still-valid banked alternative exists. Once every banked
+                # route is blocked, cancel Nav2 so the GUI can send the
+                # return-to-start goal instead of allowing recovery to loop.
                 'auto_switch': True,
                 'switch_resend_goal': ParameterValue(
                     LaunchConfiguration('path_bank_switch_resend'), value_type=bool
                 ),
-                'cancel_on_no_path': False,
+                'cancel_on_no_path': True,
                 'validity_grace_s': 15.0,
             }],
         ),
