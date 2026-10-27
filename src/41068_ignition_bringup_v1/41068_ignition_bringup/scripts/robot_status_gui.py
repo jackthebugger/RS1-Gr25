@@ -1159,6 +1159,7 @@ class RobotStatusNode(Node):
         self._returning_to_start = True
         self._return_pending = True
         self._user_stop = True
+        self.gui.set_dyn_obstacle_status('All paths obstructed - returning to start')
         self.gui.set_feedback('All paths obstructed - returning to start')
         self.gui.set_mission_status('returning to start')
         self.gui.set_mission_running(True)
