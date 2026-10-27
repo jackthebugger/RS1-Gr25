@@ -11,6 +11,9 @@ authority for follow/replan timing. The path bank:
 5. Entry 021: BLOCKED→AVAILABLE only when memory + costmap_raw agree the
    corridor is clear again — never from Gazebo GT or plan existence alone.
    Unlock does not auto-preempt back onto that route.
+6. Entry 024: when every candidate is BLOCKED/REJECTED (``all_blocked``),
+   the manager owns return-to-start policy using ``PathBank.start`` as home —
+   this library only reports exhaustion.
 
 Candidate diversity uses corridor exclusion: after each successful path, a band
 around that polyline is treated as lethal on a working copy of the grid and

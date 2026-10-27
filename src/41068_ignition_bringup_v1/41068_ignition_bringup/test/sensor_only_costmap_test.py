@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Integration regression: sensor-only keepout memory (Entries 021–023).
+"""Integration regression: sensor-only keepout memory (Entries 021–024).
 
 Primary scenario T3 — Path A blocked → switch to B → remove obstacle off-FOV
 → Path A must remain lethal in keepout/costmap and bank stays BLOCKED; no
@@ -8,9 +8,12 @@ corridor return to A.
 T5 — off-FOV remove → open-loop approach (test transport) → real lidar clear →
 Path A AVAILABLE without auto-preempt. Also asserts T14-clear corridor free.
 
+T11 — block A → switch B → block B → RETURNING_TO_START toward home (~spawn).
+
     python3 test/sensor_only_costmap_test.py
     python3 test/sensor_only_costmap_test.py --scenario priority
     python3 test/sensor_only_costmap_test.py --scenario t5
+    python3 test/sensor_only_costmap_test.py --scenario t11
     python3 test/sensor_only_costmap_test.py --scenario extended
 """
 
@@ -1394,6 +1397,149 @@ def run_t8_new_obstacle(
     return True
 
 
+def _candidate_path_pts(
+    observer: NavObserver, path_id: int, timeout: float = 15.0
+) -> Optional[List[Tuple[float, float]]]:
+    """Fetch path_bank/candidate_{id} polyline points."""
+    holder: List[Optional[List[Tuple[float, float]]]] = [None]
+
+    def _cb(msg: RosPath) -> None:
+        pts = [(p.pose.position.x, p.pose.position.y) for p in msg.poses]
+        if pts:
+            holder[0] = pts
+
+    sub = observer.create_subscription(
+        RosPath, f'path_bank/candidate_{path_id}', _cb, 5)
+    deadline = time.monotonic() + timeout
+    while time.monotonic() < deadline and holder[0] is None:
+        observer.spin_for(0.2)
+    observer.destroy_subscription(sub)
+    return holder[0]
+
+
+def run_t11_return_home(
+    watcher: MemoryWatcher,
+    observer: NavObserver,
+    world: GazeboWorld,
+    barrier_a_xy: Tuple[float, float],
+) -> bool:
+    """T11: after Path A then Path B blocked, return toward recorded home.
+
+    Preconditions: T2 already switched to Path B with barrier A in place.
+    Spawns a second barrier on the active Path B corridor, then asserts
+    RETURNING_TO_START / RETURNED_TO_START and westward motion toward START.
+    """
+    log('=== T11: ALL_BLOCKED → return to start ===')
+    del barrier_a_xy  # retained for call-site symmetry with other scenarios
+    active = watcher.bank_active_id()
+    if active in (None, 1):
+        log(f'FAIL  T11 expected active Path B-ish, got active={active}')
+        return False
+
+    pose = observer.robot_pose()
+    if pose is None:
+        log('FAIL  T11 no robot pose before Path B block')
+        return False
+    dist_home0 = math.hypot(pose[0] - START[0], pose[1] - START[1])
+    east0 = pose[0]
+
+    path_b = _candidate_path_pts(observer, int(active), timeout=20.0)
+    if not path_b:
+        # Fallback: use live plan if candidate topic not refreshed.
+        plan = observer.latest_path()
+        if plan is None or len(plan.points) < 4:
+            log('FAIL  T11 no Path B candidate / plan')
+            return False
+        path_b = plan.points
+        log('  Using live plan as Path B proxy')
+
+    block_xy = _barrier_xy_ahead_on_path(path_b, pose, ahead_m=5.0)
+    mid_i = min(
+        range(len(path_b)),
+        key=lambda i: math.hypot(
+            path_b[i][0] - block_xy[0], path_b[i][1] - block_xy[1]))
+    i0 = max(0, mid_i - 2)
+    i1 = min(len(path_b) - 1, mid_i + 2)
+    yaw = math.atan2(
+        path_b[i1][1] - path_b[i0][1], path_b[i1][0] - path_b[i0][0])
+    spec = barrier_across_heading(
+        name='sensor_only_block_b',
+        at=(block_xy[0], block_xy[1]),
+        heading=yaw,
+        width=2.2,
+        thickness=0.45,
+        height=1.6,
+    )
+    log(f'  Path B barrier at ({block_xy[0]:.2f},{block_xy[1]:.2f}) '
+        f'active={active} dist_home0={dist_home0:.2f}m')
+    if not world.spawn_obstacle(spec):
+        log('FAIL  T11 spawn Path B barrier')
+        return False
+
+    # Wait for return-home state (NO_PATH_AVAILABLE may flash first).
+    returning = False
+    returned = False
+    deadline = time.monotonic() + 90.0
+    while time.monotonic() < deadline:
+        watcher.spin(0.3)
+        st = watcher.bank_state
+        if st == 'RETURNING_TO_START':
+            returning = True
+            break
+        if st == 'RETURNED_TO_START':
+            returning = True
+            returned = True
+            break
+        # Status may lag state topic; also accept nav_mode=home.
+        if 'nav_mode=home' in watcher.bank_status:
+            returning = True
+            break
+    if not returning:
+        log(f'FAIL  T11 never entered RETURNING_TO_START '
+            f'(state={watcher.bank_state!r} status=\n{watcher.bank_status})')
+        return False
+    log(f'  return armed state={watcher.bank_state} '
+        f'nav_mode_line={[ln for ln in watcher.bank_status.splitlines() if "nav_mode" in ln or ln.startswith("home=")]}')
+
+    # Motion toward home (west toward spawn), not re-commit east to GOAL.
+    progress_deadline = time.monotonic() + 75.0
+    best_home_gain = 0.0
+    saw_east_regress = False
+    while time.monotonic() < progress_deadline:
+        watcher.spin(0.3)
+        if watcher.bank_state == 'RETURNED_TO_START':
+            returned = True
+            break
+        p = observer.robot_pose()
+        if p is None:
+            continue
+        dist_home = math.hypot(p[0] - START[0], p[1] - START[1])
+        best_home_gain = max(best_home_gain, dist_home0 - dist_home)
+        if p[0] > east0 + 2.0:
+            saw_east_regress = True
+        if best_home_gain >= 1.5:
+            break
+
+    final = observer.robot_pose()
+    final_dist = (
+        math.hypot(final[0] - START[0], final[1] - START[1])
+        if final is not None else float('nan')
+    )
+    log(f'  home_gain={best_home_gain:.2f}m final_dist_home={final_dist:.2f}m '
+        f'returned={returned} east_regress={saw_east_regress} '
+        f'state={watcher.bank_state}')
+
+    if saw_east_regress and best_home_gain < 1.0:
+        log('FAIL  T11 resumed eastward mission after return armed')
+        return False
+    if not returned and best_home_gain < 1.5:
+        log(f'FAIL  T11 insufficient motion toward home '
+            f'(gain={best_home_gain:.2f}m)')
+        return False
+    log('PASS  T11 ALL_BLOCKED → return toward start')
+    return True
+
+
 def run_t10_no_oscillation(
     watcher: MemoryWatcher,
     settle_s: float = 20.0,
@@ -1500,18 +1646,21 @@ def main() -> int:
         '--scenario',
         default='priority',
         choices=(
-            't1', 't2', 't3', 't4', 't5', 't8', 't10', 't14', 't15',
+            't1', 't2', 't3', 't4', 't5', 't8', 't10', 't11', 't14', 't15',
             'stuck', 'priority', 'extended', 'all',
         ),
         help=(
-            'priority=T1–T4+T14-block+T15; extended=+T8+T10+stuck '
+            'priority=T1–T4+T14-block+T15; extended=+T8+T10+stuck; '
+            't11=block A+B → return home '
             '(not T5 — use --scenario t5 for drive-back clear)'
         ),
     )
     args = parser.parse_args()
 
     # test_speed for scenarios that need faster open-trail / approach motion.
-    use_test_speed = args.scenario in ('t5', 'extended', 'stuck', 'all')
+    use_test_speed = args.scenario in (
+        't5', 't11', 'extended', 'stuck', 'all',
+    )
     sup = bringup(
         world=WORLD,
         nav2=True,
@@ -1551,8 +1700,8 @@ def main() -> int:
 
         try:
             chain = {
-                't2', 't3', 't4', 't5', 't8', 't10', 't14', 't15', 'stuck',
-                'priority', 'extended', 'all',
+                't2', 't3', 't4', 't5', 't8', 't10', 't11', 't14', 't15',
+                'stuck', 'priority', 'extended', 'all',
             }
             need_chain = args.scenario in chain
             if args.scenario in ('t1', 'priority', 'extended', 'all'):
@@ -1573,6 +1722,14 @@ def main() -> int:
                     results['T5'] = False
                 else:
                     results['T5'] = run_t5_drive_back_clear(
+                        watcher, observer, world, barrier_xy)
+
+            # T11: block Path B after T2 → return home. Dedicated (mutates bank).
+            if args.scenario == 't11':
+                if barrier_xy is None:
+                    results['T11'] = False
+                else:
+                    results['T11'] = run_t11_return_home(
                         watcher, observer, world, barrier_xy)
 
             if args.scenario in ('t3', 'priority', 'extended', 'all'):
