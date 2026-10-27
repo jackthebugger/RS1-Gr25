@@ -3,7 +3,7 @@
 
 Supports:
   * Unified START/STOP MISSION using X/Y/Yaw fields → NavigateToPose
-  * Dynamic Path A / Path B / Random block (5 m spatial trigger) + Clear
+  * Dynamic Path A / Path B / Both paths / Random block + Clear
 """
 
 from __future__ import annotations
@@ -384,6 +384,16 @@ class RobotStatusWindow(tk.Tk):
         self.random_block_button.grid(
             row=1, column=0, sticky='ew', padx=(0, 6), pady=4, ipady=4,
         )
+        self.block_both_paths_button = tk.Button(
+            self.obstacle_frame,
+            text='BLOCK BOTH PATHS',
+            state='disabled',
+            command=lambda: None,
+            height=2,
+        )
+        self.block_both_paths_button.grid(
+            row=1, column=1, sticky='ew', padx=(6, 0), pady=4, ipady=4,
+        )
         self.clear_obstacle_button = tk.Button(
             self.obstacle_frame,
             text='CLEAR FIRE',
@@ -392,7 +402,7 @@ class RobotStatusWindow(tk.Tk):
             height=2,
         )
         self.clear_obstacle_button.grid(
-            row=1, column=1, sticky='ew', padx=(6, 0), pady=4, ipady=4,
+            row=2, column=0, columnspan=2, sticky='ew', padx=0, pady=4, ipady=4,
         )
 
         self.sim_updates = []
@@ -471,11 +481,13 @@ class RobotStatusWindow(tk.Tk):
         path_a_callback,
         path_b_callback,
         random_callback,
+        both_callback,
         clear_callback,
     ) -> None:
         self.block_path_a_button.configure(command=path_a_callback, state='normal')
         self.block_path_b_button.configure(command=path_b_callback, state='normal')
         self.random_block_button.configure(command=random_callback, state='normal')
+        self.block_both_paths_button.configure(command=both_callback, state='normal')
         self.clear_obstacle_button.configure(command=clear_callback, state='normal')
 
     def set_mission_running(self, running: bool) -> None:
@@ -495,7 +507,7 @@ class RobotStatusWindow(tk.Tk):
         normalized = status.strip().lower()
         if normalized in ('running', 'starting', 'complete'):
             color = '#16a34a'
-        elif normalized in ('waiting for nav2', 'stopping'):
+        elif normalized in ('waiting for nav2', 'stopping', 'returning to start'):
             color = '#d97706'
         else:
             color = '#dc2626'
@@ -738,6 +750,9 @@ class RobotStatusNode(Node):
         self._monitor_idle_since: Optional[float] = None
         self._monitor_last_pose: Optional[Tuple[float, float]] = None
         self._path_bank_status = ''
+        self._start_pose: Optional[Tuple[float, float, float]] = None
+        self._returning_to_start = False
+        self._return_pending = False
 
         goal_frame = self.declare_parameter('goal_frame', 'husky1_map').value
         goal_x = self.declare_parameter('goal_x', DEFAULT_GOAL_X).value
@@ -757,6 +772,7 @@ class RobotStatusNode(Node):
         self.default_goal_yaw = float(goal_yaw)
         self.world_name = str(world_name).strip() or DEFAULT_WORLD_NAME
         self.navigate_client = ActionClient(self, NavigateToPose, navigate_action)
+        self.goal_pose_pub = self.create_publisher(PoseStamped, 'goal_pose', 10)
         self.speed_clients = {
             'controller': self.create_client(
                 SetParameters, '/husky1/controller_server/set_parameters'
@@ -873,6 +889,8 @@ class RobotStatusNode(Node):
         self._monitor_arrival = False
         self._monitor_idle_since = None
         self._monitor_last_pose = None
+        if source != 'return_to_start' and self.latest_pose is not None:
+            self._start_pose = self.latest_pose
         if self.start_wait_timer is not None:
             self.start_wait_timer.cancel()
             self.start_wait_timer = None
@@ -888,6 +906,10 @@ class RobotStatusNode(Node):
         goal_message.pose.pose.orientation.w = cos(yaw / 2.0)
 
         self.active_goal = (float(x), float(y), float(yaw))
+        goal_pose = PoseStamped()
+        goal_pose.header = goal_message.pose.header
+        goal_pose.pose = goal_message.pose.pose
+        self.goal_pose_pub.publish(goal_pose)
         self.latest_distance = 0.0
         self.latest_time = 'Pending'
         self.gui.set_goal_fields(x, y, yaw)
@@ -1000,6 +1022,14 @@ class RobotStatusNode(Node):
     def random_block(self) -> None:
         self._request_path(None, 'RANDOM BLOCK')
 
+    def block_both_paths(self) -> None:
+        ok, message = self.obstacle_manager.request_both()
+        self.gui.set_dyn_obstacle_status(message)
+        self._sync_fire_status()
+        self.gui.set_feedback(message, error=not ok)
+        if ok:
+            self.get_logger().info(f'BLOCK BOTH PATHS: {message}')
+
     def clear_obstacles(self) -> None:
         ok, message = self.obstacle_manager.clear_obstacles()
         self.gui.set_dyn_obstacle_status(message)
@@ -1054,6 +1084,12 @@ class RobotStatusNode(Node):
     def _cancel_response_callback(self, future) -> None:
         if future.result().goals_canceling:
             self.goal_handle = None
+            if self._return_pending and self._start_pose is not None:
+                self._return_pending = False
+                self._user_stop = False
+                x, y, yaw = self._start_pose
+                self.submit_goal(x, y, yaw, source='return_to_start')
+                return
             self.gui.set_mission_status('ready')
             self.gui.set_mission_running(False)
             self.gui.set_feedback('Mission stopped')
@@ -1066,10 +1102,12 @@ class RobotStatusNode(Node):
         self.goal_handle = None
         if status == GoalStatus.STATUS_SUCCEEDED:
             self._monitor_arrival = False
+            was_returning = self._returning_to_start
+            self._returning_to_start = False
             self.active_goal = None
             self.gui.set_mission_running(False)
             self.gui.set_mission_status('complete')
-            self.gui.set_feedback('Goal reached')
+            self.gui.set_feedback('Returned to start' if was_returning else 'Goal reached')
             return
         if status == GoalStatus.STATUS_CANCELED and self._user_stop:
             self._monitor_arrival = False
@@ -1103,6 +1141,34 @@ class RobotStatusNode(Node):
 
     def _path_bank_status_callback(self, msg: String) -> None:
         self._path_bank_status = msg.data or ''
+        if (
+            'state=NO_PATH_AVAILABLE' in self._path_bank_status
+            and self._start_pose is not None
+            and self.active_goal is not None
+            and not self._returning_to_start
+        ):
+            self._begin_return_to_start()
+
+    def _begin_return_to_start(self) -> None:
+        if self._start_pose is None:
+            self.gui.set_feedback(
+                'All paths obstructed - unable to determine start location',
+                error=True,
+            )
+            return
+        self._returning_to_start = True
+        self._return_pending = True
+        self._user_stop = True
+        self.gui.set_feedback('All paths obstructed - returning to start')
+        self.gui.set_mission_status('returning to start')
+        self.gui.set_mission_running(True)
+        if self.goal_handle is None:
+            self._return_pending = False
+            x, y, yaw = self._start_pose
+            self.submit_goal(x, y, yaw, source='return_to_start')
+            return
+        future = self.goal_handle.cancel_goal_async()
+        future.add_done_callback(self._cancel_response_callback)
 
     def _arrival_monitor_tick(self) -> None:
         """Complete/fail missions after another client took NavigateToPose."""
@@ -1203,6 +1269,7 @@ def main(args=None):
         node.block_path_a,
         node.block_path_b,
         node.random_block,
+        node.block_both_paths,
         node.clear_obstacles,
     )
 

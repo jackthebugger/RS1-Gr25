@@ -18,7 +18,9 @@ On switch:
   3. Cancel NavigateToPose and re-send the same goal (NavFn then plans around
      the already-sensed obstacle; bank state prevents treating a blocked
      corridor as a preferred option in status/logging)
-  If no candidate remains valid → publish NO_PATH_AVAILABLE and cancel nav.
+  If no candidate remains valid → publish NO_PATH_AVAILABLE and leave Nav2's
+  recovery/replanning behavior in control (unless cancellation is explicitly
+  enabled).
 
 Static vs live
 --------------
