@@ -183,6 +183,9 @@ def add_navigation_instance(
             'slam': LaunchConfiguration('slam'),
             'nav2': LaunchConfiguration('nav2'),
             'use_prior_map': LaunchConfiguration('use_prior_map'),
+            'prior_map_file': LaunchConfiguration('prior_map_file'),
+            'path_bank': LaunchConfiguration('path_bank'),
+            'path_bank_switch_resend': LaunchConfiguration('path_bank_switch_resend'),
             'fire_avoidance': LaunchConfiguration('fire_avoidance'),
         }.items(),
     )
@@ -231,6 +234,35 @@ def add_rviz_instance(
     ))
 
 
+def add_status_gui_instance(
+    ld,
+    *,
+    use_sim_time,
+    robot_arg,
+    robot_namespace,
+    start_delay,
+):
+    ld.add_action(TimerAction(
+        period=start_delay,
+        actions=[Node(
+            package='41068_ignition_bringup',
+            executable='robot_status_gui.py',
+            namespace=robot_namespace,
+            name='robot_status_gui',
+            output='screen',
+            parameters=[{
+                'use_sim_time': use_sim_time,
+                'robot_name': robot_namespace,
+                'goal_frame': robot_namespace + '_map',
+                'odom_topic': 'odom',
+                'scan_topic': 'scan',
+                'map_topic': 'global_costmap/costmap',
+            }],
+        )],
+        condition=_if_true(robot_arg),
+    ))
+
+
 def generate_launch_description():
 
     ld = LaunchDescription()
@@ -252,6 +284,11 @@ def generate_launch_description():
         description='Flag to launch RViz',
     )
     ld.add_action(rviz_launch_arg)
+    ld.add_action(DeclareLaunchArgument(
+        'status_gui',
+        default_value='false',
+        description='Launch the Robot Status GUI and its RViz goal marker publisher',
+    ))
 
     slam_launch_arg = DeclareLaunchArgument(
         'slam',
@@ -356,9 +393,27 @@ def generate_launch_description():
     ld.add_action(DeclareLaunchArgument(
         'use_prior_map',
         default_value='false',
-        description='When true (and nav2), publish maps/my_map on prior_map for '
-                    'the global StaticLayer. Default false here so generic '
+        description='When true (and nav2), publish prior_map_file on prior_map '
+                    'for the global StaticLayer. Default false here so generic '
                     'bringup stays unchanged; husky wrapper enables it.',
+    ))
+    ld.add_action(DeclareLaunchArgument(
+        'prior_map_file',
+        default_value='bush_trail_world.yaml',
+        description='Map YAML in share/.../maps/ for StaticLayer + path bank.',
+    ))
+    ld.add_action(DeclareLaunchArgument(
+        'path_bank',
+        default_value='true',
+        description='When true (and nav2), launch path_bank_manager.',
+    ))
+    ld.add_action(DeclareLaunchArgument(
+        'path_bank_switch_resend',
+        default_value='true',
+        description=(
+            'When true, path_bank_manager preempts NavigateToPose onto the next '
+            'valid banked route after live lethal invalidation (Entry 019+).'
+        ),
     ))
     ld.add_action(DeclareLaunchArgument(
         'fire_avoidance',
@@ -582,6 +637,14 @@ def generate_launch_description():
         robot_namespace='parrot1',
         rviz_config='41068_parrot1.rviz',
         start_delay=13.0,
+    )
+
+    add_status_gui_instance(
+        ld,
+        use_sim_time=use_sim_time,
+        robot_arg='status_gui',
+        robot_namespace='husky1',
+        start_delay=15.0,
     )
 
     return ld

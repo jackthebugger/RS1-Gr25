@@ -14,6 +14,7 @@ def generate_launch_description():
     nav2 = LaunchConfiguration('nav2')
     world = LaunchConfiguration('world')
     gui = LaunchConfiguration('gui')
+    status_gui = LaunchConfiguration('status_gui')
 
     ld.add_action(DeclareLaunchArgument(
         'use_sim_time',
@@ -55,6 +56,11 @@ def generate_launch_description():
         default_value='True',
         description='Launch the Gazebo GUI. Set false for headless (useful on WSL).',
     ))
+    ld.add_action(DeclareLaunchArgument(
+        'status_gui',
+        default_value='False',
+        description='Launch the Robot Status GUI and its RViz goal marker publisher.',
+    ))
 
     # Starting position of the Husky, plus sensor tuning. Change these to move
     # the start pose without editing any launch or Python implementation file.
@@ -64,7 +70,13 @@ def generate_launch_description():
         ('husky_z', '0.50', 'Husky spawn Z position in metres (0.50 for bush_trail_world)'),
         ('husky_yaw', '0.0', 'Husky spawn yaw in radians'),
         ('use_prior_map', 'true',
-         'Publish maps/my_map on prior_map for RViz/operators (not used by NavFn)'),
+         'Publish prior map on /husky1/prior_map for StaticLayer + path bank'),
+        ('prior_map_file', 'bush_trail_world.yaml',
+         'Map YAML under share/.../maps/ (bush_trail_world.yaml default)'),
+        ('path_bank', 'true',
+         'Launch path_bank_manager for ranked alternative routes'),
+        ('path_bank_switch_resend', 'true',
+         'Preempt NavigateToPose onto next banked route after lethal invalidation'),
         ('fire_avoidance', 'true',
          'Launch thermal fire detector + fire_hazard_nav_bridge for costmaps'),
         ('enable_camera', 'false',
@@ -96,6 +108,7 @@ def generate_launch_description():
         'nav2': nav2,
         'world': world,
         'gui': gui,
+        'status_gui': status_gui,
         'husky': 'True',
         'parrot': 'False',
     }

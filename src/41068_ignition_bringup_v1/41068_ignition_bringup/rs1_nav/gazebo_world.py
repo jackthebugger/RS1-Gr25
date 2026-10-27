@@ -138,6 +138,38 @@ class ObstacleSpec:
         )
 
 
+@dataclass
+class GoalVisualSpec:
+    """A red, visual-only Gazebo goal indicator with no collision geometry."""
+
+    name: str = 'navigation_goal_visual'
+    x: float = 0.0
+    y: float = 0.0
+    yaw: float = 0.0
+
+    def to_sdf(self) -> str:
+        return (
+            '<?xml version="1.0" ?>'
+            f'<sdf version="1.8"><model name="{self.name}"><static>true</static>'
+            '<link name="link">'
+            '<visual name="goal_arrow"><pose>1.3 0 6.0 0 0 0</pose>'
+            '<geometry><box><size>2.6 0.28 0.28</size></box></geometry>'
+            '<material><ambient>1 0 0 1</ambient><diffuse>1 0 0 1</diffuse>'
+            '<emissive>0.8 0 0 1</emissive></material></visual>'
+            '<visual name="goal_arrow_head"><pose>2.55 0 6.0 0 0 0</pose>'
+            '<geometry><cone><radius>0.55</radius><length>0.9</length>'
+            '</cone></geometry><material><ambient>1 0 0 1</ambient>'
+            '<diffuse>1 0 0 1</diffuse><emissive>0.8 0 0 1</emissive>'
+            '</material></visual>'
+            '<visual name="goal_pole"><pose>0 0 3.0 0 0 0</pose>'
+            '<geometry><cylinder><radius>0.12</radius><length>6.0</length>'
+            '</cylinder></geometry><material><ambient>1 0 0 1</ambient>'
+            '<diffuse>1 0 0 1</diffuse><emissive>0.5 0 0 1</emissive>'
+            '</material></visual>'
+            '</link></model></sdf>'
+        )
+
+
 class GazeboWorld:
     """Thin, timeout-bounded wrapper around the Ignition world services."""
 
@@ -228,6 +260,19 @@ class GazeboWorld:
                 f'{spec.size_x:.2f} x {spec.size_y:.2f} x {spec.size_z:.2f} m'
             )
         return ok
+
+    def spawn_goal_visual(self, spec: GoalVisualSpec) -> bool:
+        """Insert or replace a visual-only goal model in Gazebo."""
+        self.remove_model(spec.name)
+        sdf = spec.to_sdf().replace('\\', '\\\\').replace("'", "\\'")
+        qz = math.sin(0.5 * spec.yaw)
+        qw = math.cos(0.5 * spec.yaw)
+        request = (
+            f"sdf: '{sdf}' pose {{ position {{ x: {spec.x:.4f} y: {spec.y:.4f} z: 0 }} "
+            f'orientation {{ x: 0 y: 0 z: {qz:.6f} w: {qw:.6f} }} }} '
+            f"name: '{spec.name}' allow_renaming: false"
+        )
+        return self._service('create', request, 'EntityFactory')
 
     def remove_model(self, name: str) -> bool:
         """Remove a model by name. Safe to call when it does not exist."""
