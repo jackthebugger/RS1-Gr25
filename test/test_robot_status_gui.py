@@ -24,6 +24,71 @@ def test_format_speed_rounds_cleanly():
     assert gui.format_speed(0.0) == '0.00 m/s'
 
 
+def test_parse_path_bank_active_id():
+    status = (
+        'state=FOLLOWING_PATH\n'
+        'switches=1\n'
+        'nav_mode=bank\n'
+        'active_id=2\n'
+        'all_blocked=False\n'
+    )
+    assert gui.parse_path_bank_active_id(status) == 2
+    assert gui.parse_path_bank_active_id('active_id=None') is None
+    assert gui.parse_path_bank_active_id('') is None
+
+
+def test_mission_status_from_path_bank_mapping():
+    assert gui.mission_status_from_path_bank('FOLLOWING_PATH', 1) == (
+        'navigating to goal (path 1 active)'
+    )
+    assert gui.mission_status_from_path_bank('SWITCHING_PATH', None) == (
+        'navigating to goal'
+    )
+    assert gui.mission_status_from_path_bank('RETURNING_TO_START') == (
+        'all paths blocked - returning to home'
+    )
+    assert gui.mission_status_from_path_bank('NO_PATH_AVAILABLE') == (
+        'all paths blocked - returning to home'
+    )
+    assert gui.mission_status_from_path_bank('RETURNED_TO_START') == (
+        'returned to start'
+    )
+    assert gui.mission_status_from_path_bank('ARRIVED') == 'complete'
+    assert gui.mission_status_from_path_bank('FAILED') == 'failed'
+    assert gui.mission_status_from_path_bank('IDLE') is None
+
+
+def test_set_mission_status_return_home_colors():
+    win = gui.RobotStatusWindow('husky1')
+    win.update_idletasks()
+    win.set_mission_status('all paths blocked - returning to home')
+    assert 'RETURNING TO HOME' in win.mission_var.get()
+    assert win.mission_label.cget('bg') == '#d97706'
+    win.set_mission_status('returned to start')
+    assert 'RETURNED TO START' in win.mission_var.get()
+    assert win.mission_label.cget('bg') == '#16a34a'
+    win.set_mission_status('navigating to goal (path 2 active)')
+    assert 'PATH 2 ACTIVE' in win.mission_var.get()
+    assert win.mission_label.cget('bg') == '#16a34a'
+    win.destroy()
+
+
+def test_fire_status_label_is_thermal_not_obstacle():
+    """Fire Detected line must reflect thermal bool, not forest obstacle state."""
+    win = gui.RobotStatusWindow('husky1')
+    win.update_idletasks()
+    status = gui.RobotStatus(fire_detected=True)
+    win.set_status(status)
+    assert win.fire_var.get() == 'Fire detected: yes'
+    status.fire_detected = False
+    win.set_status(status)
+    assert win.fire_var.get() == 'Fire detected: no'
+    # Forest-gap helper must not be required for the fire line.
+    win.set_dyn_obstacle_status('Obstacle: ACTIVE (Path A)')
+    assert win.fire_var.get() == 'Fire detected: no'
+    win.destroy()
+
+
 def test_detect_obstacle_uses_threshold():
     assert gui.detect_obstacle([3.0, 3.0, 0.25, 3.0], threshold=0.5) is True
     assert gui.detect_obstacle([3.0, 2.0, 1.5, 3.0], threshold=0.5) is False
@@ -149,10 +214,10 @@ def test_ui_has_unified_mission_and_four_obstacle_buttons():
     assert not hasattr(win, 'go_button') or getattr(win, 'go_button', None) is None
     assert not hasattr(win, 'start_button')
     assert not hasattr(win, 'stop_button')
-    assert win.block_path_a_button.cget('text') == 'BLOCK PATH A'
-    assert win.block_path_b_button.cget('text') == 'BLOCK PATH B'
-    assert win.random_block_button.cget('text') == 'RANDOM BLOCK'
-    assert win.clear_obstacle_button.cget('text') == 'CLEAR OBSTACLES'
+    assert win.block_path_a_button.cget('text') == 'BLOCK FIRE A'
+    assert win.block_path_b_button.cget('text') == 'BLOCK FIRE B'
+    assert win.random_block_button.cget('text') == 'RANDOM FIRE'
+    assert win.clear_obstacle_button.cget('text') == 'CLEAR FIRE'
     assert win.goal_x_var.get() == '16'
     assert win.goal_y_var.get() in ('-0.1', '-0.10')
     assert win.goal_yaw_var.get() == '0'
