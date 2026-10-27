@@ -14,6 +14,11 @@
     current path valid? → keep following it
     current path invalid? → ComputePathToPose (shortest valid route)
 
+  Entry 021: global ClearEntireCostmap removed. Wiping the global costmap
+  erased ObstacleLayer marks and allowed NavFn to re-select an off-FOV Path A
+  after Gazebo removal. Global persistence is KeepoutFilter obstacle memory;
+  stuck recovery still clears the rolling local costmap only.
+
   Based on nav2_bt_navigator's navigate_w_recovery_and_replanning_only_if_path_becomes_invalid.xml
 -->
 <root main_tree_to_execute="MainTree">
@@ -31,21 +36,19 @@
               </ReactiveSequence>
               <ComputePathToPose goal="{goal}" path="{path}" planner_id="GridBased"/>
             </Fallback>
-            <ClearEntireCostmap name="ClearGlobalCostmap-Context" service_name="global_costmap/clear_entirely_global_costmap"/>
+            <!-- Local clear only: do not wipe global ObstacleLayer / KeepoutFilter. -->
+            <ClearEntireCostmap name="ClearLocalCostmap-Context" service_name="local_costmap/clear_entirely_local_costmap"/>
           </RecoveryNode>
         </RateController>
         <RecoveryNode number_of_retries="1" name="RecoveryFollowPath">
           <FollowPath path="{path}" controller_id="FollowPath"/>
-          <ClearEntireCostmap name="ClearLocalCostmap-Context" service_name="local_costmap/clear_entirely_local_costmap"/>
+          <ClearEntireCostmap name="ClearLocalCostmap-Follow" service_name="local_costmap/clear_entirely_local_costmap"/>
         </RecoveryNode>
       </PipelineSequence>
       <ReactiveFallback name="FallbackRecoveries">
         <GoalUpdated/>
         <RoundRobin name="RecoveryActions">
-          <Sequence name="ClearingActions">
-            <ClearEntireCostmap name="ClearLocalCostmap-Subtree" service_name="local_costmap/clear_entirely_local_costmap"/>
-            <ClearEntireCostmap name="ClearGlobalCostmap-Subtree" service_name="global_costmap/clear_entirely_global_costmap"/>
-          </Sequence>
+          <ClearEntireCostmap name="ClearLocalCostmap-Subtree" service_name="local_costmap/clear_entirely_local_costmap"/>
           <Spin name="SpinRecovery" spin_dist="1.57"/>
           <Wait name="WaitRecovery" wait_duration="5"/>
           <BackUp name="BackUpRecovery" backup_dist="0.30" backup_speed="0.05"/>

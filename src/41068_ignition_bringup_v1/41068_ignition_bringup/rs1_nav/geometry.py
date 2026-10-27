@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import math
+from dataclasses import dataclass
 from typing import Iterable, List, Optional, Sequence, Tuple
 
 
@@ -58,6 +59,134 @@ def path_closest_approach(
         cx, cy = ax + t * dx, ay + t * dy
         best = min(best, math.hypot(tx - cx, ty - cy))
     return best
+
+
+@dataclass(frozen=True)
+class LethalRegionReport:
+    """Spatial report for costmap/mask lethal coverage near a world point.
+
+    Acceptance for keepout overlay (Entry 023):
+    * ``nearest_lethal_m`` must be ≤ ``accept_radius_m`` (default ≈ footprint
+      half-width + one map cell, ~0.60 m at 0.05 m resolution), OR
+    * the queried centre cell itself is lethal.
+    A missing obstacle is not hidden: if no lethal exists inside
+    ``search_radius_m``, ``ok`` is False. Excessively broad keepout is flagged
+    separately via ``corridor_blocked`` when a documented safe offset is lethal.
+    """
+
+    frame_id: str
+    origin_x: float
+    origin_y: float
+    resolution: float
+    query_xy: Tuple[float, float]
+    centre_cost: Optional[int]
+    nearest_lethal_xy: Optional[Tuple[float, float]]
+    nearest_lethal_m: Optional[float]
+    nearest_lethal_cost: Optional[int]
+    lethal_count_in_search: int
+    accept_radius_m: float
+    search_radius_m: float
+    ok: bool
+    detail: str
+
+
+def lethal_region_report(
+    data: Sequence[int],
+    size_x: int,
+    size_y: int,
+    origin_x: float,
+    origin_y: float,
+    resolution: float,
+    query_xy: Tuple[float, float],
+    *,
+    frame_id: str = '',
+    lethal_threshold: int = 254,
+    search_radius_m: float = 1.5,
+    accept_radius_m: float = 0.60,
+    unknown_cost: int = 255,
+) -> LethalRegionReport:
+    """Inspect lethal coverage around ``query_xy`` using map meta, not offsets.
+
+    Converts world → grid with the provided origin/resolution (no hardcoded cell
+    shifts). Reports centre cost, nearest lethal distance, and pass/fail against
+    ``accept_radius_m`` (footprint/discretisation tolerance).
+    """
+    qx, qy = float(query_xy[0]), float(query_xy[1])
+    w, h = int(size_x), int(size_y)
+    res = float(resolution)
+    ox, oy = float(origin_x), float(origin_y)
+    if res <= 0.0 or w <= 0 or h <= 0:
+        return LethalRegionReport(
+            frame_id=frame_id, origin_x=ox, origin_y=oy, resolution=res,
+            query_xy=(qx, qy), centre_cost=None, nearest_lethal_xy=None,
+            nearest_lethal_m=None, nearest_lethal_cost=None,
+            lethal_count_in_search=0, accept_radius_m=accept_radius_m,
+            search_radius_m=search_radius_m, ok=False,
+            detail='invalid map meta',
+        )
+
+    def _cost(ix: int, iy: int) -> Optional[int]:
+        if not (0 <= ix < w and 0 <= iy < h):
+            return None
+        return int(data[iy * w + ix])
+
+    cx = int((qx - ox) / res)
+    cy = int((qy - oy) / res)
+    centre = _cost(cx, cy)
+
+    r_cells = max(1, int(math.ceil(search_radius_m / res)))
+    best_d: Optional[float] = None
+    best_xy: Optional[Tuple[float, float]] = None
+    best_c: Optional[int] = None
+    n_lethal = 0
+    for dy in range(-r_cells, r_cells + 1):
+        for dx in range(-r_cells, r_cells + 1):
+            ix, iy = cx + dx, cy + dy
+            c = _cost(ix, iy)
+            if c is None or c >= unknown_cost or c < lethal_threshold:
+                continue
+            wx = ox + (ix + 0.5) * res
+            wy = oy + (iy + 0.5) * res
+            d = math.hypot(wx - qx, wy - qy)
+            if d > search_radius_m:
+                continue
+            n_lethal += 1
+            if best_d is None or d < best_d:
+                best_d = d
+                best_xy = (wx, wy)
+                best_c = c
+
+    centre_lethal = (
+        centre is not None
+        and centre >= lethal_threshold
+        and centre < unknown_cost
+    )
+    near_ok = best_d is not None and best_d <= accept_radius_m
+    ok = bool(centre_lethal or near_ok)
+    if centre_lethal:
+        detail = f'centre_cost={centre} (lethal)'
+    elif near_ok:
+        detail = (
+            f'centre_cost={centre}; nearest_lethal={best_d:.3f}m '
+            f'at ({best_xy[0]:.2f},{best_xy[1]:.2f}) cost={best_c}'
+        )
+    elif best_d is not None:
+        detail = (
+            f'FAIL centre_cost={centre}; nearest_lethal={best_d:.3f}m '
+            f'> accept={accept_radius_m:.2f}m (n={n_lethal})'
+        )
+    else:
+        detail = (
+            f'FAIL centre_cost={centre}; no lethal within '
+            f'search={search_radius_m:.2f}m'
+        )
+    return LethalRegionReport(
+        frame_id=frame_id, origin_x=ox, origin_y=oy, resolution=res,
+        query_xy=(qx, qy), centre_cost=centre, nearest_lethal_xy=best_xy,
+        nearest_lethal_m=best_d, nearest_lethal_cost=best_c,
+        lethal_count_in_search=n_lethal, accept_radius_m=accept_radius_m,
+        search_radius_m=search_radius_m, ok=ok, detail=detail,
+    )
 
 
 def costmap_obstacle_cells(
