@@ -18,9 +18,9 @@ On switch:
   3. Cancel NavigateToPose and re-send the same goal (NavFn then plans around
      the already-sensed obstacle; bank state prevents treating a blocked
      corridor as a preferred option in status/logging)
-  If no candidate remains valid → publish NO_PATH_AVAILABLE and leave Nav2's
-  recovery/replanning behavior in control (unless cancellation is explicitly
-  enabled).
+  If no candidate remains valid, check reachability from the robot's current
+  pose to the goal on the live costmap. Publish NO_PATH_AVAILABLE only when
+  that live reachability check fails; otherwise leave route selection to Nav2.
 
 Static vs live
 --------------
@@ -40,7 +40,7 @@ from action_msgs.msg import GoalStatus
 from geometry_msgs.msg import PoseStamped
 from nav2_msgs.action import NavigateToPose
 from nav2_msgs.msg import Costmap
-from nav_msgs.msg import OccupancyGrid, Path
+from nav_msgs.msg import OccupancyGrid, Odometry, Path
 from rclpy.action import ActionClient
 from rclpy.callback_groups import ReentrantCallbackGroup
 from rclpy.node import Node
@@ -57,6 +57,7 @@ from rs1_nav.path_bank import (
     nav2_costmap_to_grid,
     occupancy_msg_to_grid,
     path_is_valid,
+    plan_dijkstra,
 )
 
 
@@ -143,6 +144,7 @@ class PathBankManager(Node):
         self._bank: Optional[PathBank] = None
         self._state = MissionNavState.IDLE
         self._goal_xyyaw: Optional[Tuple[float, float, float]] = None
+        self._robot_xy: Optional[Tuple[float, float]] = None
         self._goal_handle = None
         self._switch_count = 0
         self._building = False
@@ -152,6 +154,7 @@ class PathBankManager(Node):
             Costmap, 'global_costmap/costmap_raw', self._on_costmap, 2)
         self.create_subscription(Path, 'plan', self._on_plan, 5)
         self.create_subscription(PoseStamped, 'goal_pose', self._on_goal_pose, 10)
+        self.create_subscription(Odometry, 'odom', self._on_odom, 10)
 
         self._state_pub = self.create_publisher(String, 'path_bank/state', 10)
         self._status_pub = self.create_publisher(String, 'path_bank/status', LATCHED)
@@ -195,6 +198,10 @@ class PathBankManager(Node):
             'will build path bank on next plan/costmap'
         )
 
+    def _on_odom(self, msg: Odometry) -> None:
+        pose = msg.pose.pose.position
+        self._robot_xy = (float(pose.x), float(pose.y))
+
     def _on_plan(self, msg: Path) -> None:
         if not self._enabled or self._building:
             return
@@ -236,6 +243,10 @@ class PathBankManager(Node):
             chosen = self._bank.select_best_available()
             if chosen is not None:
                 self._publish_bank_paths()
+            elif not self._live_route_exists(
+                nav2_costmap_to_grid(self._live_costmap)
+            ):
+                self._handle_no_path()
             return
 
         live = nav2_costmap_to_grid(self._live_costmap)
@@ -261,14 +272,19 @@ class PathBankManager(Node):
         self._set_state(MissionNavState.SWITCHING_PATH)
         nxt = self._pick_next_valid(live)
         if nxt is None:
-            # Do NOT cancel Nav2 by default: IsPathValid BT still owns recovery
-            # / replanning on the live costmap. Bank exhaustion is advisory.
-            self.get_logger().error(
-                'No valid banked path remains; leaving Nav2 IsPathValid BT in control'
+            if not self._live_route_exists(live):
+                self._handle_no_path()
+                return
+            # The bank is only a set of alternatives. If it is exhausted but
+            # the live costmap still has a connected route, let Nav2 follow
+            # its fresh route instead of retrying another banked corridor.
+            self.get_logger().info(
+                'Banked candidates exhausted, but a live route to the goal '
+                'still exists; leaving route selection to Nav2'
             )
-            self._set_state(MissionNavState.NO_PATH_AVAILABLE)
-            if self._cancel_on_no_path:
-                self._cancel_nav()
+            if self._switch_resend and self._goal_xyyaw is not None:
+                self._send_goal(*self._goal_xyyaw)
+            self._set_state(MissionNavState.FOLLOWING_PATH)
             return
 
         self._switch_count += 1
@@ -286,6 +302,35 @@ class PathBankManager(Node):
                 self._ignore_goal_results += 1
             self._send_goal(*self._goal_xyyaw)
         self._set_state(MissionNavState.FOLLOWING_PATH)
+
+    def _live_route_exists(self, live_grid) -> bool:
+        if self._robot_xy is None or self._goal_xyyaw is None:
+            self.get_logger().warn(
+                'Cannot evaluate live reachability yet: robot pose or goal is missing'
+            )
+            return True
+        route = plan_dijkstra(
+            live_grid,
+            self._robot_xy,
+            (self._goal_xyyaw[0], self._goal_xyyaw[1]),
+            allow_unknown=True,
+        )
+        if route is None:
+            self.get_logger().warn(
+                f'Live costmap has no route from '
+                f'({self._robot_xy[0]:.2f}, {self._robot_xy[1]:.2f}) to '
+                f'({self._goal_xyyaw[0]:.2f}, {self._goal_xyyaw[1]:.2f})'
+            )
+            return False
+        return True
+
+    def _handle_no_path(self) -> None:
+        self.get_logger().error(
+            'No route to goal exists on the live costmap'
+        )
+        self._set_state(MissionNavState.NO_PATH_AVAILABLE)
+        if self._cancel_on_no_path:
+            self._cancel_nav()
 
     # -- bank construction -------------------------------------------------
 
