@@ -24,6 +24,13 @@ def test_format_speed_rounds_cleanly():
     assert gui.format_speed(0.0) == '0.00 m/s'
 
 
+def test_distance_to_goal_uses_planar_position_only():
+    assert math.isclose(
+        gui.distance_to_goal((0.0, 0.0, 2.5), (0.6, 0.8, -1.0)),
+        1.0,
+    )
+
+
 def test_detect_obstacle_uses_threshold():
     assert gui.detect_obstacle([3.0, 3.0, 0.25, 3.0], threshold=0.5) is True
     assert gui.detect_obstacle([3.0, 2.0, 1.5, 3.0], threshold=0.5) is False

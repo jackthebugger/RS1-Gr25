@@ -164,7 +164,14 @@ shown directly in Gazebo as a tall red, visual-only goal indicator with a
 floating arrow for the requested orientation. It has no collision geometry and
 is removed when the goal is cancelled. The GUI navigation banner reports `IDLE`,
 `NAVIGATING`, `SUCCESSFUL`, `CANCELLED`, or `FAILED` from Nav2 action feedback
-and results; `Goal reached` is only shown for a Nav2 success result.
+and results. For the GUI-owned mission, reaching within 1 m of the requested
+goal is also treated as arrival: the GUI cancels remaining Nav2/path-bank work
+and reports `SUCCESSFUL` so the robot does not need to drive into the visual
+flag. `Goal reached` is shown only after Nav2 success or this measured 1 m
+arrival condition.
+The GUI's map panel displays Nav2's predetermined global costmap from
+`/<robot>/global_costmap/costmap`, with the current planned route overlaid in
+pink; it does not use the live LiDAR-discovered `/map` topic for that panel.
 
 You can also drive the Husky using keyboard teleoperation from a separate terminal.
 

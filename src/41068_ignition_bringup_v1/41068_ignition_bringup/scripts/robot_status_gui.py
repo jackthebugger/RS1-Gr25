@@ -21,7 +21,7 @@ import rclpy
 from action_msgs.msg import GoalStatus
 from geometry_msgs.msg import PoseStamped
 from nav2_msgs.action import NavigateToPose
-from nav_msgs.msg import OccupancyGrid, Odometry
+from nav_msgs.msg import OccupancyGrid, Odometry, Path
 from rclpy.action import ActionClient
 from rclpy.node import Node
 from rclpy.parameter import Parameter
@@ -78,6 +78,7 @@ DEFAULT_GOAL_X = 16.0
 DEFAULT_GOAL_Y = -0.1
 DEFAULT_GOAL_YAW = 0.0
 DEFAULT_WORLD_NAME = 'bush_trail_world'
+ARRIVAL_DISTANCE_THRESHOLD_M = 1.0
 
 # Soft bounds for coordinate validation (60×60 m bush_trail / forest arena).
 MAP_X_MIN, MAP_X_MAX = -29.0, 29.0
@@ -117,6 +118,42 @@ def format_remaining_time(seconds: float) -> str:
     if minutes:
         return f'{minutes}m {remaining_seconds:02d}s'
     return f'{remaining_seconds}s'
+
+
+def distance_to_goal(
+    robot_pose: Tuple[float, float, float],
+    goal_pose: Tuple[float, float, float],
+) -> float:
+    """Return planar distance between a robot pose and navigation goal."""
+    return math.hypot(robot_pose[0] - goal_pose[0], robot_pose[1] - goal_pose[1])
+
+
+def resize_rgb(
+    pixels: bytes,
+    source_width: int,
+    source_height: int,
+    target_width: int,
+    target_height: int,
+) -> Tuple[bytes, int, int]:
+    """Scale RGB pixels to fit a display area without distorting the image."""
+    if source_width <= 0 or source_height <= 0:
+        return pixels, source_width, source_height
+    scale = min(target_width / source_width, target_height / source_height)
+    width = max(1, int(source_width * scale))
+    height = max(1, int(source_height * scale))
+    if width == source_width and height == source_height:
+        return pixels, width, height
+    resized = bytearray(width * height * 3)
+    for y in range(height):
+        source_y = min(source_height - 1, int(y * source_height / height))
+        for x in range(width):
+            source_x = min(source_width - 1, int(x * source_width / width))
+            source_index = (source_y * source_width + source_x) * 3
+            target_index = (y * width + x) * 3
+            resized[target_index:target_index + 3] = pixels[
+                source_index:source_index + 3
+            ]
+    return bytes(resized), width, height
 
 
 def detect_obstacle(ranges: Iterable[float], threshold: float = 1.0) -> bool:
@@ -165,8 +202,8 @@ class RobotStatusWindow(tk.Tk):
         self.robot_name = robot_name
         self.title(f'{robot_name} status')
         # Compact default so windowed desktops show controls; content scrolls.
-        self.geometry('560x640')
-        self.minsize(420, 420)
+        self.geometry('1800x1100')
+        self.minsize(1500, 850)
 
         self.configure(bg='#f3f4f6')
 
@@ -225,12 +262,12 @@ class RobotStatusWindow(tk.Tk):
         for column in range(3):
             self.views_frame.columnconfigure(column, weight=1)
 
-        self.map_frame = tk.Frame(self.views_frame, width=250, height=220, bg='#111827')
+        self.map_frame = tk.Frame(self.views_frame, width=520, height=320, bg='#111827')
         self.map_frame.grid(row=0, column=0, padx=4, sticky='nsew')
         self.map_frame.grid_propagate(False)
         self.map_label = tk.Label(
             self.map_frame,
-            text='LiDAR map: waiting for SLAM',
+            text='Nav2 cost map: waiting for global costmap',
             bg='#111827',
             fg='#ffffff',
             anchor='center',
@@ -238,7 +275,7 @@ class RobotStatusWindow(tk.Tk):
         self.map_label.pack(fill='both', expand=True)
         self.map_photo = None
 
-        self.camera_frame = tk.Frame(self.views_frame, width=250, height=220, bg='#111827')
+        self.camera_frame = tk.Frame(self.views_frame, width=520, height=320, bg='#111827')
         self.camera_frame.grid(row=0, column=1, padx=4, sticky='nsew')
         self.camera_frame.grid_propagate(False)
         self.camera_label = tk.Label(
@@ -252,7 +289,7 @@ class RobotStatusWindow(tk.Tk):
         self.camera_photo = None
 
         self.thermal_frame = tk.Frame(
-            self.views_frame, width=250, height=220, bg='#111827',
+            self.views_frame, width=520, height=320, bg='#111827',
         )
         self.thermal_frame.grid(row=0, column=2, padx=4, sticky='nsew')
         self.thermal_frame.grid_propagate(False)
@@ -608,7 +645,13 @@ class RobotStatusWindow(tk.Tk):
                 current = bytes(value for value in current for _ in range(3))
             pixels.extend(current)
 
-        ppm = f'P6\n{image.width} {image.height}\n255\n'.encode() + pixels
+        display_pixels, display_width, display_height = resize_rgb(
+            pixels, image.width, image.height, 500, 300,
+        )
+        ppm = (
+            f'P6\n{display_width} {display_height}\n255\n'.encode()
+            + display_pixels
+        )
         try:
             self.camera_photo = tk.PhotoImage(
                 data=ppm,
@@ -684,7 +727,13 @@ class RobotStatusWindow(tk.Tk):
                 )
             pixels.extend((red, green, blue))
 
-        ppm = f'P6\n{image.width} {image.height}\n255\n'.encode() + pixels
+        display_pixels, display_width, display_height = resize_rgb(
+            pixels, image.width, image.height, 500, 300,
+        )
+        ppm = (
+            f'P6\n{display_width} {display_height}\n255\n'.encode()
+            + display_pixels
+        )
         try:
             self.thermal_photo = tk.PhotoImage(data=ppm, format='PPM')
         except tk.TclError:
@@ -697,14 +746,15 @@ class RobotStatusWindow(tk.Tk):
         grid: OccupancyGrid,
         robot_pose: Optional[Tuple[float, float, float]] = None,
         goal_pose: Optional[Tuple[float, float, float]] = None,
+        path: Optional[List[Tuple[float, float]]] = None,
     ) -> None:
         width = int(grid.info.width)
         height = int(grid.info.height)
         if width <= 0 or height <= 0 or len(grid.data) < width * height:
             return
 
-        display_width = min(240, width)
-        display_height = min(210, height)
+        display_width = min(500, width)
+        display_height = min(300, height)
         pixels = bytearray()
         for display_y in range(display_height):
             source_y = height - 1 - (display_y * height // display_height)
@@ -751,16 +801,42 @@ class RobotStatusWindow(tk.Tk):
                         index = (pixel_y * display_width + pixel_x) * 3
                         pixels[index:index + 3] = bytes(color)
 
+        def draw_path(points: List[Tuple[int, int]], color: Tuple[int, int, int]) -> None:
+            for start, end in zip(points, points[1:]):
+                x0, y0 = start
+                x1, y1 = end
+                steps = max(abs(x1 - x0), abs(y1 - y0), 1)
+                for step in range(steps + 1):
+                    x = round(x0 + (x1 - x0) * step / steps)
+                    y = round(y0 + (y1 - y0) * step / steps)
+                    for offset_x, offset_y in ((0, 0), (1, 0), (-1, 0), (0, 1), (0, -1)):
+                        pixel_x = x + offset_x
+                        pixel_y = y + offset_y
+                        if 0 <= pixel_x < display_width and 0 <= pixel_y < display_height:
+                            index = (pixel_y * display_width + pixel_x) * 3
+                            pixels[index:index + 3] = bytes(color)
+
+        path_pixels = [
+            point for point in (map_pixel((x, y, 0.0)) for x, y in (path or []))
+            if point is not None
+        ]
+        draw_path(path_pixels, (236, 72, 153))
         draw_marker(map_pixel(goal_pose), (22, 163, 74))
         draw_marker(map_pixel(robot_pose), (37, 99, 235))
 
+        display_pixels, display_width, display_height = resize_rgb(
+            pixels, display_width, display_height, 500, 300,
+        )
         ppm = (
-            f'P6\n{display_width} {display_height}\n255\n'.encode() + pixels
+            f'P6\n{display_width} {display_height}\n255\n'.encode()
+            + display_pixels
         )
         try:
             self.map_photo = tk.PhotoImage(data=ppm, format='PPM')
         except tk.TclError:
-            self.map_label.configure(text='Map: invalid occupancy grid', image='')
+            self.map_label.configure(
+                text='Nav2 cost map: invalid occupancy grid', image=''
+            )
             return
         self.map_label.configure(image=self.map_photo, text='')
 
@@ -806,7 +882,10 @@ class RobotStatusNode(Node):
         self.latest_fire_detected = False
         self.latest_distance = 0.0
         self.latest_time = 'Pending'
+        self._eta_deadline: Optional[float] = None
         self.latest_pose: Optional[Tuple[float, float, float]] = None
+        self.latest_path: List[Tuple[float, float]] = []
+        self.latest_map: Optional[OccupancyGrid] = None
         self.goal_handle = None
         self.start_request_pending = False
         self.start_wait_timer = None
@@ -816,9 +895,12 @@ class RobotStatusNode(Node):
         # the mission alive and watch pose until arrival instead of flashing FAIL.
         self._user_stop = False
         self._monitor_arrival = False
+        self._arrival_completed = False
+        self._eta_deadline = None
         self._monitor_idle_since: Optional[float] = None
         self._monitor_last_pose: Optional[Tuple[float, float]] = None
         self._path_bank_status = ''
+        self._path_bank_state = ''
 
         goal_frame = self.declare_parameter('goal_frame', 'husky1_map').value
         goal_x = self.declare_parameter('goal_x', DEFAULT_GOAL_X).value
@@ -869,7 +951,9 @@ class RobotStatusNode(Node):
         fire_topic = self.declare_parameter('fire_topic', 'fire_detected').value
         camera_topic = self.declare_parameter('camera_topic', 'camera/image').value
         thermal_topic = self.declare_parameter('thermal_topic', 'thermal/image').value
-        map_topic = self.declare_parameter('map_topic', 'map').value
+        map_topic = self.declare_parameter(
+            'map_topic', 'global_costmap/costmap',
+        ).value
         obstacle_threshold = self.declare_parameter('obstacle_threshold', 1.0).value
         self.obstacle_threshold = float(obstacle_threshold)
 
@@ -894,7 +978,9 @@ class RobotStatusNode(Node):
         self.create_subscription(Image, camera_topic, self._camera_callback, qos_profile_sensor_data)
         self.create_subscription(Image, thermal_topic, self._thermal_callback, qos_profile_sensor_data)
         self.create_subscription(OccupancyGrid, map_topic, self._map_callback, 10)
+        self.create_subscription(Path, 'plan', self._path_callback, 10)
         self.create_subscription(String, 'path_bank/status', self._path_bank_status_callback, 10)
+        self.path_bank_cancel_pub = self.create_publisher(Bool, 'path_bank/cancel', 10)
         self.create_timer(0.1, self._update_gui)
         self.create_timer(0.2, self._obstacle_tick)
         self.create_timer(0.5, self._arrival_monitor_tick)
@@ -903,7 +989,8 @@ class RobotStatusNode(Node):
             f'Robot status GUI started for {self.robot_name}. '
             f'Default goal ({self.default_goal_x}, {self.default_goal_y}, '
             f'{self.default_goal_yaw}). Listening to {odom_topic} and '
-            f'{scan_topic}/base_scan. World={gap_config.world_name}.'
+            f'{scan_topic}/base_scan and {map_topic}. '
+            f'World={gap_config.world_name}.'
         )
 
     def set_speed(self, speed: str) -> None:
@@ -955,6 +1042,7 @@ class RobotStatusNode(Node):
         self._pending_goal = None
         self._user_stop = False
         self._monitor_arrival = False
+        self._arrival_completed = False
         self._monitor_idle_since = None
         self._monitor_last_pose = None
         if self.start_wait_timer is not None:
@@ -975,6 +1063,7 @@ class RobotStatusNode(Node):
         self._update_gazebo_goal(x, y, yaw)
         self.latest_distance = 0.0
         self.latest_time = 'Pending'
+        self._eta_deadline = None
         self.gui.set_goal_fields(x, y, yaw)
         self.gui.set_goal_status(f'({x:g}, {y:g}, {yaw:g})')
         self.gui.set_mission_status('navigating')
@@ -1049,11 +1138,14 @@ class RobotStatusNode(Node):
             self.start_wait_timer = None
 
         if self.goal_handle is None:
+            cancel = Bool()
+            cancel.data = True
+            self.path_bank_cancel_pub.publish(cancel)
             self.active_goal = None
             self._remove_gazebo_goal()
-            self.gui.set_mission_status('idle')
+            self.gui.set_mission_status('cancelled')
             self.gui.set_mission_running(False)
-            self.gui.set_feedback('Mission stopped')
+            self.gui.set_feedback('Navigation cancelled')
             return
 
         self._remove_gazebo_goal()
@@ -1118,9 +1210,11 @@ class RobotStatusNode(Node):
         feedback = feedback_message.feedback
         self.latest_distance = float(feedback.distance_remaining)
         duration = feedback.estimated_time_remaining
-        self.latest_time = format_remaining_time(
-            duration.sec + duration.nanosec / 1e9
+        remaining_seconds = max(
+            0.0, float(duration.sec) + float(duration.nanosec) / 1e9
         )
+        self._eta_deadline = time.monotonic() + remaining_seconds
+        self.latest_time = format_remaining_time(remaining_seconds)
 
     def _goal_response_callback(self, future) -> None:
         self.goal_handle = future.result()
@@ -1150,23 +1244,42 @@ class RobotStatusNode(Node):
     def _result_callback(self, future) -> None:
         status = future.result().status
         self.goal_handle = None
+        if self._arrival_completed:
+            return
         if status == GoalStatus.STATUS_SUCCEEDED:
             self._monitor_arrival = False
+            self._eta_deadline = None
             self.active_goal = None
             self._remove_gazebo_goal()
             self.gui.set_mission_running(False)
             self.gui.set_mission_status('successful')
             self.gui.set_feedback('Goal reached')
             return
-        if status == GoalStatus.STATUS_CANCELED:
+        if status == GoalStatus.STATUS_CANCELED and self._user_stop:
             self._monitor_arrival = False
+            self._eta_deadline = None
             self.active_goal = None
             self._remove_gazebo_goal()
             self.gui.set_mission_running(False)
             self.gui.set_mission_status('cancelled')
             self.gui.set_feedback('Navigation cancelled')
             return
+        if (
+            self.active_goal is not None
+            and not self._user_stop
+            and self._path_bank_state not in ('NO_PATH_AVAILABLE', 'FAILED')
+        ):
+            self.gui.set_mission_running(True)
+            self.gui.set_mission_status('navigating')
+            self.gui.set_feedback(
+                'Navigation continuing on alternate path'
+            )
+            self.get_logger().info(
+                f'Nav2 goal ended status={status}; path bank is continuing'
+            )
+            return
         self._monitor_arrival = False
+        self._eta_deadline = None
         self.active_goal = None
         self._remove_gazebo_goal()
         self.gui.set_mission_running(False)
@@ -1199,16 +1312,57 @@ class RobotStatusNode(Node):
 
     def _path_bank_status_callback(self, msg: String) -> None:
         self._path_bank_status = msg.data or ''
+        first_line = self._path_bank_status.splitlines()[0] if self._path_bank_status else ''
+        if first_line.startswith('state='):
+            self._path_bank_state = first_line.split('=', 1)[1].strip()
 
     def _arrival_monitor_tick(self) -> None:
-        """Track distance after an external client takes over NavigateToPose."""
-        if not self._monitor_arrival or self.active_goal is None:
+        """Complete missions when the robot is within the configured goal radius."""
+        if self.active_goal is None:
             return
         pose = self.latest_pose
         if pose is None:
             return
-        gx, gy, _gyaw = self.active_goal
-        self.latest_distance = math.hypot(pose[0] - gx, pose[1] - gy)
+        self.latest_distance = distance_to_goal(pose, self.active_goal)
+        if (
+            self.latest_distance <= ARRIVAL_DISTANCE_THRESHOLD_M
+            and not self._arrival_completed
+        ):
+            self._complete_mission_at_arrival()
+
+    def _complete_mission_at_arrival(self) -> None:
+        """Stop remaining navigation after reaching the one-metre goal radius."""
+        if self.active_goal is None or self._arrival_completed:
+            return
+
+        self._arrival_completed = True
+        self._user_stop = False
+        self._monitor_arrival = False
+        self._eta_deadline = None
+        goal_handle = self.goal_handle
+        self.goal_handle = None
+
+        cancel = Bool()
+        cancel.data = True
+        self.path_bank_cancel_pub.publish(cancel)
+        if goal_handle is not None:
+            future = goal_handle.cancel_goal_async()
+            future.add_done_callback(self._arrival_cancel_response_callback)
+
+        self.active_goal = None
+        self._remove_gazebo_goal()
+        self.gui.set_mission_running(False)
+        self.gui.set_mission_status('successful')
+        self.gui.set_feedback(
+            f'Goal reached (within {ARRIVAL_DISTANCE_THRESHOLD_M:g} m)'
+        )
+
+    def _arrival_cancel_response_callback(self, future) -> None:
+        """Log cleanup failures without changing the already successful status."""
+        if not future.result().goals_canceling:
+            self.get_logger().warning(
+                'Navigation cleanup was not accepted after arrival'
+            )
 
     # -- sensors ----------------------------------------------------------
 
@@ -1238,7 +1392,26 @@ class RobotStatusNode(Node):
         self.latest_fire_detected = bool(msg.data)
 
     def _map_callback(self, msg: OccupancyGrid) -> None:
-        self.gui.update_map(msg, robot_pose=self.latest_pose, goal_pose=self.active_goal)
+        self.latest_map = msg
+        self.gui.update_map(
+            msg,
+            robot_pose=self.latest_pose,
+            goal_pose=self.active_goal,
+            path=self.latest_path,
+        )
+
+    def _path_callback(self, msg: Path) -> None:
+        self.latest_path = [
+            (float(pose.pose.position.x), float(pose.pose.position.y))
+            for pose in msg.poses
+        ]
+        if self.latest_map is not None:
+            self.gui.update_map(
+                self.latest_map,
+                robot_pose=self.latest_pose,
+                goal_pose=self.active_goal,
+                path=self.latest_path,
+            )
 
     def _update_gui(self) -> None:
         self.status.speed = self.latest_speed
@@ -1249,7 +1422,12 @@ class RobotStatusNode(Node):
         else:
             self.status.destination = 'Safehouse'
         self.status.distance_to_destination = self.latest_distance
-        self.status.time_to_destination = self.latest_time
+        if self._eta_deadline is not None and self.active_goal is not None:
+            self.status.time_to_destination = format_remaining_time(
+                max(0.0, self._eta_deadline - time.monotonic())
+            )
+        else:
+            self.status.time_to_destination = self.latest_time
         self.status.battery = 100.0
         self.gui.set_status(self.status)
 

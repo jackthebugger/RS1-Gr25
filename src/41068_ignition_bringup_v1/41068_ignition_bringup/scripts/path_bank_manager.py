@@ -43,7 +43,7 @@ from rclpy.action import ActionClient
 from rclpy.callback_groups import ReentrantCallbackGroup
 from rclpy.node import Node
 from rclpy.qos import DurabilityPolicy, HistoryPolicy, QoSProfile, ReliabilityPolicy
-from std_msgs.msg import String
+from std_msgs.msg import Bool, String
 from visualization_msgs.msg import Marker, MarkerArray
 
 from rs1_nav.path_bank import (
@@ -150,6 +150,7 @@ class PathBankManager(Node):
             Costmap, 'global_costmap/costmap_raw', self._on_costmap, 2)
         self.create_subscription(Path, 'plan', self._on_plan, 5)
         self.create_subscription(PoseStamped, 'goal_pose', self._on_goal_pose, 10)
+        self.create_subscription(Bool, 'path_bank/cancel', self._on_cancel_request, 10)
 
         self._state_pub = self.create_publisher(String, 'path_bank/state', 10)
         self._status_pub = self.create_publisher(String, 'path_bank/status', LATCHED)
@@ -192,6 +193,14 @@ class PathBankManager(Node):
             f'Goal pose received ({self._goal_xyyaw[0]:.2f}, {self._goal_xyyaw[1]:.2f}); '
             'will build path bank on next plan/costmap'
         )
+
+    def _on_cancel_request(self, msg: Bool) -> None:
+        if not msg.data:
+            return
+        self._cancel_nav()
+        self._bank = None
+        self._goal_xyyaw = None
+        self._set_state(MissionNavState.IDLE)
 
     def _on_plan(self, msg: Path) -> None:
         if not self._enabled or self._building:
