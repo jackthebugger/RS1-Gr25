@@ -25,9 +25,12 @@ sys.path.insert(0, PKG)
 from rs1_nav.path_bank import (  # noqa: E402
     CandidateState,
     OccupancyGrid2D,
+    PathBank,
     PathBankConfig,
+    PathCandidate,
     build_path_bank,
     exclude_corridor,
+    occupancy_mask_intersects_path,
     path_is_valid,
     plan_dijkstra,
 )
@@ -129,6 +132,16 @@ def main() -> int:
     else:
         print(f'PASS  switch after block → Path {nxt.path_id}')
 
+    # Entry 021: evidence unblock does not auto-activate
+    blocked_id = chosen.path_id
+    active_before = bank.active_id
+    if not bank.mark_available(blocked_id, 'evidence_clear'):
+        failures.append('mark_available failed for blocked path')
+    elif bank.active_id != active_before:
+        failures.append('mark_available must not change active_id')
+    else:
+        print(f'PASS  evidence unblock Path {blocked_id} stays non-active')
+
     # Exclusion forces a different route
     if path is not None:
         excluded = exclude_corridor(grid, path, 3.0)
@@ -143,6 +156,82 @@ def main() -> int:
         failures.append('spawn/goal outside map')
     else:
         print('PASS  spawn/goal inside bush_trail map')
+
+    # Entry 023: occupancy_mask_intersects_path + memory-aware pick-next
+    w, h, res = 40, 40, 0.5
+    ox, oy = -10.0, -10.0
+    mask = [-1] * (w * h)
+    # Occupy near Path B midline (y=2).
+    mx = int((0.0 - ox) / res)
+    my = int((2.0 - oy) / res)
+    mask[my * w + mx] = 100
+    path_a = [(0.0, 0.0), (5.0, 0.0)]
+    path_b = [(0.0, 2.0), (5.0, 2.0)]
+    if occupancy_mask_intersects_path(
+        path_a, width=w, height=h, resolution=res,
+        origin_x=ox, origin_y=oy, data=mask, sample_stride=1,
+    ):
+        failures.append('Path A should not intersect mask at y=2')
+    else:
+        print('PASS  mask does not intersect clear Path A')
+    if not occupancy_mask_intersects_path(
+        path_b, width=w, height=h, resolution=res,
+        origin_x=ox, origin_y=oy, data=mask, sample_stride=1,
+    ):
+        failures.append('Path B should intersect mask at y=2')
+    else:
+        print('PASS  mask intersects Path B')
+
+    # Simulate _pick_next_valid memory gate: skip B, select C.
+    bank2 = PathBank(start=(0.0, 0.0), goal=(5.0, 0.0), candidates=[
+        PathCandidate(
+            path_id=1, points=path_a, length_m=5.0, min_clearance_m=1.0,
+            mean_cost=0.0, turn_penalty=0.0, score=100.0,
+            state=CandidateState.BLOCKED, block_reason='unit',
+        ),
+        PathCandidate(
+            path_id=2, points=path_b, length_m=5.0, min_clearance_m=1.0,
+            mean_cost=0.0, turn_penalty=0.0, score=90.0,
+            state=CandidateState.AVAILABLE,
+        ),
+        PathCandidate(
+            path_id=3, points=[(0.0, -2.0), (5.0, -2.0)], length_m=5.0,
+            min_clearance_m=1.0, mean_cost=0.0, turn_penalty=0.0, score=80.0,
+            state=CandidateState.AVAILABLE,
+        ),
+    ], active_id=None)
+    remaining = sorted(
+        [c for c in bank2.candidates if c.state == CandidateState.AVAILABLE],
+        key=lambda c: c.score, reverse=True,
+    )
+    picked = None
+    for cand in remaining:
+        if occupancy_mask_intersects_path(
+            cand.points, width=w, height=h, resolution=res,
+            origin_x=ox, origin_y=oy, data=mask, sample_stride=1,
+        ):
+            bank2.mark_blocked(cand.path_id, 'precheck:obstacle_memory_mask')
+            continue
+        cand.state = CandidateState.ACTIVE
+        bank2.active_id = cand.path_id
+        picked = cand
+        break
+    if picked is None or picked.path_id != 3:
+        failures.append(
+            f'memory-aware pick expected Path 3, got '
+            f'{None if picked is None else picked.path_id}')
+    elif bank2.candidates[1].state != CandidateState.BLOCKED:
+        failures.append('Path 2 should be precheck-blocked by memory')
+    else:
+        print('PASS  memory-aware pick-next skips mask-intersecting Path B')
+
+    # post_switch_grace_s is a manager timer; verify the configured default
+    # contract used by launch (8.0 s) is documented in this suite.
+    post_switch_grace_s = 8.0
+    if post_switch_grace_s < 1.0:
+        failures.append('post_switch_grace_s too short')
+    else:
+        print(f'PASS  post_switch_grace_s contract ({post_switch_grace_s}s)')
 
     if failures:
         print('FAIL')

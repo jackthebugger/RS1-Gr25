@@ -233,6 +233,32 @@ class GazeboWorld:
         """Remove a model by name. Safe to call when it does not exist."""
         return self._service('remove', f"name: '{name}' type: MODEL", 'Entity')
 
+    def set_model_pose(
+        self,
+        name: str,
+        x: float,
+        y: float,
+        yaw: float = 0.0,
+        z: float = 0.50,
+    ) -> bool:
+        """Teleport an existing model via ``/world/<world>/set_pose``.
+
+        Used by sensor-only T5 when NavigateToPose cannot enter a keepout-sealed
+        observation pose. Localization may jump briefly; prefer short dwells.
+        """
+        request = (
+            f'name: "{name}" '
+            f'position {{ x: {x:.6f} y: {y:.6f} z: {z:.6f} }} '
+            f'orientation {{ z: {math.sin(yaw / 2.0):.6f} '
+            f'w: {math.cos(yaw / 2.0):.6f} }}'
+        )
+        ok = self._service('set_pose', request, 'Pose')
+        if ok:
+            self._log(
+                f'Set pose "{name}" → ({x:.2f},{y:.2f},z={z:.2f}) yaw={yaw:.2f}'
+            )
+        return ok
+
     def wait_until_available(self, max_wait: float, poll_interval: float = 2.0) -> bool:
         """Bounded wait for the world services to appear."""
         deadline = time.monotonic() + max_wait

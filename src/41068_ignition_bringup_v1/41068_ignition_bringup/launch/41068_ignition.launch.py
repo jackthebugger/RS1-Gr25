@@ -187,6 +187,7 @@ def add_navigation_instance(
             'path_bank': LaunchConfiguration('path_bank'),
             'path_bank_switch_resend': LaunchConfiguration('path_bank_switch_resend'),
             'fire_avoidance': LaunchConfiguration('fire_avoidance'),
+            'test_speed': LaunchConfiguration('test_speed'),
         }.items(),
     )
 
@@ -386,6 +387,14 @@ def generate_launch_description():
         default_value='false',
         description='When true (and nav2), start B.E.E.R. fire detector + '
                     'fire_hazard_nav_bridge under the robot namespace.',
+    ))
+    ld.add_action(DeclareLaunchArgument(
+        'test_speed',
+        default_value='false',
+        description=(
+            'TEST ONLY: forward to navigation launch to raise RPP/smoother '
+            'linear limits for faster sim approach (default false = production).'
+        ),
     ))
 
     gui_launch_arg = DeclareLaunchArgument(

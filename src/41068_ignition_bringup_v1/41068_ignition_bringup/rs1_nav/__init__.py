@@ -26,8 +26,10 @@ from .forest_obstacle_manager import (
     load_forest_gap_config,
 )
 from .geometry import (
+    LethalRegionReport,
     clearance_to_points,
     costmap_obstacle_cells,
+    lethal_region_report,
     path_closest_approach,
     path_cost_stats,
     path_heading,
@@ -55,6 +57,13 @@ from .path_bank import (
     plan_dijkstra,
     score_candidate,
 )
+from .obstacle_memory import (
+    CellSource,
+    ClearResult,
+    MapMeta,
+    ObstacleMemory,
+    ObstacleMemoryConfig,
+)
 from .nav_observer import (
     NavObserver,
     PathSnapshot,
@@ -66,13 +75,19 @@ __all__ = [
     'PATH_A',
     'PATH_B',
     'CandidateState',
+    'CellSource',
+    'ClearResult',
     'ForestGapConfig',
     'ForestObstacleManager',
     'GapSpec',
     'GazeboWorld',
+    'LethalRegionReport',
+    'MapMeta',
     'MissionReport',
     'MissionRunner',
     'NavObserver',
+    'ObstacleMemory',
+    'ObstacleMemoryConfig',
     'ObstacleSpec',
     'ObstacleState',
     'OccupancyGrid2D',
@@ -87,6 +102,7 @@ __all__ = [
     'clearance_to_points',
     'costmap_obstacle_cells',
     'init_ros',
+    'lethal_region_report',
     'load_forest_gap_config',
     'path_closest_approach',
     'path_cost_stats',
