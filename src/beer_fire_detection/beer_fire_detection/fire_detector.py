@@ -18,6 +18,29 @@ from std_msgs.msg import Bool, Float32
 import numpy as np
 
 
+def update_fire_hysteresis(
+    fire_raw: bool,
+    fire_state: bool,
+    pos_count: int,
+    neg_count: int,
+    positive_required: int,
+    negative_required: int,
+) -> tuple[bool, int, int]:
+    """Advance consecutive-frame hysteresis; return (state, pos_count, neg_count)."""
+    if fire_raw:
+        pos_count += 1
+        neg_count = 0
+    else:
+        neg_count += 1
+        pos_count = 0
+
+    if (not fire_state) and pos_count >= positive_required:
+        fire_state = True
+    elif fire_state and neg_count >= negative_required:
+        fire_state = False
+    return fire_state, pos_count, neg_count
+
+
 class FireDetector(Node):
     def __init__(self):
         super().__init__('beer_fire_detector')
@@ -29,6 +52,9 @@ class FireDetector(Node):
         self.declare_parameter('thermal_resolution', 0.01)  # K per raw unit
         self.declare_parameter('roi_width_frac', 0.6)
         self.declare_parameter('roi_height_frac', 0.7)
+        # Consecutive-frame hysteresis so FOV-edge chatter does not flap the Bool.
+        self.declare_parameter('positive_required', 3)
+        self.declare_parameter('negative_required', 5)
 
         self.thermal_topic = self.get_parameter('thermal_topic').get_parameter_value().string_value
         self.threshold = self.get_parameter('fire_threshold_kelvin').get_parameter_value().double_value
@@ -36,17 +62,29 @@ class FireDetector(Node):
         self.resolution = float(self.get_parameter('thermal_resolution').get_parameter_value().double_value)
         self.roi_w = float(self.get_parameter('roi_width_frac').get_parameter_value().double_value)
         self.roi_h = float(self.get_parameter('roi_height_frac').get_parameter_value().double_value)
+        self.positive_required = max(
+            1, int(self.get_parameter('positive_required').get_parameter_value().integer_value)
+        )
+        self.negative_required = max(
+            1, int(self.get_parameter('negative_required').get_parameter_value().integer_value)
+        )
 
         # Publishers
         self.fire_pub = self.create_publisher(Bool, '/fire_detected', 10)
         self.temp_pub = self.create_publisher(Float32, '/fire_temperature', 10)
 
-        # State
+        # Debounced publish state (raw frame hits only update counters).
+        self.fire_state = False
         self.previous_fire_state = False
+        self._pos_count = 0
+        self._neg_count = 0
 
         # Subscribe to thermal images
         self.get_logger().info('B.E.E.R. thermal detector started')
         self.get_logger().info(f'Threshold: {self.threshold:.1f} K')
+        self.get_logger().info(
+            f'Debounce pos/neg frames: {self.positive_required}/{self.negative_required}'
+        )
         self.get_logger().info(f'Monitoring {self.thermal_topic}')
 
         self.sub = self.create_subscription(Image, self.thermal_topic, self.image_callback, 10)
@@ -136,26 +174,35 @@ class FireDetector(Node):
 
             fire = (hot_pixels >= self.min_hot_pixels) or (max_temp >= (self.threshold + 50.0))
 
-            # Publish fire flag and temperature every frame
+            self.fire_state, self._pos_count, self._neg_count = update_fire_hysteresis(
+                bool(fire),
+                self.fire_state,
+                self._pos_count,
+                self._neg_count,
+                self.positive_required,
+                self.negative_required,
+            )
+
+            # Publish debounced fire flag and temperature every frame
             fire_msg = Bool()
-            fire_msg.data = bool(fire)
+            fire_msg.data = bool(self.fire_state)
             self.fire_pub.publish(fire_msg)
 
             temp_msg = Float32()
             temp_msg.data = float(max_temp)
             self.temp_pub.publish(temp_msg)
 
-            # Log only on state changes
-            if (not self.previous_fire_state) and fire:
+            # Log only on debounced state changes
+            if (not self.previous_fire_state) and self.fire_state:
                 self.get_logger().warning('=====================================')
                 self.get_logger().warning('🔥 FIRE DETECTED AHEAD')
                 self.get_logger().warning(f'Maximum temperature: {max_temp:.1f} K')
                 self.get_logger().warning('=====================================')
-            elif self.previous_fire_state and (not fire):
+            elif self.previous_fire_state and (not self.fire_state):
                 self.get_logger().info('Fire cleared')
                 self.get_logger().info(f'Maximum temperature: {max_temp:.1f} K')
 
-            self.previous_fire_state = bool(fire)
+            self.previous_fire_state = bool(self.fire_state)
 
         except Exception as e:
             self.get_logger().error(f'Error processing thermal image: {e}')

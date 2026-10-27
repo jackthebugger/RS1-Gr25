@@ -86,6 +86,66 @@ def format_speed(speed: float) -> str:
     return f'{float(speed):.2f} m/s'
 
 
+# Path-bank MissionNavState values that should drive the Mission Status label.
+_PATH_BANK_NAVIGATING = frozenset({
+    'FOLLOWING_PATH',
+    'SWITCHING_PATH',
+    'PLANNING',
+    'PATH_BLOCKED',
+})
+_PATH_BANK_RETURNING = frozenset({
+    'RETURNING_TO_START',
+    'NO_PATH_AVAILABLE',
+})
+_PATH_BANK_RETURN_TERMINAL = frozenset({
+    'RETURNING_TO_START',
+    'RETURNED_TO_START',
+    'NO_PATH_AVAILABLE',
+})
+
+
+def parse_path_bank_active_id(status_text: str) -> Optional[int]:
+    """Extract active_id=N from a multiline path_bank/status payload."""
+    for line in (status_text or '').splitlines():
+        line = line.strip()
+        if line.startswith('active_id='):
+            raw = line.split('=', 1)[1].strip()
+            if raw in ('', 'None', 'none'):
+                return None
+            try:
+                return int(raw)
+            except ValueError:
+                return None
+    return None
+
+
+def mission_status_from_path_bank(
+    state: str,
+    active_id: Optional[int] = None,
+) -> Optional[str]:
+    """Map path_bank/state to a Mission Status display string.
+
+    Returns None when the state should not override the Nav2-client label
+    (e.g. IDLE before a mission starts).
+    """
+    key = (state or '').strip().upper()
+    if not key:
+        return None
+    if key in _PATH_BANK_RETURNING:
+        return 'all paths blocked - returning to home'
+    if key == 'RETURNED_TO_START':
+        return 'returned to start'
+    if key == 'ARRIVED':
+        return 'complete'
+    if key == 'FAILED':
+        return 'failed'
+    if key in _PATH_BANK_NAVIGATING:
+        if active_id is not None:
+            return f'navigating to goal (path {active_id} active)'
+        return 'navigating to goal'
+    return None
+
+
 def format_remaining_time(seconds: float) -> str:
     total_seconds = max(0, int(round(float(seconds))))
     minutes, remaining_seconds = divmod(total_seconds, 60)
@@ -493,9 +553,18 @@ class RobotStatusWindow(tk.Tk):
 
     def set_mission_status(self, status: str) -> None:
         normalized = status.strip().lower()
-        if normalized in ('running', 'starting', 'complete'):
+        if normalized in (
+            'running',
+            'starting',
+            'complete',
+            'returned to start',
+        ) or normalized.startswith('navigating to goal'):
             color = '#16a34a'
-        elif normalized in ('waiting for nav2', 'stopping'):
+        elif normalized in (
+            'waiting for nav2',
+            'stopping',
+            'all paths blocked - returning to home',
+        ):
             color = '#d97706'
         else:
             color = '#dc2626'
@@ -738,6 +807,8 @@ class RobotStatusNode(Node):
         self._monitor_idle_since: Optional[float] = None
         self._monitor_last_pose: Optional[Tuple[float, float]] = None
         self._path_bank_status = ''
+        self._path_bank_state = ''
+        self._path_bank_active_id: Optional[int] = None
 
         goal_frame = self.declare_parameter('goal_frame', 'husky1_map').value
         goal_x = self.declare_parameter('goal_x', DEFAULT_GOAL_X).value
@@ -801,7 +872,6 @@ class RobotStatusNode(Node):
             logger=lambda m: self.get_logger().info(m),
         )
         self.gui.set_dyn_obstacle_status(self.obstacle_manager.status_message)
-        self._sync_fire_status()
 
         self.create_subscription(Odometry, odom_topic, self._odom_callback, 10)
         self.create_subscription(LaserScan, scan_topic, self._scan_callback, qos_profile_sensor_data)
@@ -811,6 +881,7 @@ class RobotStatusNode(Node):
         self.create_subscription(Image, thermal_topic, self._thermal_callback, qos_profile_sensor_data)
         self.create_subscription(OccupancyGrid, map_topic, self._map_callback, 10)
         self.create_subscription(String, 'path_bank/status', self._path_bank_status_callback, 10)
+        self.create_subscription(String, 'path_bank/state', self._path_bank_state_callback, 10)
         self.create_timer(0.1, self._update_gui)
         self.create_timer(0.2, self._obstacle_tick)
         self.create_timer(0.5, self._arrival_monitor_tick)
@@ -986,7 +1057,6 @@ class RobotStatusNode(Node):
         else:
             ok, message = self.obstacle_manager.request_obstacle(path_key)
         self.gui.set_dyn_obstacle_status(message)
-        self._sync_fire_status()
         self.gui.set_feedback(message if ok else message, error=not ok)
         if ok:
             self.get_logger().info(f'{label}: {message}')
@@ -1003,22 +1073,13 @@ class RobotStatusNode(Node):
     def clear_obstacles(self) -> None:
         ok, message = self.obstacle_manager.clear_obstacles()
         self.gui.set_dyn_obstacle_status(message)
-        self._sync_fire_status()
         self.gui.set_feedback('Obstacles cleared' if ok else message, error=not ok)
         self.obstacle_manager.status_message = 'Obstacle: READY'
-
-    def _sync_fire_status(self) -> None:
-        gap = self.obstacle_manager.selected_gap
-        self.gui.set_fire_status(
-            self.obstacle_manager.state == ObstacleState.ACTIVE,
-            gap.label if gap else None,
-        )
 
     def _obstacle_tick(self) -> None:
         pose = self.latest_pose
         robot_xy = (pose[0], pose[1]) if pose is not None else None
         status = self.obstacle_manager.tick(robot_xy)
-        self._sync_fire_status()
         if status:
             self.gui.set_dyn_obstacle_status(status)
             if self.obstacle_manager.state == ObstacleState.ACTIVE:
@@ -1079,13 +1140,20 @@ class RobotStatusNode(Node):
             self.gui.set_feedback('Mission stopped')
             return
         # Preempted by path_bank_manager or another NavigateToPose client —
-        # keep the mission panel live and watch pose until arrival / idle fail.
+        # keep the mission panel live; bank state drives Mission Status text.
         if self.active_goal is not None and not self._user_stop:
-            self._monitor_arrival = True
+            returning = self._path_bank_state in _PATH_BANK_RETURN_TERMINAL
+            self._monitor_arrival = not returning
             self._monitor_idle_since = None
             self._monitor_last_pose = None
             self.gui.set_mission_running(True)
-            self.gui.set_mission_status('running')
+            mapped = mission_status_from_path_bank(
+                self._path_bank_state, self._path_bank_active_id,
+            )
+            if mapped is not None:
+                self.gui.set_mission_status(mapped)
+            elif not returning:
+                self.gui.set_mission_status('running')
             detail = 'path-bank/Nav2 preempt'
             if self._path_bank_status:
                 first = self._path_bank_status.splitlines()[0][:60]
@@ -1093,6 +1161,7 @@ class RobotStatusNode(Node):
             self.gui.set_feedback(f'Mission continuing ({detail})')
             self.get_logger().info(
                 f'NavigateToPose ended status={status}; monitoring arrival'
+                f'={self._monitor_arrival}'
             )
             return
         self._monitor_arrival = False
@@ -1101,11 +1170,41 @@ class RobotStatusNode(Node):
         self.gui.set_mission_status('failed')
         self.gui.set_feedback('Goal failed', error=True)
 
+    def _apply_path_bank_mission_status(self) -> None:
+        mapped = mission_status_from_path_bank(
+            self._path_bank_state, self._path_bank_active_id,
+        )
+        if mapped is None:
+            return
+        self.gui.set_mission_status(mapped)
+        if self._path_bank_state == 'RETURNING_TO_START':
+            self._monitor_arrival = False
+            self.gui.set_mission_running(True)
+            self.gui.set_feedback('All paths blocked — returning to start')
+        elif self._path_bank_state == 'RETURNED_TO_START':
+            self._monitor_arrival = False
+            self.active_goal = None
+            self.gui.set_mission_running(False)
+            self.gui.set_feedback('Returned to start')
+        elif self._path_bank_state in _PATH_BANK_NAVIGATING and self.active_goal is not None:
+            self.gui.set_mission_running(True)
+
     def _path_bank_status_callback(self, msg: String) -> None:
         self._path_bank_status = msg.data or ''
+        self._path_bank_active_id = parse_path_bank_active_id(self._path_bank_status)
+        # Refresh Path-N label while navigating if only status (not state) changed.
+        if self._path_bank_state in _PATH_BANK_NAVIGATING:
+            self._apply_path_bank_mission_status()
+
+    def _path_bank_state_callback(self, msg: String) -> None:
+        self._path_bank_state = (msg.data or '').strip().upper()
+        self._apply_path_bank_mission_status()
 
     def _arrival_monitor_tick(self) -> None:
         """Complete/fail missions after another client took NavigateToPose."""
+        if self._path_bank_state in _PATH_BANK_RETURN_TERMINAL:
+            self._monitor_arrival = False
+            return
         if not self._monitor_arrival or self.active_goal is None:
             return
         pose = self.latest_pose
@@ -1167,6 +1266,7 @@ class RobotStatusNode(Node):
         self.gui.update_thermal(msg)
 
     def _fire_callback(self, msg: Bool) -> None:
+        # Live FOV thermal flag only (debounced upstream in fire_detector).
         self.latest_fire_detected = bool(msg.data)
 
     def _map_callback(self, msg: OccupancyGrid) -> None:
@@ -1175,6 +1275,7 @@ class RobotStatusNode(Node):
     def _update_gui(self) -> None:
         self.status.speed = self.latest_speed
         self.status.obstacle_detected = self.latest_obstacle_detected
+        self.status.fire_detected = self.latest_fire_detected
         if self.active_goal is not None:
             x, y, yaw = self.active_goal
             self.status.destination = f'({x:g}, {y:g}, {yaw:g})'
