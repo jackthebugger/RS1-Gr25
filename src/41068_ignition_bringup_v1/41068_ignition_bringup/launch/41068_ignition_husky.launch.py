@@ -93,6 +93,9 @@ def generate_launch_description():
          'Wheel separation used by DiffDrive, in metres (calibrated for skid-steer slip)'),
         ('nav_start_delay', '15.0',
          'Seconds after launch before starting SLAM/Nav2'),
+        ('test_speed', 'false',
+         'TEST ONLY: raise Nav2 linear limits for faster sim approach '
+         '(default false = production 0.5/0.6)'),
         ('software_gl', 'false',
          'Force software OpenGL. Only enable on WSL / broken GPU drivers.'),
         ('render_engine', 'ogre2',

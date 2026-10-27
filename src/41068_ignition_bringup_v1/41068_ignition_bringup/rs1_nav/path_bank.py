@@ -5,9 +5,15 @@ authority for follow/replan timing. The path bank:
 
 1. Builds alternative routes on a known occupancy/cost grid at mission start
 2. Ranks them with a simple, documented score
-3. Marks a candidate permanently unavailable for the mission when it becomes
-   collision-invalid on the live costmap
+3. Marks a candidate BLOCKED when it becomes collision-invalid on the live
+   combined costmap (plugins + KeepoutFilter memory)
 4. Hands the next still-valid candidate to the manager for a controlled switch
+5. Entry 021: BLOCKED→AVAILABLE only when memory + costmap_raw agree the
+   corridor is clear again — never from Gazebo GT or plan existence alone.
+   Unlock does not auto-preempt back onto that route.
+6. Entry 024: when every candidate is BLOCKED/REJECTED (``all_blocked``),
+   the manager owns return-to-start policy using ``PathBank.start`` as home —
+   this library only reports exhaustion.
 
 Candidate diversity uses corridor exclusion: after each successful path, a band
 around that polyline is treated as lethal on a working copy of the grid and
@@ -132,6 +138,19 @@ class PathBank:
                 if self.active_id == path_id:
                     self.active_id = None
                 return
+
+    def mark_available(self, path_id: int, reason: str = '') -> bool:
+        """Evidence-based unblock (BLOCKED → AVAILABLE). Does not activate.
+
+        Returns True if the candidate was BLOCKED and is now AVAILABLE.
+        Never auto-selects this path; caller must not preempt solely on unlock.
+        """
+        for c in self.candidates:
+            if c.path_id == path_id and c.state == CandidateState.BLOCKED:
+                c.state = CandidateState.AVAILABLE
+                c.block_reason = reason
+                return True
+        return False
 
     def all_blocked(self) -> bool:
         return bool(self.candidates) and all(
@@ -516,6 +535,41 @@ def path_is_valid(
         if c >= lethal_threshold and c != NO_INFO:
             return False, f'lethal_at_index_{start_index + i * sample_stride}_cost_{c}'
     return True, ''
+
+
+def occupancy_mask_intersects_path(
+    path: Sequence[Point],
+    *,
+    width: int,
+    height: int,
+    resolution: float,
+    origin_x: float,
+    origin_y: float,
+    data: Sequence[int],
+    sample_stride: int = 2,
+    occupied_threshold: int = 50,
+    neighbourhood: int = 1,
+) -> bool:
+    """True if OccupancyGrid mask (≥ occupied_threshold) touches the path.
+
+    Entry 023: used for both active-path validity and ``_pick_next_valid`` so
+    keepout memory cannot asymmetrically block only after a switch.
+    Checks a ``neighbourhood``-cell halo around each sample.
+    """
+    if not path or not data or width <= 0 or height <= 0 or resolution <= 0:
+        return False
+    stride = max(1, int(sample_stride))
+    nb = max(0, int(neighbourhood))
+    for x, y in path[::stride]:
+        cx = int((x - origin_x) / resolution)
+        cy = int((y - origin_y) / resolution)
+        for dx in range(-nb, nb + 1):
+            for dy in range(-nb, nb + 1):
+                ix, iy = cx + dx, cy + dy
+                if 0 <= ix < width and 0 <= iy < height:
+                    if int(data[iy * width + ix]) >= occupied_threshold:
+                        return True
+    return False
 
 
 def downsample_grid(grid: OccupancyGrid2D, factor: int) -> OccupancyGrid2D:
