@@ -14,6 +14,7 @@ def generate_launch_description():
     nav2 = LaunchConfiguration('nav2')
     world = LaunchConfiguration('world')
     gui = LaunchConfiguration('gui')
+    status_gui = LaunchConfiguration('status_gui')
 
     ld.add_action(DeclareLaunchArgument(
         'use_sim_time',
@@ -54,6 +55,11 @@ def generate_launch_description():
         'gui',
         default_value='True',
         description='Launch the Gazebo GUI. Set false for headless (useful on WSL).',
+    ))
+    ld.add_action(DeclareLaunchArgument(
+        'status_gui',
+        default_value='False',
+        description='Launch the Robot Status GUI and its RViz goal marker publisher.',
     ))
 
     # Starting position of the Husky, plus sensor tuning. Change these to move
@@ -102,6 +108,7 @@ def generate_launch_description():
         'nav2': nav2,
         'world': world,
         'gui': gui,
+        'status_gui': status_gui,
         'husky': 'True',
         'parrot': 'False',
     }

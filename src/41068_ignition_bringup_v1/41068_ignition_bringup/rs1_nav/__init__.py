@@ -12,6 +12,7 @@ the obstacle injector and the whole test suite run exactly the same code.
 
 from .gazebo_world import (
     GazeboWorld,
+    GoalVisualSpec,
     ObstacleSpec,
     PathBlocker,
     barrier_across_heading,
@@ -70,6 +71,7 @@ __all__ = [
     'ForestObstacleManager',
     'GapSpec',
     'GazeboWorld',
+    'GoalVisualSpec',
     'MissionReport',
     'MissionRunner',
     'NavObserver',
