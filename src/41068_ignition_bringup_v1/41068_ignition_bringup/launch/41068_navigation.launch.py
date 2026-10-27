@@ -376,14 +376,16 @@ def generate_launch_description():
                 'max_candidates': 4,
                 'exclusion_radius_m': 2.5,
                 'min_path_separation_m': 2.0,
-                # Monitor + rank; only force a NavigateToPose resend when a
-                # still-valid banked alternative exists. Never cancel on empty
-                # bank — IsPathValid BT remains the follow/replan authority.
+                # Monitor + rank; resend mission goal on switch when enabled.
+                # Entry 024: empty bank → NavigateToPose home (not indefinite halt).
                 'auto_switch': True,
                 'switch_resend_goal': ParameterValue(
                     LaunchConfiguration('path_bank_switch_resend'), value_type=bool
                 ),
                 'cancel_on_no_path': False,
+                # Entry 024: bank exhaustion → NavigateToPose back to mission start.
+                'return_home_on_all_blocked': True,
+                'home_yaw': 0.0,
                 'validity_grace_s': 15.0,
                 # Entry 023: settle after A→B before re-validating active path.
                 'post_switch_grace_s': 8.0,

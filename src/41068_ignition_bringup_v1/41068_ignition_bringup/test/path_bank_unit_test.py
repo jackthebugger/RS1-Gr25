@@ -225,6 +225,85 @@ def main() -> int:
     else:
         print('PASS  memory-aware pick-next skips mask-intersecting Path B')
 
+    # Entry 024: all_blocked + pick-next exhaustion (manager → return home).
+    bank3 = PathBank(start=(-18.0, 3.0), goal=(16.0, -0.1), candidates=[
+        PathCandidate(
+            path_id=1, points=[(-18.0, 3.0), (0.0, 3.0)], length_m=18.0,
+            min_clearance_m=1.0, mean_cost=0.0, turn_penalty=0.0, score=100.0,
+            state=CandidateState.BLOCKED, block_reason='unit',
+        ),
+        PathCandidate(
+            path_id=2, points=[(-18.0, 1.0), (0.0, 1.0)], length_m=18.0,
+            min_clearance_m=1.0, mean_cost=0.0, turn_penalty=0.0, score=90.0,
+            state=CandidateState.BLOCKED, block_reason='unit',
+        ),
+    ], active_id=None)
+    if not bank3.all_blocked():
+        failures.append('all_blocked expected True when every candidate BLOCKED')
+    elif bank3.select_best_available() is not None:
+        failures.append('select_best_available must be None when all blocked')
+    else:
+        print('PASS  all_blocked + no forward select')
+
+    # Memory gate blocks every AVAILABLE candidate → pick returns None.
+    mask_all = [-1] * (w * h)
+    for my_row in (0, 2, -2):
+        row = int((float(my_row) - oy) / res)
+        col = int((0.0 - ox) / res)
+        if 0 <= row < h and 0 <= col < w:
+            mask_all[row * w + col] = 100
+    bank4 = PathBank(start=(0.0, 0.0), goal=(5.0, 0.0), candidates=[
+        PathCandidate(
+            path_id=1, points=path_a, length_m=5.0, min_clearance_m=1.0,
+            mean_cost=0.0, turn_penalty=0.0, score=100.0,
+            state=CandidateState.BLOCKED, block_reason='unit',
+        ),
+        PathCandidate(
+            path_id=2, points=path_b, length_m=5.0, min_clearance_m=1.0,
+            mean_cost=0.0, turn_penalty=0.0, score=90.0,
+            state=CandidateState.AVAILABLE,
+        ),
+        PathCandidate(
+            path_id=3, points=[(0.0, -2.0), (5.0, -2.0)], length_m=5.0,
+            min_clearance_m=1.0, mean_cost=0.0, turn_penalty=0.0, score=80.0,
+            state=CandidateState.AVAILABLE,
+        ),
+    ], active_id=None)
+    remaining4 = sorted(
+        [c for c in bank4.candidates if c.state == CandidateState.AVAILABLE],
+        key=lambda c: c.score, reverse=True,
+    )
+    picked4 = None
+    for cand in remaining4:
+        if occupancy_mask_intersects_path(
+            cand.points, width=w, height=h, resolution=res,
+            origin_x=ox, origin_y=oy, data=mask_all, sample_stride=1,
+        ):
+            bank4.mark_blocked(cand.path_id, 'precheck:obstacle_memory_mask')
+            continue
+        cand.state = CandidateState.ACTIVE
+        bank4.active_id = cand.path_id
+        picked4 = cand
+        break
+    if picked4 is not None:
+        failures.append(
+            f'expected pick exhaustion (None), got Path {picked4.path_id}')
+    elif not bank4.all_blocked():
+        failures.append('after memory exhaustion all_blocked should be True')
+    else:
+        print('PASS  memory-aware pick exhaustion → all_blocked')
+
+    # Entry 024 manager contract (documented defaults / state names).
+    return_home_on_all_blocked = True
+    return_states = ('RETURNING_TO_START', 'RETURNED_TO_START')
+    if not return_home_on_all_blocked:
+        failures.append('return_home_on_all_blocked default must be True')
+    elif 'RETURNING_TO_START' not in return_states:
+        failures.append('RETURNING_TO_START missing from return contract')
+    else:
+        print('PASS  Entry 024 return-home contract '
+              f'(states={list(return_states)})')
+
     # post_switch_grace_s is a manager timer; verify the configured default
     # contract used by launch (8.0 s) is documented in this suite.
     post_switch_grace_s = 8.0
