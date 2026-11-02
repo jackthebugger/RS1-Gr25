@@ -438,6 +438,10 @@ class PathBankManager(Node):
         self.create_subscription(
             PoseWithCovarianceStamped, 'amcl_pose', self._on_amcl_pose, 10)
         self.create_subscription(Odometry, 'odom', self._on_odom, 10)
+        # Soft cancel from Status GUI (GoalVisual / arrival) — does not replace
+        # StopMission; clears bank follow without going through the gate.
+        self.create_subscription(
+            Bool, 'path_bank/cancel', self._on_cancel_request, 10)
 
         self._state_pub = self.create_publisher(String, 'path_bank/state', 10)
         self._status_pub = self.create_publisher(String, 'path_bank/status', LATCHED)
@@ -668,6 +672,16 @@ class PathBankManager(Node):
             float(msg.pose.pose.position.y),
             yaw,
         )
+
+    def _on_cancel_request(self, msg: Bool) -> None:
+        """GUI soft-cancel: drop active bank follow without StopMission latch."""
+        if not msg.data:
+            return
+        self._cancel_nav()
+        self._bank = None
+        self._goal_xyyaw = None
+        self._set_state(MissionNavState.IDLE)
+        self._clear_active_path()
 
     def _on_observation_hold(self, msg: Bool) -> None:
         """Sensor-only transport hold — pause FollowPath, keep bank validity.

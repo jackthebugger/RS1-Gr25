@@ -143,6 +143,14 @@ Launch the Husky with SLAM, Nav2, and RViz:
 ros2 launch 41068_ignition_bringup 41068_ignition_husky.launch.py slam:=true nav2:=true rviz:=true
 ```
 
+To launch the Robot Status GUI together with the standard Husky workflow (and
+enable its Gazebo goal visual), add `status_gui:=true`:
+
+```bash
+ros2 launch 41068_ignition_bringup 41068_ignition_husky.launch.py \
+  slam:=true nav2:=true rviz:=true status_gui:=true
+```
+
 Launch in the larger world:
 
 ```bash
@@ -150,6 +158,20 @@ ros2 launch 41068_ignition_bringup 41068_ignition_husky.launch.py slam:=true nav
 ```
 
 When launching with RViz, use the "Nav2 Goal" / "2D Goal Pose" tool to send a waypoint to the robot. The robot is navigating using Nav2. If it gets stuck, try the buttons in the Navigation 2 panel in the top right of RViz.
+
+The Robot Status GUI also sends goals through Nav2. Each submitted GUI goal is
+shown directly in Gazebo as a tall red, visual-only goal indicator with a
+floating arrow for the requested orientation. It has no collision geometry and
+is removed when the goal is cancelled. The GUI navigation banner reports `IDLE`,
+`NAVIGATING`, `SUCCESSFUL`, `CANCELLED`, or `FAILED` from Nav2 action feedback
+and results. For the GUI-owned mission, reaching within 1 m of the requested
+goal is also treated as arrival: the GUI cancels remaining Nav2/path-bank work
+and reports `SUCCESSFUL` so the robot does not need to drive into the visual
+flag. `Goal reached` is shown only after Nav2 success or this measured 1 m
+arrival condition.
+The GUI's map panel displays Nav2's predetermined global costmap from
+`/<robot>/global_costmap/costmap`, with the current planned route overlaid in
+pink; it does not use the live LiDAR-discovered `/map` topic for that panel.
 
 You can also drive the Husky using keyboard teleoperation from a separate terminal.
 

@@ -85,17 +85,20 @@ class ObstacleSpec:
             )
 
         flame_visuals = []
-        # Dense lower row: the overlapping ellipsoids close the visual gap
-        # at the ground and span the full 6.6 m collision width.
+        # Dense lower row: overlapping ellipsoids span the full 6.6 m
+        # collision width so the fire does not look passable between balls.
         lower_colors = (
             ('0.85 0.02 0.00 1', '1.00 0.02 0.00 1'),
             ('1.00 0.16 0.00 1', '1.00 0.08 0.00 1'),
             ('1.00 0.32 0.00 1', '1.00 0.16 0.00 1'),
         )
-        for index, y in enumerate((-3.10, -2.07, -1.03, 0.0, 1.03, 2.07, 3.10)):
+        for index, y in enumerate(
+            (-3.30, -2.75, -2.20, -1.65, -1.10, -0.55, 0.0,
+             0.55, 1.10, 1.65, 2.20, 2.75, 3.30)
+        ):
             color, emissive = lower_colors[index % len(lower_colors)]
             flame_visuals.append(
-                flame(f'flame_lower_{index}', y, -0.55, 0.50, 1.20, 0.95,
+                flame(f'flame_lower_{index}', y, -0.55, 0.46, 1.45, 0.95,
                       color, emissive)
             )
 
@@ -106,24 +109,30 @@ class ObstacleSpec:
             ('1.00 0.72 0.02 1', '1.00 0.38 0.00 1'),
         )
         for index, (y, z, scale_z) in enumerate((
-            (-2.60, -0.04, 1.30), (-1.55, 0.08, 1.55),
-            (-0.52, -0.02, 1.25), (0.52, 0.12, 1.60),
-            (1.55, 0.00, 1.35), (2.60, 0.06, 1.50),
+            (-3.03, -0.04, 1.30), (-2.48, 0.08, 1.55),
+            (-1.93, -0.02, 1.25), (-1.38, 0.12, 1.60),
+            (-0.83, 0.00, 1.35), (-0.28, 0.06, 1.50),
+            (0.28, -0.02, 1.30), (0.83, 0.08, 1.55),
+            (1.38, -0.02, 1.25), (1.93, 0.12, 1.60),
+            (2.48, 0.00, 1.35), (3.03, 0.06, 1.50),
         )):
             color, emissive = middle_colors[index % len(middle_colors)]
             flame_visuals.append(
-                flame(f'flame_middle_{index}', y, z, 0.54, 1.15, scale_z,
+                flame(f'flame_middle_{index}', y, z, 0.48, 1.30, scale_z,
                       color, emissive)
             )
 
-        # A smaller upper row keeps the silhouette flame-like without opening
-        # gaps in the lower collision region.
+        # A smaller upper row keeps the silhouette flame-like while retaining
+        # continuous coverage across the path.
         for index, (y, z, scale_z) in enumerate((
-            (-2.15, 0.52, 1.25), (-0.72, 0.68, 1.45),
-            (0.72, 0.58, 1.30), (2.15, 0.65, 1.40),
+            (-2.75, 0.52, 1.25), (-2.06, 0.68, 1.45),
+            (-1.37, 0.58, 1.30), (-0.69, 0.65, 1.40),
+            (0.0, 0.52, 1.25), (0.69, 0.68, 1.45),
+            (1.37, 0.58, 1.30), (2.06, 0.65, 1.40),
+            (2.75, 0.52, 1.25),
         )):
             flame_visuals.append(
-                flame(f'flame_upper_{index}', y, z, 0.46, 1.10, scale_z,
+                flame(f'flame_upper_{index}', y, z, 0.42, 1.20, scale_z,
                       '1.00 0.30 0.00 1', '1.00 0.16 0.00 1')
             )
         flame_visuals = ''.join(flame_visuals)
@@ -134,6 +143,38 @@ class ObstacleSpec:
             f'<collision name="collision"><geometry><box><size>{size}'
             '</size></box></geometry></collision>'
             f'{flame_visuals}'
+            '</link></model></sdf>'
+        )
+
+
+@dataclass
+class GoalVisualSpec:
+    """A red, visual-only Gazebo goal indicator with no collision geometry."""
+
+    name: str = 'navigation_goal_visual'
+    x: float = 0.0
+    y: float = 0.0
+    yaw: float = 0.0
+
+    def to_sdf(self) -> str:
+        return (
+            '<?xml version="1.0" ?>'
+            f'<sdf version="1.8"><model name="{self.name}"><static>true</static>'
+            '<link name="link">'
+            '<visual name="goal_arrow"><pose>1.3 0 6.0 0 0 0</pose>'
+            '<geometry><box><size>2.6 0.28 0.28</size></box></geometry>'
+            '<material><ambient>1 0 0 1</ambient><diffuse>1 0 0 1</diffuse>'
+            '<emissive>0.8 0 0 1</emissive></material></visual>'
+            '<visual name="goal_arrow_head"><pose>2.55 0 6.0 0 0 0</pose>'
+            '<geometry><cone><radius>0.55</radius><length>0.9</length>'
+            '</cone></geometry><material><ambient>1 0 0 1</ambient>'
+            '<diffuse>1 0 0 1</diffuse><emissive>0.8 0 0 1</emissive>'
+            '</material></visual>'
+            '<visual name="goal_pole"><pose>0 0 3.0 0 0 0</pose>'
+            '<geometry><cylinder><radius>0.12</radius><length>6.0</length>'
+            '</cylinder></geometry><material><ambient>1 0 0 1</ambient>'
+            '<diffuse>1 0 0 1</diffuse><emissive>0.5 0 0 1</emissive>'
+            '</material></visual>'
             '</link></model></sdf>'
         )
 
@@ -228,6 +269,19 @@ class GazeboWorld:
                 f'{spec.size_x:.2f} x {spec.size_y:.2f} x {spec.size_z:.2f} m'
             )
         return ok
+
+    def spawn_goal_visual(self, spec: GoalVisualSpec) -> bool:
+        """Insert or replace a visual-only goal model in Gazebo."""
+        self.remove_model(spec.name)
+        sdf = spec.to_sdf().replace('\\', '\\\\').replace("'", "\\'")
+        qz = math.sin(0.5 * spec.yaw)
+        qw = math.cos(0.5 * spec.yaw)
+        request = (
+            f"sdf: '{sdf}' pose {{ position {{ x: {spec.x:.4f} y: {spec.y:.4f} z: 0 }} "
+            f'orientation {{ x: 0 y: 0 z: {qz:.6f} w: {qw:.6f} }} }} '
+            f"name: '{spec.name}' allow_renaming: false"
+        )
+        return self._service('create', request, 'EntityFactory')
 
     def remove_model(self, name: str) -> bool:
         """Remove a model by name. Safe to call when it does not exist."""

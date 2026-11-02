@@ -277,6 +277,38 @@ def add_rviz_instance(
     ))
 
 
+def add_status_gui_instance(
+    ld,
+    *,
+    use_sim_time,
+    robot_arg,
+    robot_namespace,
+    start_delay,
+    world,
+):
+    """Launch the full Robot Status GUI (mission owner + forest gaps).
+
+    Prefer ``robot_status_gui.launch.py`` over a bare Node so status_gui:=true
+    gets the same forest-gap / StartMission wiring as the standalone launch.
+    """
+    ld.add_action(TimerAction(
+        period=start_delay,
+        actions=[IncludeLaunchDescription(
+            PythonLaunchDescriptionSource(PathJoinSubstitution([
+                FindPackageShare('41068_ignition_bringup'),
+                'launch',
+                'robot_status_gui.launch.py',
+            ])),
+            launch_arguments={
+                'use_sim_time': use_sim_time,
+                'robot': robot_namespace,
+                'world_name': world,
+            }.items(),
+        )],
+        condition=_if_true(robot_arg),
+    ))
+
+
 def generate_launch_description():
 
     ld = LaunchDescription()
@@ -298,6 +330,11 @@ def generate_launch_description():
         description='Flag to launch RViz',
     )
     ld.add_action(rviz_launch_arg)
+    ld.add_action(DeclareLaunchArgument(
+        'status_gui',
+        default_value='false',
+        description='Launch the Robot Status GUI and its RViz goal marker publisher',
+    ))
 
     slam_launch_arg = DeclareLaunchArgument(
         'slam',
@@ -696,6 +733,15 @@ def generate_launch_description():
         robot_namespace='parrot1',
         rviz_config='41068_parrot1.rviz',
         start_delay=13.0,
+    )
+
+    add_status_gui_instance(
+        ld,
+        use_sim_time=use_sim_time,
+        robot_arg='status_gui',
+        robot_namespace='husky1',
+        start_delay=15.0,
+        world=LaunchConfiguration('world'),
     )
 
     return ld

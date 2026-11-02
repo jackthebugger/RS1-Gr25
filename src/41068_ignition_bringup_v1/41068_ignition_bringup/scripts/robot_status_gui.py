@@ -12,6 +12,7 @@ from __future__ import annotations
 import math
 import os
 import sys
+import threading
 import time
 from dataclasses import dataclass
 from math import cos, sin
@@ -51,6 +52,7 @@ from rs1_nav.forest_obstacle_manager import (  # noqa: E402
     ObstacleState,
     load_forest_gap_config,
 )
+from rs1_nav.gazebo_world import GoalVisualSpec  # noqa: E402
 from rs1_nav.geometry import yaw_from_quaternion  # noqa: E402
 
 
@@ -60,6 +62,15 @@ DEFAULT_GOAL_X = 16.0
 DEFAULT_GOAL_Y = -0.1
 DEFAULT_GOAL_YAW = 0.0
 DEFAULT_WORLD_NAME = 'bush_trail_world'
+GOAL_VISUAL_NAME = 'navigation_goal_visual'
+
+
+def distance_to_goal(
+    robot_pose: Tuple[float, float, float],
+    goal_pose: Tuple[float, float, float],
+) -> float:
+    """Return planar distance between a robot pose and navigation goal."""
+    return math.hypot(robot_pose[0] - goal_pose[0], robot_pose[1] - goal_pose[1])
 
 # Soft bounds for coordinate validation (60×60 m bush_trail / forest arena).
 MAP_X_MIN, MAP_X_MAX = -29.0, 29.0
@@ -1181,7 +1192,10 @@ class RobotStatusNode(Node):
         fire_topic = self.declare_parameter('fire_topic', 'fire_detected').value
         camera_topic = self.declare_parameter('camera_topic', 'camera/image').value
         thermal_topic = self.declare_parameter('thermal_topic', 'thermal/image').value
-        map_topic = self.declare_parameter('map_topic', 'map').value
+        # Prefer Nav2 global costmap for the GUI map panel (Faiyad / status_gui).
+        map_topic = self.declare_parameter(
+            'map_topic', 'global_costmap/costmap',
+        ).value
         obstacle_threshold = self.declare_parameter('obstacle_threshold', 1.0).value
         self.obstacle_threshold = float(obstacle_threshold)
         # Display throttle ≤ sensor rates (RGB default 3 Hz when enable_camera:=true;
@@ -1216,6 +1230,8 @@ class RobotStatusNode(Node):
         self._demo_pose_pub = self.create_publisher(
             PoseArray, 'demo_obstacle/poses', latched)
         self._publish_demo_poses()  # empty until spawn
+        self.path_bank_cancel_pub = self.create_publisher(
+            Bool, 'path_bank/cancel', 10)
         self.create_service(Trigger, 'gui/block_path_a', self._srv_block_path_a)
         self.create_service(Trigger, 'gui/block_path_b', self._srv_block_path_b)
         self.create_service(Trigger, 'gui/clear_fire', self._srv_clear_fire)
@@ -1320,6 +1336,37 @@ class RobotStatusNode(Node):
         response.message = 'set_speed fast'
         return response
 
+    # -- Gazebo goal visual (Faiyad) --------------------------------------
+
+    def _publish_path_bank_cancel(self) -> None:
+        cancel = Bool()
+        cancel.data = True
+        self.path_bank_cancel_pub.publish(cancel)
+
+    def _update_gazebo_goal(self, x: float, y: float, yaw: float) -> None:
+        spec = GoalVisualSpec(
+            name=GOAL_VISUAL_NAME, x=float(x), y=float(y), yaw=float(yaw),
+        )
+        threading.Thread(
+            target=self._spawn_gazebo_goal, args=(spec,), daemon=True,
+        ).start()
+
+    def _remove_gazebo_goal(self) -> None:
+        threading.Thread(target=self._delete_gazebo_goal, daemon=True).start()
+
+    def _spawn_gazebo_goal(self, spec: GoalVisualSpec) -> None:
+        world = getattr(self.obstacle_manager, 'world', None)
+        if world is None or not world.spawn_goal_visual(spec):
+            self.get_logger().warning(
+                f'Unable to display Gazebo goal visual at '
+                f'({spec.x:.2f}, {spec.y:.2f})'
+            )
+
+    def _delete_gazebo_goal(self) -> None:
+        world = getattr(self.obstacle_manager, 'world', None)
+        if world is None or not world.remove_model(GOAL_VISUAL_NAME):
+            self.get_logger().warning('Unable to remove Gazebo goal visual')
+
     # -- shared goal submission -------------------------------------------
 
     def submit_goal(self, x: float, y: float, yaw: float, *, source: str) -> None:
@@ -1360,6 +1407,7 @@ class RobotStatusNode(Node):
         goal_message.pose.pose.orientation.w = cos(yaw / 2.0)
 
         self.active_goal = (float(x), float(y), float(yaw))
+        self._update_gazebo_goal(x, y, yaw)
         self.latest_distance = 0.0
         self.latest_time = 'Pending'
         self.gui.set_goal_fields(x, y, yaw)
@@ -1596,6 +1644,7 @@ class RobotStatusNode(Node):
             )
             return
         self.active_goal = (float(x), float(y), float(yaw))
+        self._update_gazebo_goal(x, y, yaw)
         self.gui.set_goal_fields(x, y, yaw)
         self.gui.set_goal_status(f'({x:g}, {y:g}, {yaw:g})')
         self._local_mission_override = False
@@ -1621,6 +1670,8 @@ class RobotStatusNode(Node):
         if self.start_wait_timer is not None:
             self.start_wait_timer.cancel()
             self.start_wait_timer = None
+        self._publish_path_bank_cancel()
+        self._remove_gazebo_goal()
 
         # Prefer mission-owner StopMission (closes cmd_vel gate + latch).
         if (
@@ -1662,6 +1713,7 @@ class RobotStatusNode(Node):
             return
         self.goal_handle = None
         self.active_goal = None
+        self._remove_gazebo_goal()
         self.gui.set_mission_running(False)
         self._local_mission_override = False
         if result is not None and getattr(result, 'success', False):
@@ -1774,6 +1826,14 @@ class RobotStatusNode(Node):
     def block_path_b(self) -> None:
         self._request_path(PATH_B, 'BLOCK PATH B')
         self._publish_demo_poses()
+
+    def block_both_paths(self) -> None:
+        ok, message = self.obstacle_manager.request_both()
+        self.gui.set_dyn_obstacle_status(message)
+        self.gui.set_feedback(message, error=not ok)
+        self._publish_demo_poses()
+        if ok:
+            self.get_logger().info(f'BLOCK BOTH PATHS: {message}')
 
     def random_block(self) -> None:
         self._request_path(None, 'RANDOM BLOCK')
@@ -2021,6 +2081,8 @@ class RobotStatusNode(Node):
         if dist < 0.6:
             self._monitor_arrival = False
             self.active_goal = None
+            self._publish_path_bank_cancel()
+            self._remove_gazebo_goal()
             self.gui.set_mission_running(False)
             self.gui.set_mission_status('complete')
             self.gui.set_feedback('Goal reached')

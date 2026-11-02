@@ -233,6 +233,28 @@ class ForestObstacleManager:
     def request_path_b(self) -> Tuple[bool, str]:
         return self.request_obstacle(PATH_B)
 
+    def request_both(self) -> Tuple[bool, str]:
+        """Arm Path A and Path B (dual-block) without clearing an active gap.
+
+        Each gap keeps its proximity trigger, so the first corridor encountered
+        spawns first and the second spawns after reroute — same semantics as
+        clicking BLOCK FIRE A then BLOCK FIRE B.
+        """
+        messages: List[str] = []
+        any_ok = False
+        for key in PATH_KEYS:
+            if key not in self.config.gaps:
+                continue
+            ok, message = self.request_obstacle(key)
+            any_ok = any_ok or ok
+            messages.append(message)
+        if not messages:
+            msg = 'No forest paths configured'
+            self.status_message = 'Obstacle: ERROR'
+            return False, msg
+        self.status_message = ' | '.join(messages)
+        return any_ok, self.status_message
+
     def request_random(self) -> Tuple[bool, str]:
         return self.request_obstacle(None)
 

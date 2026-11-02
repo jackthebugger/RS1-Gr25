@@ -38,6 +38,13 @@ def test_format_speed_rounds_cleanly():
     assert gui.format_speed(0.0) == '0.00 m/s'
 
 
+def test_distance_to_goal_uses_planar_position_only():
+    assert math.isclose(
+        gui.distance_to_goal((0.0, 0.0, 2.5), (0.6, 0.8, -1.0)),
+        1.0,
+    )
+
+
 def test_rgb_image_to_ppm_rgb8():
     # 2x1 rgb8: red, green
     data = bytes([255, 0, 0, 0, 255, 0])
@@ -334,6 +341,35 @@ def test_obstacle_manager_selected_path_trigger_not_region():
     mgr.tick((8.0, -9.0))  # within 5 m of Path B
     assert mgr.state == ObstacleState.ACTIVE
     assert world.spawn_obstacle.call_args[0][0].y == -9.5
+
+
+def test_obstacle_manager_can_block_both_paths_separately():
+    world = MagicMock()
+    world.is_available.return_value = True
+    world.spawn_obstacle.return_value = True
+    world.remove_model.return_value = True
+    cfg = ForestGapConfig(
+        trigger_distance_m=5.0,
+        gaps=default_custom_world_gaps(),
+    )
+    mgr = ForestObstacleManager(cfg, world=world)
+
+    ok, message = mgr.request_both()
+    assert ok and 'Path A' in message and 'Path B' in message
+    assert len(mgr.pending_gaps) == 2
+
+    first = mgr.tick((8.0, 5.5))
+    # Path B still pending → WAITING; Path A is already spawned.
+    assert first is not None and 'Path A' in first
+    assert len(mgr.active_names) == 1
+    assert len(mgr.pending_gaps) == 1
+
+    second = mgr.tick((8.0, -9.5))
+    assert second is not None and 'Path B' in second
+    assert mgr.state == ObstacleState.ACTIVE
+    assert len(mgr.active_names) == 2
+    assert mgr.pending_gaps == []
+    assert len(world.spawn_obstacle.call_args_list) == 2
 
 
 def test_random_gap_selection_covers_both():

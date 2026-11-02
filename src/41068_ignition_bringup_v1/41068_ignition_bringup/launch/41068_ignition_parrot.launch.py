@@ -14,6 +14,7 @@ def generate_launch_description():
     nav2 = LaunchConfiguration('nav2')
     world = LaunchConfiguration('world')
     gui = LaunchConfiguration('gui')
+    status_gui = LaunchConfiguration('status_gui')
 
     ld.add_action(DeclareLaunchArgument(
         'use_sim_time',
@@ -39,12 +40,17 @@ def generate_launch_description():
         'world',
         default_value='simple_trees',
         description='Which world to load',
-        choices=['simple_trees', 'large_demo'],
+        choices=['simple_trees', 'large_demo', 'custom_world_1'],
     ))
     ld.add_action(DeclareLaunchArgument(
         'gui',
         default_value='True',
         description='Launch the Gazebo GUI. Set false for headless (useful on WSL).',
+    ))
+    ld.add_action(DeclareLaunchArgument(
+        'status_gui',
+        default_value='False',
+        description='Launch the Robot Status GUI and its RViz goal marker publisher.',
     ))
 
     ld.add_action(IncludeLaunchDescription(
@@ -60,6 +66,7 @@ def generate_launch_description():
             'nav2': nav2,
             'world': world,
             'gui': gui,
+            'status_gui': status_gui,
             'husky': 'False',
             'parrot': 'True',
         }.items(),

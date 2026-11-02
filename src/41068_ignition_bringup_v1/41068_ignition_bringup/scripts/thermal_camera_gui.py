@@ -22,19 +22,23 @@ DISPLAY_WIDTH = 800
 DISPLAY_HEIGHT = 600
 
 
-def _thermal_colour(value: float) -> Tuple[int, int, int]:
-    """Map a normalized temperature value to a blue-cyan-yellow-red ramp."""
-    value = max(0.0, min(1.0, value))
+def _thermal_colour(temperature_k: float) -> Tuple[int, int, int]:
+    """Map absolute Kelvin values to cool-scene and hot-fire display colours."""
     stops = (
-        (0.0, (8, 20, 120)),
-        (0.25, (0, 170, 255)),
-        (0.5, (0, 220, 80)),
-        (0.75, (255, 220, 0)),
-        (1.0, (220, 20, 20)),
+        (273.15, (8, 12, 72)),
+        (288.0, (20, 32, 125)),
+        (300.0, (48, 55, 165)),
+        (330.0, (105, 48, 175)),
+        (400.0, (130, 18, 28)),
+        (500.0, (205, 35, 0)),
+        (560.0, (235, 65, 0)),
+        (590.0, (255, 95, 0)),
+        (600.0, (255, 125, 0)),
     )
+    temperature_k = max(stops[0][0], temperature_k)
     for (start, start_rgb), (end, end_rgb) in zip(stops, stops[1:]):
-        if value <= end:
-            fraction = (value - start) / (end - start)
+        if temperature_k <= end:
+            fraction = (temperature_k - start) / (end - start)
             return tuple(
                 int(first + (second - first) * fraction)
                 for first, second in zip(start_rgb, end_rgb)
@@ -74,21 +78,19 @@ def thermal_frame_to_ppm(
     else:
         return None
 
-    normalized = np.clip(
-        (temperatures - THERMAL_MIN_K) / (THERMAL_MAX_K - THERMAL_MIN_K),
-        0.0,
-        1.0,
-    )
     rgb = np.empty((height, width, 3), dtype=np.uint8)
-    for index in range(5):
-        start = index / 4.0
-        end = (index + 1) / 4.0
-        mask = (normalized >= start) & (normalized <= end if index == 4 else normalized < end)
+    stops = (273.15, 288.0, 300.0, 330.0, 400.0, 500.0, 560.0, 590.0, 600.0)
+    for index in range(len(stops) - 1):
+        start = stops[index]
+        end = stops[index + 1]
+        mask = (temperatures >= start) & (temperatures < end)
         if not np.any(mask):
             continue
         colours = np.array([_thermal_colour(start), _thermal_colour(end)], dtype=np.float32)
-        fraction = ((normalized[mask] - start) / (end - start))[:, None]
+        fraction = ((temperatures[mask] - start) / (end - start))[:, None]
         rgb[mask] = (colours[0] + (colours[1] - colours[0]) * fraction).astype(np.uint8)
+    rgb[temperatures < stops[0]] = _thermal_colour(stops[0])
+    rgb[temperatures >= stops[-1]] = _thermal_colour(stops[-1])
 
     scale = min(DISPLAY_WIDTH / width, DISPLAY_HEIGHT / height)
     output_width = max(1, int(round(width * scale)))

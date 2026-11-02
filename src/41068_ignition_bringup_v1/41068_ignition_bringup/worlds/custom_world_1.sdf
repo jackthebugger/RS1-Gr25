@@ -164,16 +164,19 @@
       <name>rock1</name>
       <pose>-6.30926 -8.38159 0 0 0 0.2</pose>
     </include>
+
     <include>
       <uri>model://simple_rock</uri>
       <name>rock2</name>
       <pose>-8.27162 -6.19647 0 0 0 -0.4</pose>
     </include>
+
     <include>
       <uri>model://simple_rock</uri>
       <name>rock3</name>
       <pose>-9.2841 -4.61803 0 0 0 0.7</pose>
     </include>
+
     <include>
       <uri>model://simple_rock</uri>
       <name>rock4</name>
