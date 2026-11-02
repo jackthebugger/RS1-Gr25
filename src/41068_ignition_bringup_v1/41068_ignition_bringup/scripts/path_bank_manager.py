@@ -81,6 +81,7 @@ from rs1_nav.mission_owner import (
     seed_timed_out,
 )
 from rs1_nav.path_bank import (
+    LETHAL,
     CandidateState,
     PathBank,
     PathBankConfig,
@@ -92,8 +93,10 @@ from rs1_nav.path_bank import (
     occupancy_msg_to_grid,
     path_is_valid,
     nudge_polyline_away_from_lethal,
+    point_clearance,
 )
 from rs1_nav.route_instance import (
+    FOOTPRINT_PAD,
     RouteBank,
     RouteInstance,
     along_track_yaw,
@@ -292,6 +295,19 @@ class PathBankManager(Node):
         self._home_fp_route_uid: Optional[str] = None
         self._rebuild_resume_mode: Optional[str] = None  # 'HOME'|'MISSION'|None
         self._last_home_footprint_reason: str = ''
+        # W0 / H6: machine-readable raise token for status + GUI banner suffix.
+        self._last_no_safe_detail: str = ''
+        # W1a via FSM scratch (initialized here; product geometry gated on W0).
+        self._last_home_navfn_pts: List[Tuple[float, float]] = []
+        # Densified/nudged forward-slice pts at C1 fail — lethal_at_<i> indexes these.
+        self._last_home_c1_fail_pts: List[Tuple[float, float]] = []
+        self._home_via_phase: Optional[str] = None
+        self._home_via_generation: int = -1
+        self._home_via_v_star: Optional[Tuple[float, float]] = None
+        self._home_via_leg1_pts: List[Tuple[float, float]] = []
+        self._home_via_leg_timeout_s: float = 8.0
+        self._home_via_leg_started_at: float = 0.0
+        self._home_via_candidate_queue: List[Tuple[float, float]] = []
         self._dist_home_at_return_arm: float = -1.0
         self._pending_follow_seed_since: float = 0.0
         # Entry 049: rebuilds of join queue instead of premature home.
@@ -779,6 +795,12 @@ class PathBankManager(Node):
         self._home_fp_route_uid = None
         self._rebuild_resume_mode = None
         self._last_home_footprint_reason = ''
+        self._last_no_safe_detail = ''
+        self._last_home_navfn_pts = []
+        self._home_via_phase = None
+        self._home_via_generation = -1
+        self._home_via_v_star = None
+        self._home_via_leg1_pts = []
         self._dist_home_at_return_arm = -1.0
         self._far_gap_rebuilds = 0
         self._path_blocked_none_since = 0.0
@@ -1693,6 +1715,15 @@ class PathBankManager(Node):
         self._home_fp_route_uid = None
         self._home_route = None
         self._last_home_footprint_reason = ''
+        # New return epoch: clear prior fail detail + via / navfn scratch.
+        self._last_no_safe_detail = ''
+        self._last_home_navfn_pts = []
+        self._last_home_c1_fail_pts = []
+        self._home_via_phase = None
+        self._home_via_generation = -1
+        self._home_via_v_star = None
+        self._home_via_leg1_pts = []
+        self._home_via_candidate_queue = []
         if self._robot_xyyaw is not None:
             self._dist_home_at_return_arm = math.hypot(
                 self._robot_xyyaw[0] - hx, self._robot_xyyaw[1] - hy)
@@ -1797,18 +1828,444 @@ class PathBankManager(Node):
         return True
 
     def _retry_home_plan_or_raise(self, detail: str) -> None:
-        """C2: one additional fresh plan within max=2, else honest NO_SAFE_ROUTE."""
-        if (
-            self._nav_mode == 'home'
-            and self._home_plan_attempt_count < 2
-            and self._request_fresh_home_plan()
-        ):
+        """C2 attempt-2 branch table (R4 §1.5.1).
+
+        Footprint / C1 miss → via async FSM (set count=2 once; never
+        ``_request_fresh_home_plan`` for via legs). Planner-class fail →
+        readiness wait + one identical fresh plan. Else honest NO_SAFE.
+        """
+        if self._nav_mode != 'home':
+            self._raise_no_safe_route(detail)
+            return
+        if self._home_plan_attempt_count >= 2:
+            self._raise_no_safe_route(detail)
+            return
+        token = (detail or '').strip()
+        footprint_class = (
+            token == 'home_footprint_invalid'
+            or token.startswith('home_footprint_invalid')
+        )
+        plan_class = token.startswith('home_plan_') or token in (
+            'home_plan_unavailable',
+            'home_plan_goal_failed',
+            'home_plan_rejected',
+            'home_plan_result_failed',
+            'home_plan_empty',
+        )
+        if footprint_class:
+            # Attempt-2 via: set count=2 once; do not call _request_fresh_home_plan.
+            self._home_plan_attempt_count = 2
             self.get_logger().warn(
-                f'Home plan retry after {detail} '
+                f'Home footprint fail ({token}) → via FSM '
                 f'(attempt={self._home_plan_attempt_count}/2)'
             )
+            self._home_via_fsm_enter()
+            return
+        if plan_class:
+            ok, why = self._home_plan_readiness_ok()
+            if not ok:
+                # ≤0.50 s readiness wait when costmap stale / pose missing.
+                t_end = time.monotonic() + 0.50
+                while time.monotonic() < t_end:
+                    ok, why = self._home_plan_readiness_ok()
+                    if ok:
+                        break
+                    time.sleep(0.05)
+            if self._request_fresh_home_plan():
+                self.get_logger().warn(
+                    f'Home plan retry after {token} '
+                    f'(attempt={self._home_plan_attempt_count}/2 '
+                    f'ready={ok}/{why})'
+                )
+                return
+            self._raise_no_safe_route(token or 'home_plan_unavailable')
             return
         self._raise_no_safe_route(detail)
+
+    def _home_plan_readiness_ok(self) -> Tuple[bool, str]:
+        """§1.6 readiness gate before home ComputePath."""
+        if self._robot_xyyaw is None:
+            return False, 'home_no_pose'
+        if self._home_xyyaw is None:
+            return False, 'no_home_pose'
+        if self._compute_path_client is None:
+            return False, 'home_plan_unavailable'
+        if not self._compute_path_client.server_is_ready():
+            return False, 'home_plan_unavailable'
+        if self._live_costmap is None:
+            return False, 'home_costmap_missing'
+        try:
+            stamp = self._live_costmap.header.stamp
+            now = self.get_clock().now()
+            age = (now.nanoseconds - rclpy.time.Time.from_msg(stamp).nanoseconds) * 1e-9
+            if age > 1.0:
+                return False, 'home_costmap_stale'
+        except Exception:  # noqa: BLE001
+            return False, 'home_costmap_stale'
+        return True, 'ok'
+
+    def _home_via_invalidate(self) -> None:
+        """Clear via FSM scratch (phase/gen/pending peers use raise path)."""
+        self._home_via_phase = None
+        self._home_via_generation = -1
+        self._home_via_v_star = None
+        self._home_via_leg1_pts = []
+        self._home_via_leg_started_at = 0.0
+
+    def _home_via_leg_callback_ok(self, expected_phase: str) -> bool:
+        """R4 full via fence — gen equality + phase + home + not terminal.
+
+        Normative: ``_home_via_generation == _owner.generation`` (no soft
+        alternate). ASSEMBLE entry uses expected_phase ``LEG2_PENDING``
+        (pre-transition), then sets phase to ASSEMBLE.
+        """
+        if self._home_via_generation != self._owner.generation:
+            return False
+        if self._home_via_phase != expected_phase:
+            return False
+        if self._nav_mode != 'home':
+            return False
+        if self._state == MissionNavState.NO_SAFE_ROUTE:
+            return False
+        if self._owner.phase == MissionPhase.STOPPED:
+            return False
+        if SafetyInhibit.ALL_BLOCKED_NO_HOME in self._owner.active_inhibits:
+            return False
+        return True
+
+    def _home_via_fsm_enter(self) -> None:
+        """Attempt-2 via: SELECT V* sync, then async LEG1 (R4 §1.5.1)."""
+        self._home_via_invalidate()
+        self._home_via_generation = int(self._owner.generation)
+        self._home_via_phase = 'SELECT'
+        self._home_plan_pending = True
+        v_star = self._home_via_select_v_star()
+        if v_star is None:
+            self.get_logger().error(
+                'Via SELECT: no free lateral V* → NO_SAFE '
+                f'(c1={self._last_home_footprint_reason or "none"})'
+            )
+            self._raise_no_safe_route('home_footprint_invalid')
+            return
+        self._home_via_v_star = v_star
+        self.get_logger().warn(
+            f'Via SELECT V*=({v_star[0]:.2f},{v_star[1]:.2f}) → LEG1'
+        )
+        if not self._home_via_issue_leg(
+            start_xyyaw=self._robot_xyyaw,
+            goal_xy=v_star,
+            phase='LEG1_PENDING',
+        ):
+            self._raise_no_safe_route('home_footprint_invalid')
+
+    def _home_via_select_v_star(self) -> Optional[Tuple[float, float]]:
+        """§1.4 steps 1–4: hit cell → lateral candidates → best clearance.
+
+        ``lethal_at_<i>`` indexes the densified C1 forward-slice
+        (``_last_home_c1_fail_pts``), not raw NavFn length.
+        """
+        if self._live_costmap is None or self._robot_xyyaw is None:
+            return None
+        if self._home_xyyaw is None:
+            return None
+        grid = nav2_costmap_to_grid(self._live_costmap)
+        c1_pts = list(self._last_home_c1_fail_pts or [])
+        navfn = list(self._last_home_navfn_pts or [])
+        poly = c1_pts if len(c1_pts) >= 2 else navfn
+        reason = self._last_home_footprint_reason or ''
+        p_hit: Optional[Tuple[float, float]] = None
+        tangent = (1.0, 0.0)
+        if 'lethal_at_' in reason and poly:
+            try:
+                idx_s = reason.split('lethal_at_', 1)[1].split('_', 1)[0]
+                i = int(idx_s)
+                i = max(0, min(i, len(poly) - 1))
+                p_hit = poly[i]
+                if i + 1 < len(poly):
+                    dx = poly[i + 1][0] - poly[i][0]
+                    dy = poly[i + 1][1] - poly[i][1]
+                elif i > 0:
+                    dx = poly[i][0] - poly[i - 1][0]
+                    dy = poly[i][1] - poly[i - 1][1]
+                else:
+                    dx, dy = 1.0, 0.0
+                n = math.hypot(dx, dy) or 1.0
+                tangent = (dx / n, dy / n)
+            except (ValueError, IndexError):
+                p_hit = None
+        if p_hit is None:
+            # Planner-fail / no index: first lethal along robot→home ray @0.25 m.
+            rx, ry, _ = self._robot_xyyaw
+            hx, hy, _ = self._home_xyyaw
+            dx, dy = hx - rx, hy - ry
+            seg = math.hypot(dx, dy)
+            if seg < 0.25:
+                return None
+            ux, uy = dx / seg, dy / seg
+            s = 0.0
+            while s <= seg:
+                x, y = rx + ux * s, ry + uy * s
+                idx = grid.world_to_grid(x, y)
+                if idx is not None:
+                    cost = int(grid.costs[idx[1], idx[0]])
+                    if cost >= LETHAL and cost != 255:
+                        p_hit = (x, y)
+                        tangent = (ux, uy)
+                        break
+                s += 0.25
+            if p_hit is None:
+                # Midpoint fallback for hit localization only.
+                p_hit = (rx + 0.5 * dx, ry + 0.5 * dy)
+                tangent = (ux, uy)
+        nx, ny = -tangent[1], tangent[0]
+        pad_need = FOOTPRINT_PAD + self._footprint_inflate
+        seats: List[Tuple[float, float]] = list(self._demo_obstacle_poses or [])
+        if not seats:
+            seats = [(-1.3, -11.5), (-5.1, 21.1)]
+        candidates: List[Tuple[float, Tuple[float, float]]] = []
+        for L in (1.0, 1.5, 2.0):
+            for sign in (1.0, -1.0):
+                vx = p_hit[0] + sign * L * nx
+                vy = p_hit[1] + sign * L * ny
+                idx = grid.world_to_grid(vx, vy)
+                if idx is None:
+                    continue
+                cost = int(grid.costs[idx[1], idx[0]])
+                if cost >= LETHAL and cost != 255:
+                    continue
+                clr = point_clearance(vx, vy, grid)
+                if clr < pad_need:
+                    continue
+                disk_ok = all(
+                    math.hypot(vx - sx, vy - sy) >= 2.5 for sx, sy in seats
+                )
+                score = clr + (10.0 if disk_ok else 0.0)
+                candidates.append((score, (vx, vy)))
+        if not candidates:
+            self._home_via_candidate_queue = []
+            return None
+        candidates.sort(key=lambda c: c[0], reverse=True)
+        # Queue alternates for same attempt-2 if ASSEMBLE C1 rejects first V*.
+        self._home_via_candidate_queue = [xy for _, xy in candidates[1:]]
+        return candidates[0][1]
+
+    def _home_via_issue_leg(
+        self,
+        *,
+        start_xyyaw: Optional[Tuple[float, float, float]],
+        goal_xy: Tuple[float, float],
+        phase: str,
+    ) -> bool:
+        """Async ComputePath for one via leg — never ``_request_fresh_home_plan``."""
+        if (
+            self._compute_path_client is None
+            or start_xyyaw is None
+            or self._home_xyyaw is None
+        ):
+            return False
+        if not self._compute_path_client.server_is_ready():
+            return False
+        sx, sy, syaw = start_xyyaw
+        gx, gy = goal_xy
+        # Goal yaw: toward home for leg1 (via), home yaw for leg2.
+        if phase == 'LEG2_PENDING':
+            gyaw = float(self._home_xyyaw[2])
+        else:
+            hx, hy, _ = self._home_xyyaw
+            gyaw = math.atan2(hy - gy, hx - gx)
+        goal = ComputePathToPose.Goal()
+        goal.planner_id = 'GridBased'
+        goal.use_start = True
+        goal.start.header.frame_id = self._map_frame
+        goal.start.header.stamp = self.get_clock().now().to_msg()
+        goal.start.pose.position.x = float(sx)
+        goal.start.pose.position.y = float(sy)
+        goal.start.pose.orientation.z = math.sin(0.5 * syaw)
+        goal.start.pose.orientation.w = math.cos(0.5 * syaw)
+        goal.goal.header = goal.start.header
+        goal.goal.pose.position.x = float(gx)
+        goal.goal.pose.position.y = float(gy)
+        goal.goal.pose.orientation.z = math.sin(0.5 * gyaw)
+        goal.goal.pose.orientation.w = math.cos(0.5 * gyaw)
+        self._home_via_phase = phase
+        self._home_via_leg_started_at = time.monotonic()
+        self._home_plan_pending = True
+        # Capture generation at issue — fence requires equality with owner gen.
+        via_gen = int(self._home_via_generation)
+        fut = self._compute_path_client.send_goal_async(goal)
+        fut.add_done_callback(
+            lambda f, p=phase, g=via_gen: self._home_via_leg_goal_response(f, p, g)
+        )
+        self.get_logger().info(
+            f'Via {phase} ComputePath ({sx:.2f},{sy:.2f})→({gx:.2f},{gy:.2f}) '
+            f'via_gen={via_gen}'
+        )
+        return True
+
+    def _home_via_leg_goal_response(self, future, phase: str, via_gen: int) -> None:
+        if via_gen != self._home_via_generation:
+            return
+        if not self._home_via_leg_callback_ok(phase):
+            return
+        try:
+            handle = future.result()
+        except Exception as exc:  # noqa: BLE001
+            self.get_logger().warn(f'Via {phase} goal failed: {exc}')
+            self._raise_no_safe_route('home_footprint_invalid')
+            return
+        if handle is None or not handle.accepted:
+            self.get_logger().warn(f'Via {phase} ComputePath rejected')
+            self._raise_no_safe_route('home_footprint_invalid')
+            return
+        result_fut = handle.get_result_async()
+        result_fut.add_done_callback(
+            lambda f, p=phase, g=via_gen: self._home_via_leg_result(f, p, g)
+        )
+
+    def _home_via_leg_result(self, future, phase: str, via_gen: int) -> None:
+        if via_gen != self._home_via_generation:
+            return
+        if not self._home_via_leg_callback_ok(phase):
+            return
+        try:
+            wrapped = future.result()
+            status = wrapped.status
+            result = wrapped.result
+        except Exception as exc:  # noqa: BLE001
+            self.get_logger().warn(f'Via {phase} result failed: {exc}')
+            self._raise_no_safe_route('home_footprint_invalid')
+            return
+        if status != GoalStatus.STATUS_SUCCEEDED or result is None:
+            self.get_logger().warn(f'Via {phase} status={status}')
+            self._raise_no_safe_route('home_footprint_invalid')
+            return
+        path_msg = result.path
+        if path_msg is None or len(path_msg.poses) < 2:
+            self.get_logger().warn(f'Via {phase} empty path')
+            self._raise_no_safe_route('home_footprint_invalid')
+            return
+        pts = [
+            (float(ps.pose.position.x), float(ps.pose.position.y))
+            for ps in path_msg.poses
+        ]
+        if phase == 'LEG1_PENDING':
+            self._home_via_leg1_pts = pts
+            v = self._home_via_v_star
+            if v is None or self._home_xyyaw is None:
+                self._raise_no_safe_route('home_footprint_invalid')
+                return
+            # Start leg2 at V* with yaw toward home.
+            hx, hy, hyaw = self._home_xyyaw
+            start_yaw = math.atan2(hy - v[1], hx - v[0])
+            if not self._home_via_issue_leg(
+                start_xyyaw=(v[0], v[1], start_yaw),
+                goal_xy=(hx, hy),
+                phase='LEG2_PENDING',
+            ):
+                self._raise_no_safe_route('home_footprint_invalid')
+            return
+        if phase == 'LEG2_PENDING':
+            # R4 Minor: ASSEMBLE entry fence with expected_phase=LEG2_PENDING
+            # (pre-transition), then set ASSEMBLE.
+            if not self._home_via_leg_callback_ok('LEG2_PENDING'):
+                return
+            self._home_via_phase = 'ASSEMBLE'
+            self._home_via_assemble_and_arm(pts)
+            return
+        self._raise_no_safe_route('home_footprint_invalid')
+
+    def _home_via_assemble_and_arm(self, leg2_pts: List[Tuple[float, float]]) -> None:
+        """Sync densify/nudge/C1 after both async legs; arm FollowPath or raise."""
+        leg1 = list(self._home_via_leg1_pts or [])
+        if len(leg1) < 2 or len(leg2_pts) < 2:
+            self._raise_no_safe_route('home_footprint_invalid')
+            return
+        pts = list(leg1)
+        if math.hypot(pts[-1][0] - leg2_pts[0][0], pts[-1][1] - leg2_pts[0][1]) < 0.05:
+            pts.extend(leg2_pts[1:])
+        else:
+            pts.extend(leg2_pts)
+        if self._home_xyyaw is not None:
+            hx, hy, _ = self._home_xyyaw
+            if math.hypot(pts[-1][0] - hx, pts[-1][1] - hy) > 0.05:
+                pts.append((hx, hy))
+        salt = str(self._owner.mission_id or time.time())
+        home_route = make_route_instance(
+            0, pts, label='return_home_via', densify_m=0.10, mission_salt=salt)
+        if self._live_costmap is not None:
+            live = nav2_costmap_to_grid(self._live_costmap)
+            # Attempt-2 fixed nudge params (no further silent pad change).
+            nudged_pts = nudge_polyline_away_from_lethal(
+                list(home_route.points),
+                live,
+                target_clearance_m=1.0,
+                max_offset_m=2.0,
+            )
+            home_route = make_route_instance(
+                0,
+                nudged_pts,
+                label='return_home_via',
+                densify_m=1.0e6,
+                mission_salt=salt,
+            )
+        ok, reason = self._home_route_c1_oriented_valid(home_route)
+        if not ok:
+            v = self._home_via_v_star
+            self.get_logger().error(
+                f'Via ASSEMBLE C1 fail ({reason}) via='
+                f'{None if v is None else f"({v[0]:.2f},{v[1]:.2f})"}'
+            )
+            # Same attempt-2: try next queued V* (still via; not identical replan).
+            if self._home_via_candidate_queue:
+                nxt = self._home_via_candidate_queue.pop(0)
+                self._home_via_v_star = nxt
+                self._home_via_leg1_pts = []
+                self.get_logger().warn(
+                    f'Via ASSEMBLE miss → retry next V*=({nxt[0]:.2f},{nxt[1]:.2f})'
+                )
+                if self._home_via_issue_leg(
+                    start_xyyaw=self._robot_xyyaw,
+                    goal_xy=nxt,
+                    phase='LEG1_PENDING',
+                ):
+                    return
+            self._raise_no_safe_route('home_footprint_invalid')
+            return
+        # R4 Minor 4: re-check terminal/fence immediately before FollowPath arm.
+        if (
+            self._state == MissionNavState.NO_SAFE_ROUTE
+            or self._owner.phase == MissionPhase.STOPPED
+            or SafetyInhibit.ALL_BLOCKED_NO_HOME in self._owner.active_inhibits
+            or self._nav_mode != 'home'
+            or self._home_via_generation != self._owner.generation
+            or self._home_via_phase != 'ASSEMBLE'
+        ):
+            self.get_logger().warn(
+                'Via ASSEMBLE: terminal/fence blocked FollowPath arm (no-op)'
+            )
+            return
+        v = self._home_via_v_star
+        self._home_route = home_route
+        self._home_fp_route_uid = home_route.route_uid
+        self._home_plan_attempt_count = 0
+        self._home_plan_pending = False
+        self._last_home_navfn_pts = []
+        self._home_via_invalidate()
+        self._publish_active_route_path(home_route)
+        self._cancel_follow_path()
+        self._clear_local_costmap()
+        if self._owner.phase != MissionPhase.RETURNING_TO_START:
+            self._owner.phase = MissionPhase.RETURNING_TO_START
+        if self._owner.command_authority != CommandAuthority.NAV:
+            self._owner.command_authority = CommandAuthority.NAV
+            self._publish_authority_now()
+        self._owner.detail = 'RETURNING_TO_START'
+        self._send_follow_path(home_route, allow_navfn_bridge=False)
+        self.get_logger().info(
+            f'Via home FollowPath armed poses={len(home_route.points)} '
+            f'route_uid={home_route.route_uid} '
+            f'via={None if v is None else f"({v[0]:.2f},{v[1]:.2f})"}'
+        )
 
     def _home_plan_goal_response(self, future, generation: int) -> None:
         # Watch-out: clear pending only on generation-matched paths so a newer
@@ -1858,6 +2315,8 @@ class PathBankManager(Node):
             (float(ps.pose.position.x), float(ps.pose.position.y))
             for ps in path_msg.poses
         ]
+        # Persist raw NavFn poses before densify/C1 (W1a via input; clear on raise).
+        self._last_home_navfn_pts = list(pts)
         home_route = self._build_home_route_from_points(pts)
         if home_route is None:
             self.get_logger().error(
@@ -1895,8 +2354,9 @@ class PathBankManager(Node):
         Uses ``_route_forward_from_robot`` (nearest+1 under robot). Mid-path
         lethals on the forward slice still reject. No mark_exclude / pad weaken.
         """
+        # W1a / §1.7: fail-closed when costmap missing (was vacuous accept).
         if self._live_costmap is None:
-            return True, ''
+            return False, 'costmap_missing'
         live = nav2_costmap_to_grid(self._live_costmap)
         pts, yaws = self._route_forward_from_robot(route)
         if len(pts) < 2:
@@ -2000,15 +2460,18 @@ class PathBankManager(Node):
                 self._last_home_footprint_reason = ''
                 return alt
             self._last_home_footprint_reason = reason
+            fwd, _ = self._route_forward_from_robot(home_route)
+            if not fwd:
+                fwd = list(home_route.points)
+            # Persist densified forward slice so via SELECT indexes lethal_at_<i>
+            # against the same polyline C1 used (not raw NavFn length).
+            self._last_home_c1_fail_pts = list(fwd)
             keepout_hit = 'lethal' in (reason or '')
             hit_xy = ''
             if reason and 'lethal_at_' in reason:
                 try:
                     idx_s = reason.split('lethal_at_', 1)[1].split('_', 1)[0]
                     hi = int(idx_s)
-                    fwd, _ = self._route_forward_from_robot(home_route)
-                    if not fwd:
-                        fwd = home_route.points
                     if 0 <= hi < len(fwd):
                         hit_xy = f' xy=({fwd[hi][0]:.2f},{fwd[hi][1]:.2f})'
                 except (ValueError, IndexError, TypeError):
@@ -2020,6 +2483,7 @@ class PathBankManager(Node):
             )
             return None
         self._last_home_footprint_reason = ''
+        self._last_home_c1_fail_pts = []
         return home_route
 
     def _bank_homeward_route_if_c1_valid(
@@ -2090,7 +2554,17 @@ class PathBankManager(Node):
         Sequence: cancel FP → command_authority NONE → raise
         ALL_BLOCKED_NO_HOME → owner STOPPED → bank/status NO_SAFE_ROUTE →
         clear active_path.
+
+        H6: persist ``last_no_safe_detail`` and set owner.detail to
+        ``NO_SAFE_ROUTE:<token>`` (not bare NO_SAFE_ROUTE).
+
+        Raise-side via invalidation (R4): phase=None, gen=-1, pending=False,
+        drop V*/leg1, clear navfn_pts. First raise bumps generation only via
+        ``raise_inhibit`` (body has no local ``bump_generation``); re-raise
+        else-branch does not bump — fence + sentinel remain mandatory.
         """
+        token = (detail or '').strip() or 'unknown'
+        self._last_no_safe_detail = token
         self._cancel_nav()
         self._pending_follow_seed = False
         self._pending_follow_seed_since = 0.0
@@ -2100,22 +2574,33 @@ class PathBankManager(Node):
         self._home_fp_route_uid = None
         self._rebuild_resume_mode = None
         self._path_blocked_none_since = 0.0
+        # Via FSM invalidate (fields may be absent pre-W1a — getattr-safe).
+        self._home_via_phase = None
+        self._home_via_generation = -1
+        self._home_via_v_star = None
+        self._home_via_leg1_pts = []
+        self._home_via_candidate_queue = []
+        self._last_home_navfn_pts = []
+        self._last_home_c1_fail_pts = []
         self._owner.command_authority = CommandAuthority.NONE
         if SafetyInhibit.ALL_BLOCKED_NO_HOME not in self._owner.active_inhibits:
+            # First raise: raise_inhibit bumps generation + STOPPED.
             self._owner.raise_inhibit(SafetyInhibit.ALL_BLOCKED_NO_HOME)
         else:
+            # Re-raise: no bump — keep phase/gen sentinel invalidate above.
             self._owner.phase = MissionPhase.STOPPED
             self._owner.command_authority = CommandAuthority.NONE
             self._owner.stop_reason = SafetyInhibit.ALL_BLOCKED_NO_HOME.value
-        self._owner.detail = 'NO_SAFE_ROUTE'
+        self._owner.detail = f'NO_SAFE_ROUTE:{token}'
         self._set_state(MissionNavState.NO_SAFE_ROUTE)
         self._clear_active_path()
         # Publish owner status immediately (do not wait for 1 Hz timer) so
         # GUI / harnesses see STOPPED + ALL_BLOCKED_NO_HOME with bank state.
         self._publish_owner_status()
+        self._publish_status()
         self.get_logger().error(
-            f'NO_SAFE_ROUTE ({detail}) → owner STOPPED auth=NONE '
-            f'inhibit=ALL_BLOCKED_NO_HOME'
+            f'NO_SAFE_ROUTE ({token}) → owner STOPPED auth=NONE '
+            f'inhibit=ALL_BLOCKED_NO_HOME last_no_safe_detail={token}'
         )
 
     def _pick_next_valid(self, live_grid) -> Optional[PathCandidate]:
@@ -3847,6 +4332,12 @@ class PathBankManager(Node):
         self._home_plan_pending = False
         self._home_fp_route_uid = None
         self._rebuild_resume_mode = None
+        self._last_no_safe_detail = ''
+        self._last_home_navfn_pts = []
+        self._home_via_phase = None
+        self._home_via_generation = -1
+        self._home_via_v_star = None
+        self._home_via_leg1_pts = []
         self._owner.phase = MissionPhase.IDLE
         self._owner.command_authority = CommandAuthority.NONE
         self._owner.stop_reason = ''
@@ -4004,6 +4495,19 @@ class PathBankManager(Node):
                     )
                     self._raise_no_safe_route('home_wallclock_t2')
 
+        # Via per-leg timeout poll (R4 — same timer path as T₂).
+        if self._home_via_phase in ('LEG1_PENDING', 'LEG2_PENDING'):
+            started = self._home_via_leg_started_at
+            if (
+                started > 0.0
+                and (now - started) > float(self._home_via_leg_timeout_s)
+            ):
+                self.get_logger().error(
+                    f'Via {self._home_via_phase} leg timeout '
+                    f'>{self._home_via_leg_timeout_s:.0f}s → NO_SAFE'
+                )
+                self._raise_no_safe_route('home_footprint_invalid')
+
     def _resume_home_after_rebuild(self, why: str) -> None:
         """D3 HOME resume after §G settle or unsettled HOME skip-HOLD."""
         self._nav_mode = 'home'
@@ -4015,6 +4519,13 @@ class PathBankManager(Node):
         # Unsettled rebuild freeze must not consume T₂ driving budget.
         if why == 'unsettled':
             self._home_entered_at = time.monotonic()
+        # Mid-via: do not blind-replan; wait for via terminal or cancel+raise.
+        if self._home_via_phase is not None:
+            self.get_logger().warn(
+                f'§G: {why} — via mid-flight phase={self._home_via_phase}; '
+                'not requesting fresh home plan'
+            )
+            return
         if (
             self._home_route is not None
             and self._home_route_c1_oriented_valid(self._home_route)[0]
@@ -4127,6 +4638,8 @@ class PathBankManager(Node):
         lines.append(f'home_attempted={int(bool(self._home_attempted))}')
         lines.append(f'home_plan_pending={int(bool(self._home_plan_pending))}')
         lines.append(f'home_plan_attempt={self._home_plan_attempt_count}')
+        # H6: always emit so harnesses can assert empty vs concrete token.
+        lines.append(f'last_no_safe_detail={self._last_no_safe_detail or ""}')
         if self._last_home_footprint_reason:
             lines.append(
                 f'home_footprint_invalid={self._last_home_footprint_reason}'
@@ -4348,6 +4861,12 @@ class PathBankManager(Node):
         self._home_fp_route_uid = None
         self._rebuild_resume_mode = None
         self._last_home_footprint_reason = ''
+        self._last_no_safe_detail = ''
+        self._last_home_navfn_pts = []
+        self._home_via_phase = None
+        self._home_via_generation = -1
+        self._home_via_v_star = None
+        self._home_via_leg1_pts = []
         self._dist_home_at_return_arm = -1.0
         self._far_gap_rebuilds = 0
         self._splice_used = False
@@ -4435,6 +4954,12 @@ class PathBankManager(Node):
         self._owner.clear_all_blocked_on_stop()
         self._owner.finish_operator_stop()
         self._owner.detail = ''
+        self._last_no_safe_detail = ''
+        self._last_home_navfn_pts = []
+        self._home_via_phase = None
+        self._home_via_generation = -1
+        self._home_via_v_star = None
+        self._home_via_leg1_pts = []
         self._set_state(MissionNavState.IDLE)
         self._clear_active_path()
         # Stop from MANUAL_NAV → deactivate BT so bank stays sole FollowPath owner.

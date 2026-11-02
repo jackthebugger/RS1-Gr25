@@ -467,6 +467,14 @@ def _point_clearance(x: float, y: float, grid: OccupancyGrid2D) -> float:
     return float(np.min(np.hypot(obs_x - x, obs_y - y)))
 
 
+def point_clearance(x: float, y: float, grid: OccupancyGrid2D) -> float:
+    """Public clearance helper (same formula as nudge / via SELECT).
+
+    Thin wrapper over ``_point_clearance`` — do not invent a weaker predicate.
+    """
+    return _point_clearance(x, y, grid)
+
+
 def nudge_polyline_away_from_lethal(
     path: Sequence[Point],
     grid: OccupancyGrid2D,

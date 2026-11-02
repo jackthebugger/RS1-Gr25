@@ -6,6 +6,7 @@ Covers D2 SUCCEEDED fence, T₁ latch semantics, and GUI banner honesty.
 
 from __future__ import annotations
 
+import math
 import os
 import sys
 import unittest
@@ -136,6 +137,48 @@ class GuiBannerHonestyTests(unittest.TestCase):
             gui._PATH_BANK_RETURN_TERMINAL,
         )
 
+    def test_h6_no_safe_banner_includes_detail(self) -> None:
+        import robot_status_gui as gui  # noqa: WPS433
+
+        self.assertEqual(
+            gui.mission_status_from_path_bank(
+                'NO_SAFE_ROUTE', no_safe_detail='home_footprint_invalid'),
+            'no safe route (home_footprint_invalid)',
+        )
+        banner = gui.mission_banner_from_owner(
+            'STOPPED',
+            active_inhibits=['ALL_BLOCKED_NO_HOME'],
+            detail='NO_SAFE_ROUTE:home_footprint_invalid',
+        )
+        self.assertEqual(
+            banner,
+            'STOPPED: all blocked - no home route (home_footprint_invalid)',
+        )
+        # Mid-return must never show NO HOME even if stale detail present.
+        mid = gui.mission_banner_from_owner(
+            'RETURNING_TO_START',
+            mission_running=True,
+            command_authority='NAV',
+            detail='NO_SAFE_ROUTE:stale',
+            no_safe_detail='stale',
+        )
+        self.assertEqual(mid, 'all paths blocked - returning to home')
+        self.assertNotIn('no home route', mid.lower())
+
+    def test_parse_last_no_safe_detail(self) -> None:
+        import robot_status_gui as gui  # noqa: WPS433
+
+        status = (
+            'state=NO_SAFE_ROUTE\n'
+            'last_no_safe_detail=home_plan_empty\n'
+            'active_id=None\n'
+        )
+        self.assertEqual(
+            gui.parse_last_no_safe_detail(status),
+            'home_plan_empty',
+        )
+        self.assertEqual(gui.parse_last_no_safe_detail('state=IDLE\n'), '')
+
 
 class RebuildResumeHomeTests(unittest.TestCase):
     def test_home_token_forbids_mission_resume(self) -> None:
@@ -151,6 +194,62 @@ class RebuildResumeHomeTests(unittest.TestCase):
         # Even if bank looks FOLLOWING, HOME token wins.
         self.assertEqual(resume, 'HOME')
         self.assertEqual(bank_state, 'FOLLOWING_PATH')
+
+
+class ViaFsmContractTests(unittest.TestCase):
+    """R4 via FSM contracts (source-level; no Gazebo)."""
+
+    def test_retry_branch_footprint_enters_via_not_fresh_plan(self) -> None:
+        import os
+
+        pkg = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        src = open(os.path.join(pkg, 'scripts', 'path_bank_manager.py')).read()
+        # Footprint → set count=2 + via enter; must not always-fresh-plan.
+        self.assertIn("token == 'home_footprint_invalid'", src)
+        self.assertIn('self._home_plan_attempt_count = 2', src)
+        self.assertIn('self._home_via_fsm_enter()', src)
+        self.assertIn('def _home_via_leg_callback_ok', src)
+        # ASSEMBLE entry pinned to LEG2_PENDING pre-transition.
+        self.assertIn(
+            "if not self._home_via_leg_callback_ok('LEG2_PENDING')",
+            src,
+        )
+        self.assertIn("self._home_via_phase = 'ASSEMBLE'", src)
+        # Raise invalidates via gen sentinel.
+        self.assertIn('self._home_via_generation = -1', src)
+        # Via legs must not call _request_fresh_home_plan (helper docstring).
+        self.assertIn(
+            'never ``_request_fresh_home_plan``',
+            src,
+        )
+
+    def test_point_clearance_public_and_sealed_disk(self) -> None:
+        import numpy as np
+        from rs1_nav.path_bank import LETHAL, OccupancyGrid2D, point_clearance
+        from rs1_nav.route_instance import FOOTPRINT_PAD
+
+        # 10×10 m map, 0.1 m cells; lethal disk radius 3 m at origin seals L≤2.
+        res = 0.1
+        w = h = 100
+        costs = np.zeros((h, w), dtype=np.uint8)
+        for iy in range(h):
+            for ix in range(w):
+                x = (ix + 0.5) * res - 5.0
+                y = (iy + 0.5) * res - 5.0
+                if math.hypot(x, y) <= 3.0:
+                    costs[iy, ix] = LETHAL
+        grid = OccupancyGrid2D(
+            origin_x=-5.0,
+            origin_y=-5.0,
+            resolution=res,
+            width=w,
+            height=h,
+            costs=costs,
+        )
+        # Open cell far away has clearance; near disk edge fails pad.
+        self.assertGreater(point_clearance(4.5, 0.0, grid), FOOTPRINT_PAD)
+        # Inside sealed radius → ~0 clearance.
+        self.assertLess(point_clearance(0.0, 0.0, grid), 0.2)
 
 
 if __name__ == '__main__':

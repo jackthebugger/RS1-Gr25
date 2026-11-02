@@ -169,20 +169,61 @@ def parse_path_bank_active_id(status_text: str) -> Optional[int]:
     return None
 
 
+def parse_last_no_safe_detail(status_text: str) -> str:
+    """Extract last_no_safe_detail=TOKEN from path_bank/status (H6)."""
+    for line in (status_text or '').splitlines():
+        line = line.strip()
+        if line.startswith('last_no_safe_detail='):
+            return line.split('=', 1)[1].strip()
+    return ''
+
+
+def _no_safe_detail_token(
+    *,
+    owner_detail: str = '',
+    path_bank_detail: str = '',
+) -> str:
+    """Prefer owner.detail suffix NO_SAFE_ROUTE:<token>, else path_bank field."""
+    od = (owner_detail or '').strip()
+    if od.upper().startswith('NO_SAFE_ROUTE:'):
+        token = od.split(':', 1)[1].strip()
+        if token:
+            return token
+    pb = (path_bank_detail or '').strip()
+    if pb and pb.lower() not in ('none', 'null'):
+        return pb
+    return ''
+
+
+def _append_no_home_detail(base: str, detail_token: str) -> str:
+    token = (detail_token or '').strip()
+    if not token:
+        return base
+    if f'({token})' in base:
+        return base
+    return f'{base} ({token})'
+
+
 def mission_status_from_path_bank(
     state: str,
     active_id: Optional[int] = None,
+    *,
+    no_safe_detail: str = '',
 ) -> Optional[str]:
     """Map path_bank/state to a Mission Status display string.
 
     Returns None when the state should not override the Nav2-client label
     (e.g. IDLE before a mission starts).
+
+    H6: when state is NO_SAFE_ROUTE / ALL_BLOCKED_NO_HOME, append ``(detail)``
+    when ``no_safe_detail`` is non-empty.
     """
     key = (state or '').strip().upper()
     if not key:
         return None
     if key in _NO_SAFE_ROUTE_STATES:
-        return _INHIBIT_BANNER.get(key, 'no safe route')
+        base = _INHIBIT_BANNER.get(key, 'no safe route')
+        return _append_no_home_detail(base, no_safe_detail)
     if key in _PATH_BANK_RETURNING:
         return 'all paths blocked - returning to home'
     if key in _PATH_BANK_ALL_BLOCKED_PRELUDE:
@@ -200,9 +241,12 @@ def mission_status_from_path_bank(
     return None
 
 
-def _format_inhibit_label(inhibit: str) -> str:
+def _format_inhibit_label(inhibit: str, detail_token: str = '') -> str:
     key = (inhibit or '').strip().upper()
-    return _INHIBIT_BANNER.get(key, inhibit)
+    base = _INHIBIT_BANNER.get(key, inhibit)
+    if key == 'ALL_BLOCKED_NO_HOME':
+        return _append_no_home_detail(base, detail_token)
+    return base
 
 
 def mission_banner_from_owner(
@@ -213,22 +257,35 @@ def mission_banner_from_owner(
     command_authority: str = 'NONE',
     stop_reason: str = '',
     mission_running: bool = False,
+    detail: str = '',
+    no_safe_detail: str = '',
 ) -> str:
-    """Map MissionOwnerStatus fields to a Mission banner label (no 'Mission:' prefix)."""
+    """Map MissionOwnerStatus fields to a Mission banner label (no 'Mission:' prefix).
+
+    H6: STOPPED + ALL_BLOCKED_NO_HOME appends ``(detail)`` from owner.detail
+    suffix or path_bank ``last_no_safe_detail``. Mid-return never shows NO HOME.
+    """
     phase = (state or 'IDLE').strip().upper() or 'IDLE'
     inhibits = [str(i).strip() for i in (active_inhibits or []) if str(i).strip()]
     auth = (command_authority or 'NONE').strip().upper() or 'NONE'
     reason = (stop_reason or '').strip()
+    detail_token = _no_safe_detail_token(
+        owner_detail=detail, path_bank_detail=no_safe_detail)
     if phase in ('HOLDING', 'COSTMAP_REBUILD') and inhibits:
-        return f'{phase}: {_format_inhibit_label(inhibits[0])}'
+        return f'{phase}: {_format_inhibit_label(inhibits[0], detail_token)}'
     if phase == 'STOPPED':
         if inhibits:
-            return f'STOPPED: {_format_inhibit_label(inhibits[0])}'
+            return (
+                f'STOPPED: {_format_inhibit_label(inhibits[0], detail_token)}'
+            )
         if operator_stop_latch or reason == 'OPERATOR_STOP':
             return 'STOPPED'
         if reason:
             friendly = _INHIBIT_BANNER.get(reason.upper())
-            return f'STOPPED: {friendly or reason}'
+            label = friendly or reason
+            if reason.upper() == 'ALL_BLOCKED_NO_HOME':
+                label = _append_no_home_detail(label, detail_token)
+            return f'STOPPED: {label}'
         return 'STOPPED'
     if phase == 'IDLE':
         return 'IDLE'
@@ -241,7 +298,10 @@ def mission_banner_from_owner(
             return 'all paths blocked - returning to home'
         if auth not in ('NAV', 'BT_MANUAL', 'TELEOP'):
             if inhibits:
-                return f'{phase.lower()}: {_format_inhibit_label(inhibits[0])}'
+                return (
+                    f'{phase.lower()}: '
+                    f'{_format_inhibit_label(inhibits[0], detail_token)}'
+                )
             return f'{phase.lower()} (no command authority)'
         return 'running'
     if phase == 'STOPPING':
@@ -1031,6 +1091,7 @@ class RobotStatusNode(Node):
         self._path_bank_status = ''
         self._path_bank_state = ''
         self._path_bank_active_id: Optional[int] = None
+        self._last_no_safe_detail = ''  # H6 from path_bank/status
         # StartMission readiness wait (separate from NavigateToPose pending).
         self._pending_start_mission: Optional[Tuple[float, float, float]] = None
         self._start_mission_wait_since: Optional[float] = None
@@ -1042,6 +1103,7 @@ class RobotStatusNode(Node):
         self._owner_inhibits: List[str] = []
         self._owner_latch = False
         self._owner_authority = 'NONE'
+        self._owner_detail = ''
 
         goal_frame = self.declare_parameter('goal_frame', 'husky1_map').value
         goal_x = self.declare_parameter('goal_x', DEFAULT_GOAL_X).value
@@ -1627,6 +1689,7 @@ class RobotStatusNode(Node):
         self._owner_authority = str(
             getattr(msg, 'command_authority', 'NONE') or 'NONE'
         )
+        self._owner_detail = str(getattr(msg, 'detail', '') or '')
         running = bool(getattr(msg, 'mission_running', False))
         if running and not self.gui._mission_running:
             # Owner accepted a mission (possibly outside this GUI).
@@ -1668,6 +1731,8 @@ class RobotStatusNode(Node):
                 active_inhibits=self._owner_inhibits,
                 command_authority=self._owner_authority,
                 mission_running=self.gui._mission_running,
+                detail=self._owner_detail,
+                no_safe_detail=self._last_no_safe_detail,
             )
         else:
             banner = mission_banner_from_owner(
@@ -1681,6 +1746,8 @@ class RobotStatusNode(Node):
                 ),
                 stop_reason=str(getattr(msg, 'stop_reason', '') or ''),
                 mission_running=bool(getattr(msg, 'mission_running', False)),
+                detail=str(getattr(msg, 'detail', '') or ''),
+                no_safe_detail=self._last_no_safe_detail,
             )
         self.gui.set_mission_status(banner)
 
@@ -1865,7 +1932,9 @@ class RobotStatusNode(Node):
             self._monitor_last_pose = None
             self.gui.set_mission_running(True)
             mapped = mission_status_from_path_bank(
-                self._path_bank_state, self._path_bank_active_id,
+                self._path_bank_state,
+                self._path_bank_active_id,
+                no_safe_detail=self._last_no_safe_detail,
             )
             if mapped is not None:
                 self.gui.set_mission_status(mapped)
@@ -1889,7 +1958,9 @@ class RobotStatusNode(Node):
 
     def _apply_path_bank_mission_status(self) -> None:
         mapped = mission_status_from_path_bank(
-            self._path_bank_state, self._path_bank_active_id,
+            self._path_bank_state,
+            self._path_bank_active_id,
+            no_safe_detail=self._last_no_safe_detail,
         )
         if mapped is None:
             return
@@ -1903,15 +1974,32 @@ class RobotStatusNode(Node):
             self.active_goal = None
             self.gui.set_mission_running(False)
             self.gui.set_feedback('Returned to start')
+        elif self._path_bank_state == 'NO_SAFE_ROUTE':
+            # Owner STOPPED path usually wins; refresh with detail if bank leads.
+            self._monitor_arrival = False
+            self.active_goal = None
+            self.gui.set_mission_running(False)
+            if self._owner_inhibits or self._owner_state.strip().upper() == 'STOPPED':
+                self._apply_owner_mission_banner()
         elif self._path_bank_state in _PATH_BANK_NAVIGATING and self.active_goal is not None:
             self.gui.set_mission_running(True)
 
     def _path_bank_status_callback(self, msg: String) -> None:
         self._path_bank_status = msg.data or ''
         self._path_bank_active_id = parse_path_bank_active_id(self._path_bank_status)
+        self._last_no_safe_detail = parse_last_no_safe_detail(self._path_bank_status)
         # Refresh Path-N label while navigating if only status (not state) changed.
         if self._path_bank_state in _PATH_BANK_NAVIGATING:
             self._apply_path_bank_mission_status()
+        elif self._path_bank_state in _NO_SAFE_ROUTE_STATES:
+            self._apply_path_bank_mission_status()
+        elif (
+            self._owner_state.strip().upper() == 'STOPPED'
+            and 'ALL_BLOCKED_NO_HOME' in [
+                i.strip().upper() for i in self._owner_inhibits
+            ]
+        ):
+            self._apply_owner_mission_banner()
 
     def _path_bank_state_callback(self, msg: String) -> None:
         self._path_bank_state = (msg.data or '').strip().upper()
