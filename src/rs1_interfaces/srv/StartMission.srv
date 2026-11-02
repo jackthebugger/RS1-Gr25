@@ -1,0 +1,8 @@
+float64 goal_x
+float64 goal_y
+float64 goal_yaw
+---
+bool success
+string message
+uint64 mission_id
+string reject_code

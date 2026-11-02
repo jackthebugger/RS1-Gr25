@@ -1,21 +1,54 @@
 """B.E.E.R. thermal fire detector node
 
 Subscribes to a thermal Image topic (default /husky1/thermal/image) and
-publishes /fire_detected (std_msgs/Bool) and optional /fire_temperature (Float32).
+publishes /fire_observation (rs1_interfaces/FireObservation) every frame,
+plus /fire_detected (std_msgs/Bool, GUI mirror of fire_debounced) and
+optional /fire_temperature (Float32).
 
 This node uses a simple threshold and minimum-hot-pixels check inside a central
 region of interest to avoid edge false positives. Parameters are exposed for
 thresholds and topic names.
+
+Entry 028: on every raw-positive frame it also publishes ``/fire_bearing``
+(geometry_msgs/Vector3Stamped, header = image header): ``x`` = bearing of the
+hot-pixel centroid (rad, +left, pinhole model from ``camera_hfov_rad``),
+``y`` = angular half-width of the hot blob, ``z`` = max ROI temperature (K).
+Kept for backward compatibility while consumers migrate to FireObservation.
+The navigation bridge uses this bearing to pick the LiDAR return that gives
+the fire its range; without it no FIRE keep-out is created.
 """
 
 from __future__ import annotations
 
+import math
+
 import rclpy
 from rclpy.node import Node
+from geometry_msgs.msg import Vector3Stamped
+from rs1_interfaces.msg import FireObservation
 from sensor_msgs.msg import Image
 from std_msgs.msg import Bool, Float32
 
 import numpy as np
+
+
+def hot_blob_bearing(hot_cols, image_width: int, hfov_rad: float):
+    """(bearing, half_width) in radians, +left, of hot pixel columns.
+
+    Mirrors ``rs1_nav.fire_bridge.hot_blob_bearing`` (kept local so this
+    package has no dependency on the navigation package).
+    """
+    if hot_cols is None or len(hot_cols) == 0 or image_width <= 0 or hfov_rad <= 0.0:
+        return None
+    fx = (image_width / 2.0) / math.tan(hfov_rad / 2.0)
+    cx = image_width / 2.0
+    cols = np.asarray(hot_cols, dtype=np.float64)
+    mean_col = float(cols.mean())
+    bearing = -math.atan((mean_col - cx) / fx)
+    left = -math.atan((float(cols.min()) - cx) / fx)
+    right = -math.atan((float(cols.max()) - cx) / fx)
+    half_width = max(abs(left - bearing), abs(right - bearing))
+    return bearing, half_width
 
 
 def update_fire_hysteresis(
@@ -55,6 +88,8 @@ class FireDetector(Node):
         # Consecutive-frame hysteresis so FOV-edge chatter does not flap the Bool.
         self.declare_parameter('positive_required', 3)
         self.declare_parameter('negative_required', 5)
+        # Horizontal FOV of the thermal camera (husky.gazebo.xacro: 1.047 rad).
+        self.declare_parameter('camera_hfov_rad', 1.047)
 
         self.thermal_topic = self.get_parameter('thermal_topic').get_parameter_value().string_value
         self.threshold = self.get_parameter('fire_threshold_kelvin').get_parameter_value().double_value
@@ -69,9 +104,14 @@ class FireDetector(Node):
             1, int(self.get_parameter('negative_required').get_parameter_value().integer_value)
         )
 
+        self.camera_hfov = float(
+            self.get_parameter('camera_hfov_rad').get_parameter_value().double_value)
+
         # Publishers
+        self.obs_pub = self.create_publisher(FireObservation, '/fire_observation', 10)
         self.fire_pub = self.create_publisher(Bool, '/fire_detected', 10)
         self.temp_pub = self.create_publisher(Float32, '/fire_temperature', 10)
+        self.bearing_pub = self.create_publisher(Vector3Stamped, '/fire_bearing', 10)
 
         # Debounced publish state (raw frame hits only update counters).
         self.fire_state = False
@@ -170,9 +210,32 @@ class FireDetector(Node):
             roi = temp_frame[y0:y1, x0:x1]
 
             max_temp = float(np.max(roi))
-            hot_pixels = int(np.count_nonzero(roi >= self.threshold))
+            hot_mask = roi >= self.threshold
+            hot_pixels = int(np.count_nonzero(hot_mask))
 
             fire = (hot_pixels >= self.min_hot_pixels) or (max_temp >= (self.threshold + 50.0))
+
+            # Entry 028: bearing of the hot blob on raw-positive frames only.
+            bearing_rad = 0.0
+            blob_half_width_rad = 0.0
+            bearing_valid = False
+            if fire:
+                if hot_pixels > 0:
+                    hot_cols = np.nonzero(hot_mask)[1] + x0
+                else:
+                    # Single very hot pixel path: use the ROI max location.
+                    hot_cols = np.asarray([int(np.argmax(roi) % roi.shape[1]) + x0])
+                bearing = hot_blob_bearing(hot_cols, width, self.camera_hfov)
+                if bearing is not None:
+                    bearing_rad = float(bearing[0])
+                    blob_half_width_rad = float(bearing[1])
+                    bearing_valid = True
+                    b_msg = Vector3Stamped()
+                    b_msg.header = msg.header
+                    b_msg.vector.x = bearing_rad
+                    b_msg.vector.y = blob_half_width_rad
+                    b_msg.vector.z = max_temp
+                    self.bearing_pub.publish(b_msg)
 
             self.fire_state, self._pos_count, self._neg_count = update_fire_hysteresis(
                 bool(fire),
@@ -183,7 +246,18 @@ class FireDetector(Node):
                 self.negative_required,
             )
 
-            # Publish debounced fire flag and temperature every frame
+            # Primary same-frame observation (header.stamp matches thermal Image).
+            obs = FireObservation()
+            obs.header = msg.header
+            obs.raw_hot_blob = bool(fire)
+            obs.fire_debounced = bool(self.fire_state)
+            obs.bearing_valid = bearing_valid
+            obs.bearing_rad = bearing_rad if bearing_valid else 0.0
+            obs.blob_half_width_rad = blob_half_width_rad if bearing_valid else 0.0
+            obs.max_roi_temperature_k = float(max_temp)
+            self.obs_pub.publish(obs)
+
+            # GUI mirror of fire_debounced; temperature every frame
             fire_msg = Bool()
             fire_msg.data = bool(self.fire_state)
             self.fire_pub.publish(fire_msg)

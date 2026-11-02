@@ -173,6 +173,10 @@ class ForestObstacleManager:
 
         self.state = ObstacleState.IDLE
         self.selected_gap: Optional[GapSpec] = None
+        # Gaps armed (WAITING) and/or already spawned — supports G5 dual block
+        # (Path A ACTIVE while Path B is WAITING/ACTIVE) without clearing A.
+        self.pending_gaps: List[GapSpec] = []
+        self.active_gaps: List[GapSpec] = []
         self.active_names: List[str] = []
         self._next_id = 1
         self.status_message = 'Obstacle: READY'
@@ -183,24 +187,30 @@ class ForestObstacleManager:
     def request_obstacle(self, path_key: Optional[str] = None) -> Tuple[bool, str]:
         """Arm a pending obstacle for Path A, Path B, or a random path.
 
-        ``path_key`` is ``gap_a``, ``gap_b``, or None (random). Rejects if an
-        obstacle is already pending or active - clear first.
-        """
-        if self.state in (ObstacleState.REQUESTED, ObstacleState.WAITING, ObstacleState.ACTIVE):
-            msg = (
-                f'Obstacle already {self.state.value}'
-                + (f' ({self.selected_gap.label})' if self.selected_gap else '')
-                + '. Clear obstacles before requesting another.'
-            )
-            self._log(msg)
-            return False, msg
+        ``path_key`` is ``gap_a``, ``gap_b``, or None (random).
 
+        A second, *different* gap may be armed while another is WAITING/ACTIVE
+        (GUI G5: block A, switch to B, then block B without clearing A). The
+        same gap key cannot be armed twice.
+        """
         gap = self._resolve_gap(path_key)
         if gap is None:
             msg = 'No forest paths configured'
             self.status_message = 'Obstacle: ERROR'
             return False, msg
 
+        known_keys = {g.key for g in self.pending_gaps} | {
+            g.key for g in self.active_gaps
+        }
+        if gap.key in known_keys:
+            msg = (
+                f'Obstacle already armed/active for {gap.label}. '
+                'Clear obstacles before re-requesting the same path.'
+            )
+            self._log(msg)
+            return False, msg
+
+        self.pending_gaps.append(gap)
         self.selected_gap = gap
         self.state = ObstacleState.WAITING
         self.last_distance_m = None
@@ -212,6 +222,8 @@ class ForestObstacleManager:
             f'Obstacle requested: {gap.key} ({gap.label}) at '
             f'({gap.x:.2f}, {gap.y:.2f}); waiting for robot within '
             f'{self.config.trigger_distance_m:.1f} m of selected path'
+            + (f' (also active={[g.key for g in self.active_gaps]})'
+               if self.active_gaps else '')
         )
         return True, self.status_message
 
@@ -236,6 +248,8 @@ class ForestObstacleManager:
                 self.active_names.remove(name)
 
         self.selected_gap = None
+        self.pending_gaps.clear()
+        self.active_gaps.clear()
         self.last_distance_m = None
         self.state = ObstacleState.IDLE
         self.status_message = 'Obstacle: CLEARED'
@@ -243,26 +257,42 @@ class ForestObstacleManager:
         return True, self.status_message
 
     def tick(self, robot_xy: Optional[Tuple[float, float]]) -> Optional[str]:
-        """Advance WAITING → ACTIVE when within trigger distance of selected path."""
-        if self.state != ObstacleState.WAITING or self.selected_gap is None:
+        """Spawn any pending gap whose trigger distance the robot has entered."""
+        if not self.pending_gaps:
+            if self.active_gaps:
+                self.state = ObstacleState.ACTIVE
             return None
         if robot_xy is None:
             return None
 
-        distance = self.selected_gap.distance_to(robot_xy)
-        self.last_distance_m = distance
-        if distance > self.config.trigger_distance_m:
-            self.status_message = (
-                f'Obstacle: waiting for robot to approach {self.selected_gap.label} '
-                f'({distance:.1f} m > {self.config.trigger_distance_m:.0f} m)'
-            )
-            return self.status_message
-
-        return self._spawn_selected()
+        msgs: List[str] = []
+        still_pending: List[GapSpec] = []
+        for gap in list(self.pending_gaps):
+            distance = gap.distance_to(robot_xy)
+            self.last_distance_m = distance
+            self.selected_gap = gap
+            if distance > self.config.trigger_distance_m:
+                still_pending.append(gap)
+                msgs.append(
+                    f'waiting {gap.label} ({distance:.1f} m > '
+                    f'{self.config.trigger_distance_m:.0f} m)'
+                )
+                continue
+            spawn_msg = self._spawn_gap(gap)
+            msgs.append(spawn_msg)
+        self.pending_gaps = still_pending
+        if self.pending_gaps:
+            self.state = ObstacleState.WAITING
+        elif self.active_gaps:
+            self.state = ObstacleState.ACTIVE
+        self.status_message = 'Obstacle: ' + '; '.join(msgs) if msgs else self.status_message
+        return self.status_message
 
     def reset_for_sim_restart(self) -> None:
         """Drop in-memory tracking after a simulation restart (models are gone)."""
         self.active_names.clear()
+        self.pending_gaps.clear()
+        self.active_gaps.clear()
         self.selected_gap = None
         self.last_distance_m = None
         self.state = ObstacleState.IDLE
@@ -290,9 +320,7 @@ class ForestObstacleManager:
             return None
         return self._rng.choice(gaps)
 
-    def _spawn_selected(self) -> str:
-        gap = self.selected_gap
-        assert gap is not None
+    def _spawn_gap(self, gap: GapSpec) -> str:
         name = f'{self.config.name_prefix}{self._next_id:03d}'
         self._next_id += 1
         spec = ObstacleSpec(
@@ -316,6 +344,9 @@ class ForestObstacleManager:
             return self.status_message
 
         self.active_names.append(name)
+        if gap not in self.active_gaps:
+            self.active_gaps.append(gap)
+        self.selected_gap = gap
         self.state = ObstacleState.ACTIVE
         self.status_message = (
             f'Obstacle: ACTIVE - {gap.label} blocked ({name})'

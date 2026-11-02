@@ -11,7 +11,9 @@
 forest_gaps:
   world_name: custom_world_1
   # Spawn when the robot is within this distance of the *selected* path centre.
-  trigger_distance_m: 5.0
+  # 7.0 so a y≈0 NavFn corridor (goal 18,0) still trips gap_a at (8,5.5)
+  # (centreline miss ≈5.5 m; Entry 034).
+  trigger_distance_m: 7.0
   # Wider than the ~5.68 m geometric opening so the Husky cannot squeeze
   # through the selected fire after inflation.
   obstacle:

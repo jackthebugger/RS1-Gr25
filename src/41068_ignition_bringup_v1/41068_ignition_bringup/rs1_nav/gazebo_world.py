@@ -259,6 +259,30 @@ class GazeboWorld:
             )
         return ok
 
+    def set_physics(
+        self,
+        *,
+        real_time_factor: float = 2.0,
+        max_step_size: float = 0.01,
+    ) -> bool:
+        """Request a runtime physics change (test-only RTF). Fortress ``Physics``.
+
+        Returns True if Gazebo acknowledged the request. Caller must measure
+        clock Hz to confirm the factor actually applied.
+        """
+        request = (
+            f'max_step_size: {max_step_size:.6f} '
+            f'real_time_factor: {real_time_factor:.4f} '
+            f'real_time_update_rate: {-1}'
+        )
+        ok = self._service('set_physics', request, 'Physics')
+        if ok:
+            self._log(
+                f'Set physics RTF={real_time_factor:.2f} '
+                f'step={max_step_size:.4f}s'
+            )
+        return ok
+
     def wait_until_available(self, max_wait: float, poll_interval: float = 2.0) -> bool:
         """Bounded wait for the world services to appear."""
         deadline = time.monotonic() + max_wait

@@ -6,6 +6,10 @@ import math
 from dataclasses import dataclass
 from typing import Iterable, List, Optional, Sequence, Tuple
 
+# Husky footprint half-width from nav2_params_husky1.yaml
+# ``[[±0.55, ±0.38], ...]``. Used by C_body = C_min − footprint half-width.
+FOOTPRINT_HALF_WIDTH_M = 0.38
+
 
 def yaw_from_quaternion(x: float, y: float, z: float, w: float) -> float:
     """Convert a quaternion into a 2D yaw angle in radians."""
@@ -254,6 +258,7 @@ def path_obstacle_clearances(
     """Min / mean / max distance from path samples to nearest obstacle cell.
 
     Returns (None, None, None) when the path or obstacle set is empty.
+    ``min`` is the Wave 2 metric **C_min** (centreline → lethal surface).
     """
     if not path_points or not obstacles:
         return None, None, None
@@ -269,6 +274,158 @@ def path_obstacle_clearances(
     if not distances:
         return None, None, None
     return min(distances), sum(distances) / len(distances), max(distances)
+
+
+def c_min_m(
+    path_points: Sequence[Tuple[float, float]],
+    obstacles: Sequence[Tuple[float, float]],
+    *,
+    sample_stride: int = 1,
+) -> Optional[float]:
+    """Centreline clearance C_min: min distance path → lethal obstacle points."""
+    mn, _mean, _mx = path_obstacle_clearances(
+        path_points, obstacles, sample_stride=sample_stride)
+    return mn
+
+
+def c_body_m(
+    c_min: Optional[float],
+    *,
+    footprint_half_width_m: float = FOOTPRINT_HALF_WIDTH_M,
+) -> Optional[float]:
+    """Body-side clearance C_body = C_min − footprint half-width (default 0.38 m).
+
+    Negative means the footprint would overlap the lethal surface at the
+    tightest centreline sample (knife-edge / collision risk).
+    """
+    if c_min is None:
+        return None
+    return float(c_min) - float(footprint_half_width_m)
+
+
+def bilateral_side_clearances(
+    path_points: Sequence[Tuple[float, float]],
+    obstacles: Sequence[Tuple[float, float]],
+    *,
+    sample_stride: int = 1,
+    probe_m: float = 2.0,
+) -> Tuple[Optional[float], Optional[float]]:
+    """Mean left / right clearance along the path (robot frame left = +normal).
+
+    At each sample, cast a lateral probe of length ``probe_m`` along the path
+    left/right normals and report distance to the nearest lethal on that side
+    (capped at ``probe_m`` when no obstacle is found on that side).
+    Returns ``(None, None)`` when path or obstacles are empty.
+    """
+    if len(path_points) < 2 or not obstacles:
+        return None, None
+    stride = max(1, int(sample_stride))
+    lefts: List[float] = []
+    rights: List[float] = []
+    n = len(path_points)
+    for i in range(0, n, stride):
+        x, y = path_points[i]
+        if i < n - 1:
+            dx = path_points[i + 1][0] - x
+            dy = path_points[i + 1][1] - y
+        else:
+            dx = x - path_points[i - 1][0]
+            dy = y - path_points[i - 1][1]
+        tlen = math.hypot(dx, dy)
+        if tlen < 1e-9:
+            continue
+        # Left normal (+90°): (-dy, dx) / |t|
+        nx, ny = -dy / tlen, dx / tlen
+        left_d = float(probe_m)
+        right_d = float(probe_m)
+        for ox, oy in obstacles:
+            vx, vy = ox - x, oy - y
+            lat = vx * nx + vy * ny
+            # Along-track discard is soft; use Euclidean for clearance.
+            d = math.hypot(vx, vy)
+            if lat > 0.0:
+                left_d = min(left_d, d)
+            elif lat < 0.0:
+                right_d = min(right_d, d)
+        lefts.append(left_d)
+        rights.append(right_d)
+    if not lefts:
+        return None, None
+    return sum(lefts) / len(lefts), sum(rights) / len(rights)
+
+
+def bilateral_balance(
+    left_clear_m: Optional[float],
+    right_clear_m: Optional[float],
+) -> Optional[float]:
+    """Bilateral balance in [0, 1]: 1 = equal L/R clearance, 0 = one-sided.
+
+    balance = 1 - |L − R| / max(L + R, ε)
+    """
+    if left_clear_m is None or right_clear_m is None:
+        return None
+    total = float(left_clear_m) + float(right_clear_m)
+    if total <= 1e-9:
+        return 0.0
+    return max(0.0, min(1.0, 1.0 - abs(left_clear_m - right_clear_m) / total))
+
+
+@dataclass(frozen=True)
+class ClearanceMetrics:
+    """Wave 2 clearance audit bundle for a path vs lethal cells."""
+
+    c_min_m: Optional[float]
+    c_body_m: Optional[float]
+    mean_clearance_m: Optional[float]
+    max_clearance_m: Optional[float]
+    left_clearance_m: Optional[float]
+    right_clearance_m: Optional[float]
+    bilateral_balance: Optional[float]
+    footprint_half_width_m: float = FOOTPRINT_HALF_WIDTH_M
+
+
+def path_clearance_metrics(
+    path_points: Sequence[Tuple[float, float]],
+    obstacles: Sequence[Tuple[float, float]],
+    *,
+    sample_stride: int = 1,
+    footprint_half_width_m: float = FOOTPRINT_HALF_WIDTH_M,
+    probe_m: float = 2.0,
+) -> ClearanceMetrics:
+    """Compute C_min, C_body, and bilateral balance for a path vs lethals."""
+    mn, mean, mx = path_obstacle_clearances(
+        path_points, obstacles, sample_stride=sample_stride)
+    left, right = bilateral_side_clearances(
+        path_points, obstacles, sample_stride=sample_stride, probe_m=probe_m)
+    return ClearanceMetrics(
+        c_min_m=mn,
+        c_body_m=c_body_m(mn, footprint_half_width_m=footprint_half_width_m),
+        mean_clearance_m=mean,
+        max_clearance_m=mx,
+        left_clearance_m=left,
+        right_clearance_m=right,
+        bilateral_balance=bilateral_balance(left, right),
+        footprint_half_width_m=float(footprint_half_width_m),
+    )
+
+
+def document_steering_telemetry() -> str:
+    """How to measure steering / wall-skim proxies from live telemetry.
+
+    Offline unit tests cover geometric clearance only. Live bake races should
+    log (from NavObserver / bag):
+      * ``/husky1/cmd_vel`` ω spikes near gap (skim proxy)
+      * local-costmap pose clearance time series (C_min at robot)
+      * ``FollowPath`` abort / progress-checker events
+      * plan length + replan count (MissionReport)
+    Compare bake overlays against the same world/start/goal with production
+    NavFn+RPP as baseline before claiming improvement.
+    """
+    return (
+        'steering/skim: cmd_vel.angular.z near narrow gaps; '
+        'pose C_min from local costmap; FollowPath abort count; '
+        'MissionReport replan_count + path length'
+    )
 
 
 def path_cost_stats(

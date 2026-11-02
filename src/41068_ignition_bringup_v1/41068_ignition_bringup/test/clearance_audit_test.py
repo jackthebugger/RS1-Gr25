@@ -27,17 +27,19 @@ import rclpy
 from nav_test_lib import await_simulation, bringup, log, print_diagnostics
 from rs1_nav import MissionRunner, NavObserver, init_ros
 from rs1_nav.geometry import (
+    FOOTPRINT_HALF_WIDTH_M,
     clearance_to_points,
     costmap_obstacle_cells,
+    document_steering_telemetry,
+    path_clearance_metrics,
     path_cost_stats,
-    path_obstacle_clearances,
 )
 
 START = (-18.0, 3.0, 0.0)
 GOAL = (18.0, 0.0, 0.0)
 WORLD = 'custom_world_1'
 # Half-width of configured footprint [[±0.55, ±0.38], ...]
-FOOTPRINT_HALF_WIDTH = 0.38
+FOOTPRINT_HALF_WIDTH = FOOTPRINT_HALF_WIDTH_M
 
 
 def main(argv=None) -> int:
@@ -116,7 +118,7 @@ def main(argv=None) -> int:
             final_path = mission_paths[-1] if mission_paths else None
             analysis_path = first_path or final_path
 
-            min_c = mean_c = max_c = None
+            metrics = None
             max_cost = mean_cost = None
             high_cost_samples = 0
             gap_y = None
@@ -128,8 +130,10 @@ def main(argv=None) -> int:
                     meta.origin.position.x, meta.origin.position.y,
                     meta.resolution, lethal_threshold=254,
                 )
-                min_c, mean_c, max_c = path_obstacle_clearances(
-                    analysis_path.points, obstacles, sample_stride=2)
+                metrics = path_clearance_metrics(
+                    analysis_path.points, obstacles, sample_stride=2,
+                    footprint_half_width_m=FOOTPRINT_HALF_WIDTH,
+                )
                 max_cost, mean_cost, high_cost_samples = path_cost_stats(
                     analysis_path.points,
                     lambda x, y: observer.costmap_cost_at(x, y),
@@ -143,10 +147,6 @@ def main(argv=None) -> int:
                 if crossings:
                     gap_y = sum(crossings) / len(crossings)
 
-            body_min = None
-            if min_c is not None:
-                body_min = max(0.0, min_c - FOOTPRINT_HALF_WIDTH)
-
             log('=== CLEARANCE AUDIT RESULTS ===')
             log(f'label: {args.label}')
             log(report.summary())
@@ -158,11 +158,19 @@ def main(argv=None) -> int:
                 log('clearance_measured_on: first_plan')
             elif analysis_path is not None:
                 log('clearance_measured_on: final_plan')
-            if min_c is not None:
-                log(f'path_clearance_to_lethal_m: min={min_c:.3f} '
-                    f'mean={mean_c:.3f} max={max_c:.3f}')
-                log(f'approx_body_side_clearance_m: min={body_min:.3f} '
-                    f'(centerline_min - footprint_half_width)')
+            if metrics is not None and metrics.c_min_m is not None:
+                log(f'C_min_m: {metrics.c_min_m:.3f} '
+                    f'(path clearance to lethal)')
+                log(f'C_body_m: {metrics.c_body_m:.3f} '
+                    f'(C_min − footprint_half_width={FOOTPRINT_HALF_WIDTH})')
+                log(f'path_clearance_to_lethal_m: min={metrics.c_min_m:.3f} '
+                    f'mean={metrics.mean_clearance_m:.3f} '
+                    f'max={metrics.max_clearance_m:.3f}')
+                if metrics.bilateral_balance is not None:
+                    log(f'bilateral_balance: {metrics.bilateral_balance:.3f} '
+                        f'L={metrics.left_clearance_m:.3f} '
+                        f'R={metrics.right_clearance_m:.3f}')
+                log(f'steering_telemetry_note: {document_steering_telemetry()}')
             else:
                 log('path_clearance_to_lethal_m: unavailable')
             if gap_y is not None:

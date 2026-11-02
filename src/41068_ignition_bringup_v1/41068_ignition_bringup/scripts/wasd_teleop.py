@@ -1,7 +1,12 @@
 #!/usr/bin/env python3
 """WASD keyboard teleop for a differential-drive robot.
 
-Publishes geometry_msgs/Twist on cmd_vel (remap to /husky1/cmd_vel).
+Publishes geometry_msgs/Twist on cmd_vel_teleop by default (under the robot
+namespace, e.g. /husky1/cmd_vel_teleop). rs1_cmd_vel_gate remuxes authorized
+teleop onto cmd_vel for the Gazebo bridge — do not remap this node to cmd_vel
+when the gate bringup is active.
+
+Override with ROS param cmd_vel_topic if needed.
 
 Controls (press a key; motion sticks until you press another key or Space):
   W / S   forward / reverse
@@ -38,12 +43,15 @@ class WasdTeleop(Node):
         self.declare_parameter('linear_speed', 0.6)
         self.declare_parameter('angular_speed', 0.8)
         self.declare_parameter('publish_rate', 20.0)
+        # Gate bringup expects teleop on cmd_vel_teleop (not cmd_vel).
+        self.declare_parameter('cmd_vel_topic', 'cmd_vel_teleop')
 
         self.linear_speed = float(self.get_parameter('linear_speed').value)
         self.angular_speed = float(self.get_parameter('angular_speed').value)
         rate = float(self.get_parameter('publish_rate').value)
+        topic = str(self.get_parameter('cmd_vel_topic').value)
 
-        self.pub = self.create_publisher(Twist, 'cmd_vel', 10)
+        self.pub = self.create_publisher(Twist, topic, 10)
         self._target = Twist()
         self.create_timer(1.0 / max(rate, 1.0), self._publish)
 

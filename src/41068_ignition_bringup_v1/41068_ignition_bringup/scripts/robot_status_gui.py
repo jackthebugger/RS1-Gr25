@@ -2,7 +2,8 @@
 """Small modular GUI for displaying robot status during autonomy demos.
 
 Supports:
-  * Unified START/STOP MISSION using X/Y/Yaw fields → NavigateToPose
+  * Unified START/STOP MISSION via mission_owner/start_mission (default)
+  * Optional NavigateToPose fallback only when allow_ntp_fallback:=true
   * Dynamic Path A / Path B / Random block (5 m spatial trigger) + Clear
 """
 
@@ -18,16 +19,23 @@ from typing import Iterable, List, Optional, Tuple
 
 import rclpy
 from action_msgs.msg import GoalStatus
-from geometry_msgs.msg import PoseStamped
+from geometry_msgs.msg import Pose, PoseArray, PoseStamped
 from nav2_msgs.action import NavigateToPose
 from nav_msgs.msg import OccupancyGrid, Odometry
 from rclpy.action import ActionClient
 from rclpy.node import Node
 from rclpy.parameter import Parameter
 from rcl_interfaces.srv import SetParameters
-from rclpy.qos import qos_profile_sensor_data
+from rclpy.qos import (
+    DurabilityPolicy,
+    HistoryPolicy,
+    QoSProfile,
+    ReliabilityPolicy,
+    qos_profile_sensor_data,
+)
 from sensor_msgs.msg import Image, LaserScan
 from std_msgs.msg import Bool, String
+from std_srvs.srv import Trigger
 
 import tkinter as tk
 
@@ -86,6 +94,30 @@ def format_speed(speed: float) -> str:
     return f'{float(speed):.2f} m/s'
 
 
+# Entry 063 Wave-1 honest GUI speed presets (labels == applied MPPI envelope).
+# Fast/MAXIMUM = 0.50 m/s / 1.2 rad/s — not historical RPP test_speed 1.0 / 0.60.
+SPEED_PRESETS = {'slow': 0.15, 'medium': 0.30, 'fast': 0.50}
+SPEED_ANGULAR_MAX = 1.2
+
+
+def speed_param_writes(speed: str) -> dict:
+    """Map GUI speed key → controller/smoother SetParameters payloads.
+
+    Primary writes: FollowPath.vx_max / wz_max + velocity_smoother
+    max_velocity / min_velocity (lockstep). Does not use desired_linear_vel.
+    """
+    if speed not in SPEED_PRESETS:
+        raise KeyError(speed)
+    vx = float(SPEED_PRESETS[speed])
+    wz = float(SPEED_ANGULAR_MAX)
+    return {
+        'FollowPath.vx_max': vx,
+        'FollowPath.wz_max': wz,
+        'max_velocity': [vx, 0.0, wz],
+        'min_velocity': [-vx, 0.0, -wz],
+    }
+
+
 # Path-bank MissionNavState values that should drive the Mission Status label.
 _PATH_BANK_NAVIGATING = frozenset({
     'FOLLOWING_PATH',
@@ -93,15 +125,33 @@ _PATH_BANK_NAVIGATING = frozenset({
     'PLANNING',
     'PATH_BLOCKED',
 })
+# Bare NO_PATH_AVAILABLE is prelude / all-blocked advisory — NOT "returning".
 _PATH_BANK_RETURNING = frozenset({
     'RETURNING_TO_START',
+})
+_PATH_BANK_ALL_BLOCKED_PRELUDE = frozenset({
     'NO_PATH_AVAILABLE',
 })
 _PATH_BANK_RETURN_TERMINAL = frozenset({
     'RETURNING_TO_START',
     'RETURNED_TO_START',
-    'NO_PATH_AVAILABLE',
 })
+# Terminal / blocked states (path_bank or owner inhibit) → banner copy.
+_NO_SAFE_ROUTE_STATES = frozenset({
+    'NO_SAFE_ROUTE',
+    'ALL_BLOCKED_NO_HOME',
+})
+_INHIBIT_BANNER = {
+    'ALL_BLOCKED_NO_HOME': 'all blocked - no home route',
+    'NO_SAFE_ROUTE': 'no safe route',
+    'THERMAL_FIRE_PENDING': 'thermal fire pending - holding',
+    'PENDING_FIRE_UNRESOLVED': 'pending fire unresolved - stopped',
+}
+
+# Display caps: throttle ≤ typical sensor rates (thermal 10 Hz, RGB camera_update_rate=3).
+# Latest-frame drop is the acceptance bar — do not claim fixed FPS under Gazebo load.
+DEFAULT_CAMERA_DISPLAY_HZ = 3.0
+DEFAULT_THERMAL_DISPLAY_HZ = 10.0
 
 
 def parse_path_bank_active_id(status_text: str) -> Optional[int]:
@@ -131,8 +181,12 @@ def mission_status_from_path_bank(
     key = (state or '').strip().upper()
     if not key:
         return None
+    if key in _NO_SAFE_ROUTE_STATES:
+        return _INHIBIT_BANNER.get(key, 'no safe route')
     if key in _PATH_BANK_RETURNING:
         return 'all paths blocked - returning to home'
+    if key in _PATH_BANK_ALL_BLOCKED_PRELUDE:
+        return 'all paths blocked'
     if key == 'RETURNED_TO_START':
         return 'returned to start'
     if key == 'ARRIVED':
@@ -144,6 +198,139 @@ def mission_status_from_path_bank(
             return f'navigating to goal (path {active_id} active)'
         return 'navigating to goal'
     return None
+
+
+def _format_inhibit_label(inhibit: str) -> str:
+    key = (inhibit or '').strip().upper()
+    return _INHIBIT_BANNER.get(key, inhibit)
+
+
+def mission_banner_from_owner(
+    state: str,
+    *,
+    operator_stop_latch: bool = False,
+    active_inhibits: Optional[Iterable[str]] = None,
+    command_authority: str = 'NONE',
+    stop_reason: str = '',
+    mission_running: bool = False,
+) -> str:
+    """Map MissionOwnerStatus fields to a Mission banner label (no 'Mission:' prefix)."""
+    phase = (state or 'IDLE').strip().upper() or 'IDLE'
+    inhibits = [str(i).strip() for i in (active_inhibits or []) if str(i).strip()]
+    auth = (command_authority or 'NONE').strip().upper() or 'NONE'
+    reason = (stop_reason or '').strip()
+    if phase in ('HOLDING', 'COSTMAP_REBUILD') and inhibits:
+        return f'{phase}: {_format_inhibit_label(inhibits[0])}'
+    if phase == 'STOPPED':
+        if inhibits:
+            return f'STOPPED: {_format_inhibit_label(inhibits[0])}'
+        if operator_stop_latch or reason == 'OPERATOR_STOP':
+            return 'STOPPED'
+        if reason:
+            friendly = _INHIBIT_BANNER.get(reason.upper())
+            return f'STOPPED: {friendly or reason}'
+        return 'STOPPED'
+    if phase == 'IDLE':
+        return 'IDLE'
+    if phase == 'COSTMAP_REBUILD':
+        return 'costmap rebuild - holding'
+    if mission_running or phase in (
+        'NAVIGATING', 'SWITCHING', 'RETURNING_TO_START', 'MANUAL_NAV',
+    ):
+        if phase == 'RETURNING_TO_START':
+            return 'all paths blocked - returning to home'
+        if auth not in ('NAV', 'BT_MANUAL', 'TELEOP'):
+            if inhibits:
+                return f'{phase.lower()}: {_format_inhibit_label(inhibits[0])}'
+            return f'{phase.lower()} (no command authority)'
+        return 'running'
+    if phase == 'STOPPING':
+        return 'stopping'
+    return phase.lower()
+
+
+def rgb_image_to_ppm(image: Image) -> Tuple[Optional[bytes], Optional[str]]:
+    """Convert a camera Image to PPM bytes. Returns (ppm, error)."""
+    if image.encoding not in ('rgb8', 'bgr8', 'rgba8', 'bgra8', 'mono8'):
+        return None, f'unsupported {image.encoding}'
+    if image.width <= 0 or image.height <= 0:
+        return None, 'invalid image frame'
+
+    source_channels = 1 if image.encoding == 'mono8' else 4 if image.encoding in ('rgba8', 'bgra8') else 3
+    row_width = image.width * source_channels
+    pixels = bytearray()
+    for row in range(image.height):
+        start = row * image.step
+        current = image.data[start:start + row_width]
+        if image.encoding in ('bgr8', 'bgra8'):
+            current = bytes(current[index] for pixel in range(image.width) for index in (
+                pixel * (4 if image.encoding == 'bgra8' else 3) + 2,
+                pixel * (4 if image.encoding == 'bgra8' else 3) + 1,
+                pixel * (4 if image.encoding == 'bgra8' else 3),
+            ))
+        elif image.encoding in ('rgba8', 'bgra8'):
+            current = bytes(current[index] for pixel in range(image.width) for index in (
+                pixel * 4,
+                pixel * 4 + 1,
+                pixel * 4 + 2,
+            ))
+        elif image.encoding == 'mono8':
+            current = bytes(value for value in current for _ in range(3))
+        pixels.extend(current)
+
+    return f'P6\n{image.width} {image.height}\n255\n'.encode() + pixels, None
+
+
+def thermal_image_to_ppm(image: Image) -> Tuple[Optional[bytes], Optional[str]]:
+    """Convert mono16 thermal Image to false-color PPM. Returns (ppm, error)."""
+    if image.encoding != 'mono16' or image.width <= 0 or image.height <= 0:
+        return None, f'unsupported {image.encoding}'
+
+    values = []
+    for row in range(image.height):
+        start = row * image.step
+        row_bytes = image.data[start:start + image.width * 2]
+        values.extend(
+            row_bytes[index] | (row_bytes[index + 1] << 8)
+            for index in range(0, len(row_bytes) - 1, 2)
+        )
+    if not values:
+        return None, 'invalid frame'
+
+    low = min(values)
+    high = max(values)
+    span = max(1, high - low)
+    pixels = bytearray()
+    for value in values:
+        intensity = (value - low) / span
+        if intensity < 0.33:
+            red, green, blue = 0, int(intensity * 3 * 180), 180
+        elif intensity < 0.66:
+            red, green, blue = int((intensity - 0.33) * 3 * 255), 180, 30
+        else:
+            red, green, blue = 255, int(180 - (intensity - 0.66) * 3 * 140), 20
+        pixels.extend((red, green, blue))
+
+    return f'P6\n{image.width} {image.height}\n255\n'.encode() + pixels, None
+
+
+def start_mission_action(
+    *,
+    client_available: bool,
+    service_ready: bool,
+    allow_ntp_fallback: bool,
+) -> str:
+    """Decide Start Mission transport. Pure helper for unit tests.
+
+    Returns one of: 'start_mission', 'wait_mission_owner', 'ntp_fallback', 'fail_closed'.
+    """
+    if client_available and service_ready:
+        return 'start_mission'
+    if client_available and not service_ready:
+        return 'wait_mission_owner'
+    if allow_ntp_fallback:
+        return 'ntp_fallback'
+    return 'fail_closed'
 
 
 def format_remaining_time(seconds: float) -> str:
@@ -199,9 +386,10 @@ class RobotStatusWindow(tk.Tk):
         super().__init__()
         self.robot_name = robot_name
         self.title(f'{robot_name} status')
-        # Compact default so windowed desktops show controls; content scrolls.
-        self.geometry('560x640')
-        self.minsize(420, 420)
+        # Taller default so Start/BLOCK/CLEAR stay on-screen with pinned Speed
+        # (Entry 063 Phase Four REAL_GUI); content still scrolls if needed.
+        self.geometry('560x780')
+        self.minsize(420, 520)
 
         self.configure(bg='#f3f4f6')
 
@@ -216,6 +404,36 @@ class RobotStatusWindow(tk.Tk):
             pady=8,
         )
         self.header.pack(fill='x')
+
+        # Entry 063 Phase Four: pin Speed control outside the scroll canvas so
+        # REAL_GUI xdotool can always hit Fast/MAXIMUM (scroll-canvas radios
+        # reported off-window root coords and clicks never applied).
+        self.speed_frame = tk.LabelFrame(
+            self, text='Speed control', bg='#f3f4f6', fg='#1f2937',
+            font=('Arial', 11, 'bold'), padx=8, pady=4,
+        )
+        self.speed_frame.pack(fill='x', padx=12, pady=(0, 6))
+        self.speed_var = tk.StringVar(value='Speed: 0.00 m/s')
+        tk.Label(
+            self.speed_frame, textvariable=self.speed_var, font=('Arial', 16, 'bold'),
+            bg='#f3f4f6', fg='#0f172a', anchor='w', padx=8, pady=4,
+        ).pack(fill='x')
+        self.speed_choice_var = tk.StringVar(value='slow')
+        self.speed_buttons = {}
+        # Push-buttons (not Radiobutton): same click class as BLOCK FIRE / proven
+        # with Entry 062 xdotool absolute clicks. Labels == applied limits.
+        for value, label in (
+            ('slow', 'Slow 0.15'),
+            ('medium', 'Medium 0.30'),
+            ('fast', 'Fast 0.50'),
+        ):
+            button = tk.Button(
+                self.speed_frame, text=label, state='disabled',
+                bg='#e5e7eb', fg='#111827', font=('Arial', 12, 'bold'),
+                height=2, relief='raised',
+            )
+            button.pack(side='left', expand=True, fill='x', padx=2)
+            self.speed_buttons[value] = button
 
         # Scrollable body keeps both operator sections reachable on small displays.
         scroll_host = tk.Frame(self, bg='#f3f4f6')
@@ -304,18 +522,18 @@ class RobotStatusWindow(tk.Tk):
         self.info_frame = tk.Frame(self.robot_section, bg='#ffffff', bd=1, relief='solid')
         self.info_frame.pack(fill='x', padx=20, pady=(0, 10))
 
-        self.speed_var = tk.StringVar(value='Speed: 0.00 m/s')
         self.distance_var = tk.StringVar(value='Distance to Destination: 0.0 m')
         self.time_var = tk.StringVar(value='Time to Destination: Pending')
         self.battery_var = tk.StringVar(value='Battery: 100%')
         self.obstacle_var = tk.StringVar(value='Obstacle detected: no')
         self.fire_var = tk.StringVar(value='Fire detected: no')
-        self.mission_var = tk.StringVar(value='Mission: STOPPED')
+        # Healthy owner boot is IDLE — do not imply operator-stop / latch.
+        self.mission_var = tk.StringVar(value='Mission: IDLE')
         self.recent_status_var = tk.StringVar(value='Recent Status: system ready')
 
         self.mission_label = tk.Label(
             self.info_frame, textvariable=self.mission_var,
-            font=('Arial', 22, 'bold'), bg='#dc2626', fg='#ffffff',
+            font=('Arial', 22, 'bold'), bg='#64748b', fg='#ffffff',
             anchor='w', padx=16, pady=10,
         )
         self.labels = [
@@ -329,26 +547,6 @@ class RobotStatusWindow(tk.Tk):
 
         for label in self.labels:
             label.pack(fill='x')
-
-        self.speed_frame = tk.LabelFrame(
-            self.robot_section, text='Speed control', bg='#f3f4f6', fg='#1f2937',
-            font=('Arial', 11, 'bold'), padx=8, pady=4,
-        )
-        self.speed_frame.pack(fill='x', padx=20, pady=(0, 8))
-        tk.Label(
-            self.speed_frame, textvariable=self.speed_var, font=('Arial', 16, 'bold'),
-            bg='#f3f4f6', fg='#0f172a', anchor='w', padx=8, pady=4,
-        ).pack(fill='x')
-        self.speed_choice_var = tk.StringVar(value='slow')
-        self.speed_buttons = {}
-        for value, label in (('slow', 'Slow'), ('medium', 'Medium'), ('fast', 'Fast')):
-            button = tk.Radiobutton(
-                self.speed_frame, text=label, variable=self.speed_choice_var,
-                value=value, state='disabled', bg='#f3f4f6', fg='#111827',
-                font=('Arial', 12, 'bold'), height=2,
-            )
-            button.pack(side='left', expand=True, fill='x')
-            self.speed_buttons[value] = button
 
         # --- Navigation Goal (X/Y/Yaw + unified Start/Stop) ---
         self.goal_frame = tk.LabelFrame(
@@ -482,6 +680,61 @@ class RobotStatusWindow(tk.Tk):
         self.update_status()
         self._bind_mousewheel_tree(body)
         self.after_idle(self._refresh_scroll_region)
+        # Optional REAL_GUI calibration: dump on-screen button centres for xdotool.
+        if os.environ.get('RS1_GUI_DUMP_GEOMETRY', '').strip() in ('1', 'true', 'TRUE'):
+            self.after(800, self._dump_button_geometry_loop)
+
+    def _dump_button_geometry_loop(self) -> None:
+        """Write visible button centres to /tmp for desktop automation."""
+        try:
+            import json
+            import time as _time
+            from pathlib import Path
+
+            self.update_idletasks()
+            payload = {
+                'ts': _time.time(),
+                'title': str(self.title()) if hasattr(self, 'title') else 'husky1 status',
+            }
+            for key, widget in (
+                ('START MISSION', self.mission_button),
+                ('BLOCK FIRE A', self.block_path_a_button),
+                ('BLOCK FIRE B', self.block_path_b_button),
+                ('RANDOM FIRE', self.random_block_button),
+                ('CLEAR FIRE', self.clear_obstacle_button),
+                # Entry 063 Phase Four: REAL_GUI max-speed click targets.
+                ('Slow 0.15', self.speed_buttons.get('slow')),
+                ('Medium 0.30', self.speed_buttons.get('medium')),
+                ('Fast 0.50', self.speed_buttons.get('fast')),
+            ):
+                if widget is None:
+                    continue
+                try:
+                    w = max(1, int(widget.winfo_width()))
+                    h = max(1, int(widget.winfo_height()))
+                    rx = int(widget.winfo_rootx())
+                    ry = int(widget.winfo_rooty())
+                    payload[key] = {
+                        'root_x': rx,
+                        'root_y': ry,
+                        'width': w,
+                        'height': h,
+                        'cx': rx + w // 2,
+                        'cy': ry + h // 2,
+                        'viewable': bool(widget.winfo_viewable()),
+                        'text': str(widget.cget('text')),
+                        'state': str(widget.cget('state')),
+                    }
+                except Exception as exc:  # noqa: BLE001
+                    payload[key] = {'error': str(exc)}
+            Path('/tmp/rs1_gui_button_geom.json').write_text(
+                json.dumps(payload, indent=2)
+            )
+        except Exception:
+            pass
+        if os.environ.get('RS1_GUI_DUMP_GEOMETRY', '').strip() in ('1', 'true', 'TRUE'):
+            # Faster refresh so automation can wait on post-scroll updates.
+            self.after(250, self._dump_button_geometry_loop)
 
     def _on_content_configure(self, _event=None) -> None:
         self._refresh_scroll_region()
@@ -525,6 +778,12 @@ class RobotStatusWindow(tk.Tk):
 
     def set_speed(self, value: str) -> None:
         self.speed_choice_var.set(value)
+        # Visual selected state for pinned push-button speed presets.
+        for key, button in self.speed_buttons.items():
+            if key == value:
+                button.configure(bg='#86efac', relief='sunken')
+            else:
+                button.configure(bg='#e5e7eb', relief='raised')
 
     def set_obstacle_callbacks(
         self,
@@ -562,11 +821,15 @@ class RobotStatusWindow(tk.Tk):
             color = '#16a34a'
         elif normalized in (
             'waiting for nav2',
+            'waiting for mission owner',
             'stopping',
             'all paths blocked - returning to home',
         ):
             color = '#d97706'
+        elif normalized in ('idle',):
+            color = '#64748b'
         else:
+            # stopped / rejected / failed / inhibit codes
             color = '#dc2626'
         self.mission_var.set(f'Mission: {status.upper()}')
         self.mission_label.configure(bg=color)
@@ -602,76 +865,28 @@ class RobotStatusWindow(tk.Tk):
         self.goal_yaw_var.set(f'{yaw:g}')
 
     def update_camera(self, image: Image) -> None:
-        if image.encoding not in ('rgb8', 'bgr8', 'rgba8', 'bgra8', 'mono8'):
-            self.camera_label.configure(text=f'Camera: unsupported {image.encoding}', image='')
-            return
-
-        source_channels = 1 if image.encoding == 'mono8' else 4 if image.encoding in ('rgba8', 'bgra8') else 3
-        row_width = image.width * source_channels
-        pixels = bytearray()
-        for row in range(image.height):
-            start = row * image.step
-            current = image.data[start:start + row_width]
-            if image.encoding in ('bgr8', 'bgra8'):
-                current = bytes(current[index] for pixel in range(image.width) for index in (
-                    pixel * (4 if image.encoding == 'bgra8' else 3) + 2,
-                    pixel * (4 if image.encoding == 'bgra8' else 3) + 1,
-                    pixel * (4 if image.encoding == 'bgra8' else 3),
-                ))
-            elif image.encoding in ('rgba8', 'bgra8'):
-                current = bytes(current[index] for pixel in range(image.width) for index in (
-                    pixel * 4,
-                    pixel * 4 + 1,
-                    pixel * 4 + 2,
-                ))
-            elif image.encoding == 'mono8':
-                current = bytes(value for value in current for _ in range(3))
-            pixels.extend(current)
-
-        ppm = f'P6\n{image.width} {image.height}\n255\n'.encode() + pixels
-        try:
-            self.camera_photo = tk.PhotoImage(
-                data=ppm,
-                format='PPM',
+        """Render one RGB frame (PPM conversion off the subscription hot path)."""
+        ppm, err = rgb_image_to_ppm(image)
+        if err or ppm is None:
+            self.camera_label.configure(
+                text=f'Camera: {err or "invalid image frame"}', image='',
             )
+            return
+        try:
+            self.camera_photo = tk.PhotoImage(data=ppm, format='PPM')
         except tk.TclError:
             self.camera_label.configure(text='Camera: invalid image frame', image='')
             return
         self.camera_label.configure(image=self.camera_photo, text='')
 
     def update_thermal(self, image: Image) -> None:
-        if image.encoding != 'mono16' or image.width <= 0 or image.height <= 0:
+        """Render one thermal frame (PPM conversion off the subscription hot path)."""
+        ppm, err = thermal_image_to_ppm(image)
+        if err or ppm is None:
             self.thermal_label.configure(
-                text=f'Thermal camera: unsupported {image.encoding}', image=''
+                text=f'Thermal camera: {err or "invalid frame"}', image='',
             )
             return
-
-        values = []
-        for row in range(image.height):
-            start = row * image.step
-            row_bytes = image.data[start:start + image.width * 2]
-            values.extend(
-                row_bytes[index] | (row_bytes[index + 1] << 8)
-                for index in range(0, len(row_bytes) - 1, 2)
-            )
-        if not values:
-            return
-
-        low = min(values)
-        high = max(values)
-        span = max(1, high - low)
-        pixels = bytearray()
-        for value in values:
-            intensity = (value - low) / span
-            if intensity < 0.33:
-                red, green, blue = 0, int(intensity * 3 * 180), 180
-            elif intensity < 0.66:
-                red, green, blue = int((intensity - 0.33) * 3 * 255), 180, 30
-            else:
-                red, green, blue = 255, int(180 - (intensity - 0.66) * 3 * 140), 20
-            pixels.extend((red, green, blue))
-
-        ppm = f'P6\n{image.width} {image.height}\n255\n'.encode() + pixels
         try:
             self.thermal_photo = tk.PhotoImage(data=ppm, format='PPM')
         except tk.TclError:
@@ -795,6 +1010,13 @@ class RobotStatusNode(Node):
         self.latest_distance = 0.0
         self.latest_time = 'Pending'
         self.latest_pose: Optional[Tuple[float, float, float]] = None
+        # Latest-frame drop: callbacks overwrite; convert/render on timer only.
+        self._latest_camera_image: Optional[Image] = None
+        self._latest_thermal_image: Optional[Image] = None
+        self._camera_dirty = False
+        self._thermal_dirty = False
+        self._last_camera_render = 0.0
+        self._last_thermal_render = 0.0
         self.goal_handle = None
         self.start_request_pending = False
         self.start_wait_timer = None
@@ -809,6 +1031,17 @@ class RobotStatusNode(Node):
         self._path_bank_status = ''
         self._path_bank_state = ''
         self._path_bank_active_id: Optional[int] = None
+        # StartMission readiness wait (separate from NavigateToPose pending).
+        self._pending_start_mission: Optional[Tuple[float, float, float]] = None
+        self._start_mission_wait_since: Optional[float] = None
+        self._start_mission_wait_timer = None
+        self._start_mission_call_inflight = False
+        self._rs1_interfaces_error: Optional[str] = None
+        self._local_mission_override = False
+        self._owner_state = 'IDLE'
+        self._owner_inhibits: List[str] = []
+        self._owner_latch = False
+        self._owner_authority = 'NONE'
 
         goal_frame = self.declare_parameter('goal_frame', 'husky1_map').value
         goal_x = self.declare_parameter('goal_x', DEFAULT_GOAL_X).value
@@ -821,13 +1054,40 @@ class RobotStatusNode(Node):
         gaps_config = self.declare_parameter('forest_gaps_config', '').value
         obstacle_seed = self.declare_parameter('obstacle_seed', -1).value
         force_gap = self.declare_parameter('force_gap', '').value
+        allow_ntp = self.declare_parameter('allow_ntp_fallback', False).value
+        start_wait = self.declare_parameter('start_mission_wait_s', 30.0).value
 
         self.goal_frame = str(goal_frame)
         self.default_goal_x = float(goal_x)
         self.default_goal_y = float(goal_y)
         self.default_goal_yaw = float(goal_yaw)
         self.world_name = str(world_name).strip() or DEFAULT_WORLD_NAME
+        self._allow_ntp_fallback = bool(allow_ntp)
+        self._start_mission_wait_s = max(1.0, float(start_wait))
         self.navigate_client = ActionClient(self, NavigateToPose, navigate_action)
+        try:
+            from rs1_interfaces.srv import StartMission, StopMission
+            from rs1_interfaces.msg import MissionOwnerStatus
+            self._start_mission_cli = self.create_client(
+                StartMission, 'mission_owner/start_mission')
+            self._stop_mission_cli = self.create_client(
+                StopMission, 'mission_owner/stop_mission')
+            self.create_subscription(
+                MissionOwnerStatus,
+                'mission_owner/status',
+                self._owner_status_callback,
+                10,
+            )
+        except Exception as exc:  # noqa: BLE001
+            self._start_mission_cli = None
+            self._stop_mission_cli = None
+            self._rs1_interfaces_error = f'{type(exc).__name__}: {exc}'
+            self.get_logger().error(
+                'rs1_interfaces unavailable — StartMission disabled '
+                f'({self._rs1_interfaces_error}). '
+                'source <workspace>/install/setup.bash so install/rs1_interfaces '
+                f'is on AMENT_PREFIX_PATH (allow_ntp_fallback={self._allow_ntp_fallback})'
+            )
         self.speed_clients = {
             'controller': self.create_client(
                 SetParameters, '/husky1/controller_server/set_parameters'
@@ -836,8 +1096,11 @@ class RobotStatusNode(Node):
                 SetParameters, '/husky1/velocity_smoother/set_parameters'
             ),
         }
-        self.speed_limits = {'slow': 0.15, 'medium': 0.30, 'fast': 0.60}
-        self.selected_speed = 'slow'
+        # Entry 063 Wave-1: honest MAXIMUM = validated MPPI envelope 0.50/1.2.
+        # Do not label Fast as 0.60 while MPPI vx_max binds at 0.50.
+        self.speed_limits = dict(SPEED_PRESETS)
+        self.speed_angular_limit = float(SPEED_ANGULAR_MAX)
+        self.selected_speed = 'fast'
         self.status.distance_to_destination = 0.0
         self.status.time_to_destination = 'Pending'
         self.status.battery = 100.0
@@ -859,6 +1122,16 @@ class RobotStatusNode(Node):
         map_topic = self.declare_parameter('map_topic', 'map').value
         obstacle_threshold = self.declare_parameter('obstacle_threshold', 1.0).value
         self.obstacle_threshold = float(obstacle_threshold)
+        # Display throttle ≤ sensor rates (RGB default 3 Hz when enable_camera:=true;
+        # thermal ~10 Hz). Launch keeps enable_camera default false.
+        cam_hz = float(self.declare_parameter(
+            'camera_display_hz', DEFAULT_CAMERA_DISPLAY_HZ,
+        ).value)
+        therm_hz = float(self.declare_parameter(
+            'thermal_display_hz', DEFAULT_THERMAL_DISPLAY_HZ,
+        ).value)
+        self._camera_min_interval = 1.0 / max(0.1, cam_hz)
+        self._thermal_min_interval = 1.0 / max(0.1, therm_hz)
 
         config_path = str(gaps_config).strip() or None
         gap_config = load_forest_gap_config(
@@ -872,6 +1145,23 @@ class RobotStatusNode(Node):
             logger=lambda m: self.get_logger().info(m),
         )
         self.gui.set_dyn_obstacle_status(self.obstacle_manager.status_message)
+        latched = QoSProfile(
+            depth=1,
+            reliability=ReliabilityPolicy.RELIABLE,
+            durability=DurabilityPolicy.TRANSIENT_LOCAL,
+            history=HistoryPolicy.KEEP_LAST,
+        )
+        self._demo_pose_pub = self.create_publisher(
+            PoseArray, 'demo_obstacle/poses', latched)
+        self._publish_demo_poses()  # empty until spawn
+        self.create_service(Trigger, 'gui/block_path_a', self._srv_block_path_a)
+        self.create_service(Trigger, 'gui/block_path_b', self._srv_block_path_b)
+        self.create_service(Trigger, 'gui/clear_fire', self._srv_clear_fire)
+        self.create_service(Trigger, 'gui/start_mission', self._srv_start_mission_btn)
+        self.create_service(Trigger, 'gui/stop_mission', self._srv_stop_mission_btn)
+        self.create_service(Trigger, 'gui/set_speed_slow', self._srv_set_speed_slow)
+        self.create_service(Trigger, 'gui/set_speed_medium', self._srv_set_speed_medium)
+        self.create_service(Trigger, 'gui/set_speed_fast', self._srv_set_speed_fast)
 
         self.create_subscription(Odometry, odom_topic, self._odom_callback, 10)
         self.create_subscription(LaserScan, scan_topic, self._scan_callback, qos_profile_sensor_data)
@@ -883,8 +1173,12 @@ class RobotStatusNode(Node):
         self.create_subscription(String, 'path_bank/status', self._path_bank_status_callback, 10)
         self.create_subscription(String, 'path_bank/state', self._path_bank_state_callback, 10)
         self.create_timer(0.1, self._update_gui)
+        # Camera/thermal render tick at 50 ms — still gated by display_hz throttle.
+        self.create_timer(0.05, self._camera_render_tick)
         self.create_timer(0.2, self._obstacle_tick)
         self.create_timer(0.5, self._arrival_monitor_tick)
+        self._readiness_announce_every_s = 2.0
+        self._readiness_announce_last = 0.0
 
         self.get_logger().info(
             f'Robot status GUI started for {self.robot_name}. '
@@ -892,32 +1186,77 @@ class RobotStatusNode(Node):
             f'{self.default_goal_yaw}). Listening to {odom_topic} and '
             f'{scan_topic}/base_scan. World={gap_config.world_name}.'
         )
+        self._announce_start_mission_readiness()
 
     def set_speed(self, speed: str) -> None:
+        """Apply GUI speed preset to MPPI vx_max/wz_max + velocity_smoother.
+
+        Entry 063: stop writing obsolete RPP ``desired_linear_vel`` as primary.
+        Lockstep: MPPI ``FollowPath.vx_max`` == smoother ``max_velocity[0]``
+        == GUI preset; ``wz_max`` / angular max = 1.2; ``min_velocity[0]=-vx``.
+        """
         if speed not in self.speed_limits:
             return
         self.selected_speed = speed
         self.gui.set_speed(speed)
-        linear_limit = self.speed_limits[speed]
+        writes = speed_param_writes(speed)
+        linear_limit = float(writes['FollowPath.vx_max'])
+        angular_limit = float(writes['FollowPath.wz_max'])
         parameter_sets = (
-            self.speed_clients['smoother'],
-            [Parameter(
-                'max_velocity', Parameter.Type.DOUBLE_ARRAY,
-                [linear_limit, 0.0, 1.2],
-            )],
-        ), (
-            self.speed_clients['controller'],
-            [Parameter(
-                'FollowPath.desired_linear_vel', Parameter.Type.DOUBLE,
-                linear_limit,
-            )],
+            (
+                self.speed_clients['smoother'],
+                [
+                    Parameter(
+                        'max_velocity', Parameter.Type.DOUBLE_ARRAY,
+                        list(writes['max_velocity']),
+                    ),
+                    Parameter(
+                        'min_velocity', Parameter.Type.DOUBLE_ARRAY,
+                        list(writes['min_velocity']),
+                    ),
+                ],
+            ),
+            (
+                self.speed_clients['controller'],
+                [
+                    Parameter(
+                        'FollowPath.vx_max', Parameter.Type.DOUBLE,
+                        linear_limit,
+                    ),
+                    Parameter(
+                        'FollowPath.wz_max', Parameter.Type.DOUBLE,
+                        angular_limit,
+                    ),
+                ],
+            ),
         )
         for client, values in parameter_sets:
             if client.service_is_ready():
                 request = SetParameters.Request()
                 request.parameters = [value.to_parameter_msg() for value in values]
                 client.call_async(request)
-        self.gui.set_feedback(f'Speed set to {speed}')
+        self.gui.set_feedback(
+            f'Speed set to {speed} '
+            f'(vx_max={linear_limit:.2f} m/s, wz_max={angular_limit:.1f} rad/s)'
+        )
+
+    def _srv_set_speed_slow(self, _request, response):
+        self.set_speed('slow')
+        response.success = True
+        response.message = 'set_speed slow'
+        return response
+
+    def _srv_set_speed_medium(self, _request, response):
+        self.set_speed('medium')
+        response.success = True
+        response.message = 'set_speed medium'
+        return response
+
+    def _srv_set_speed_fast(self, _request, response):
+        self.set_speed('fast')
+        response.success = True
+        response.message = 'set_speed fast'
+        return response
 
     # -- shared goal submission -------------------------------------------
 
@@ -1015,7 +1354,193 @@ class RobotStatusNode(Node):
             self.get_logger().warn(bound_err)
             return
 
-        self.submit_goal(x, y, yaw, source='start_mission')
+        # Prefer mission-owner StartMission. Never silently fall through to
+        # NavigateToPose under bank_follow_path (BT PAUSE → Mission: REJECTED).
+        action = start_mission_action(
+            client_available=self._start_mission_cli is not None,
+            service_ready=(
+                self._start_mission_cli is not None
+                and self._start_mission_cli.service_is_ready()
+            ),
+            allow_ntp_fallback=self._allow_ntp_fallback,
+        )
+        if action == 'start_mission':
+            self._call_start_mission_service(x, y, yaw)
+            return
+        if action == 'wait_mission_owner':
+            self._begin_start_mission_wait(x, y, yaw)
+            return
+        if action == 'ntp_fallback':
+            self.get_logger().warn(
+                'StartMission unavailable — NavigateToPose fallback enabled'
+            )
+            self.gui.set_feedback(
+                'Mission owner unavailable — using NavigateToPose', error=True
+            )
+            self.submit_goal(x, y, yaw, source='start_mission_ntp_fallback')
+            return
+        self.gui.set_mission_running(False)
+        self.gui.set_mission_status('rejected: STARTMISSION_UNAVAILABLE')
+        detail = self._rs1_interfaces_error or 'rs1_interfaces / StartMission client missing'
+        self.gui.set_feedback(
+            f'StartMission unavailable ({detail}). '
+            'source <workspace>/install/setup.bash so install/rs1_interfaces is '
+            'on AMENT_PREFIX_PATH. Enable allow_ntp_fallback only for legacy '
+            'NavigateToPose bringup.',
+            error=True,
+        )
+        self._local_mission_override = True
+
+    def _announce_start_mission_readiness(self) -> None:
+        """Boot/periodic UX: never imply READY before StartMission is usable."""
+        if self._local_mission_override or self._pending_start_mission is not None:
+            return
+        if self._start_mission_cli is None:
+            self.gui.set_mission_status('rejected: STARTMISSION_UNAVAILABLE')
+            detail = self._rs1_interfaces_error or 'rs1_interfaces import failed'
+            self.gui.set_feedback(
+                f'StartMission UNAVAILABLE ({detail}). '
+                'source <workspace>/install/setup.bash (need install/rs1_interfaces).',
+                error=True,
+            )
+            return
+        if self._start_mission_cli.service_is_ready():
+            return
+        # Client exists but owner not discovered yet — waiting, not READY.
+        if self.gui.mission_var.get() in ('Mission: IDLE', 'Mission: WAITING FOR MISSION OWNER'):
+            self.gui.set_mission_status('waiting for mission owner')
+            self.gui.set_feedback(
+                'Waiting for /husky1/mission_owner/start_mission — '
+                'keep Terminal 1 husky launch alive (path_bank_manager).',
+                error=True,
+            )
+
+    def _call_start_mission_service(self, x: float, y: float, yaw: float) -> None:
+        if self._start_mission_call_inflight:
+            self.gui.set_feedback('StartMission already in flight', error=True)
+            return
+        from rs1_interfaces.srv import StartMission as StartMissionSrv
+        req = StartMissionSrv.Request()
+        req.goal_x = float(x)
+        req.goal_y = float(y)
+        req.goal_yaw = float(yaw)
+        self._local_mission_override = True
+        self._start_mission_call_inflight = True
+        self.gui.set_mission_status('starting')
+        self.gui.set_mission_running(True)
+        future = self._start_mission_cli.call_async(req)
+        future.add_done_callback(
+            lambda f, gx=x, gy=y, gyaw=yaw: self._start_mission_service_callback(
+                f, gx, gy, gyaw))
+
+    def _begin_start_mission_wait(self, x: float, y: float, yaw: float) -> None:
+        self._pending_start_mission = (float(x), float(y), float(yaw))
+        self._start_mission_wait_since = time.monotonic()
+        self._local_mission_override = True
+        self.gui.set_mission_status('waiting for mission owner')
+        self.gui.set_mission_running(False)
+        self.gui.set_feedback(
+            f'Waiting for mission_owner/start_mission '
+            f'(timeout {self._start_mission_wait_s:.0f}s wall). '
+            'Terminal 1 husky launch / path_bank_manager must be alive.',
+            error=True,
+        )
+        # rclpy create_timer is sim-time gated when use_sim_time:=true; orphan
+        # Gazebo with a dead /clock would hang WAITING forever. Primary poll is
+        # poll_wall_clock_tasks() from the Tk/spin main loop (wall time).
+        if self._start_mission_wait_timer is None:
+            self._start_mission_wait_timer = self.create_timer(
+                0.5, self._retry_pending_start_mission
+            )
+
+    def poll_wall_clock_tasks(self) -> None:
+        """Wall-clock work for the main loop — runs even when /clock is dead."""
+        now = time.monotonic()
+        if self._pending_start_mission is not None:
+            self._retry_pending_start_mission()
+        if now - self._readiness_announce_last >= self._readiness_announce_every_s:
+            self._readiness_announce_last = now
+            self._announce_start_mission_readiness()
+
+    def _clear_start_mission_wait(self) -> None:
+        self._pending_start_mission = None
+        self._start_mission_wait_since = None
+        if self._start_mission_wait_timer is not None:
+            self._start_mission_wait_timer.cancel()
+            self._start_mission_wait_timer = None
+
+    def _retry_pending_start_mission(self) -> None:
+        """Poll StartMission readiness — must NOT call submit_goal/NTP."""
+        if self._pending_start_mission is None or self._start_mission_wait_since is None:
+            return
+        if self._start_mission_call_inflight:
+            return
+        x, y, yaw = self._pending_start_mission
+        if (
+            self._start_mission_cli is not None
+            and self._start_mission_cli.service_is_ready()
+        ):
+            self._clear_start_mission_wait()
+            self._call_start_mission_service(x, y, yaw)
+            return
+        elapsed = time.monotonic() - self._start_mission_wait_since
+        if elapsed < self._start_mission_wait_s:
+            return
+        self._clear_start_mission_wait()
+        if self._allow_ntp_fallback:
+            self.get_logger().warn(
+                'StartMission wait timed out — NavigateToPose fallback'
+            )
+            self.gui.set_feedback(
+                'Mission owner timeout — using NavigateToPose', error=True
+            )
+            self.submit_goal(x, y, yaw, source='start_mission_timeout_fallback')
+            return
+        self._local_mission_override = True
+        self.gui.set_mission_running(False)
+        self.gui.set_mission_status('rejected: TIMEOUT_WAITING_MISSION_OWNER')
+        self.gui.set_feedback(
+            'StartMission timed out waiting for mission owner. '
+            'Keep Terminal 1 husky launch alive (path_bank_manager publishes '
+            '/husky1/mission_owner/start_mission).',
+            error=True,
+        )
+
+    def _start_mission_service_callback(self, future, x, y, yaw) -> None:
+        self._start_mission_call_inflight = False
+        try:
+            result = future.result()
+        except Exception as exc:  # noqa: BLE001
+            self.gui.set_mission_running(False)
+            self._local_mission_override = True
+            self.gui.set_mission_status('rejected: STARTMISSION_EXCEPTION')
+            self.gui.set_feedback(f'StartMission failed: {exc}', error=True)
+            return
+        if result is None or not result.success:
+            self.gui.set_mission_running(False)
+            code = getattr(result, 'reject_code', '') if result else ''
+            msg = getattr(result, 'message', 'rejected') if result else 'rejected'
+            banner = f'rejected: {code}' if code else 'rejected'
+            self._local_mission_override = True
+            self.gui.set_mission_status(banner)
+            inhibit_hint = ''
+            if self._owner_inhibits:
+                inhibit_hint = f'; inhibits={",".join(self._owner_inhibits)}'
+            self.gui.set_feedback(
+                f'Start rejected ({code}): {msg} '
+                f'[phase={self._owner_state}{inhibit_hint}]. '
+                f'Clear safety inhibit / wait for IDLE or STOPPED, then retry.',
+                error=True,
+            )
+            return
+        self.active_goal = (float(x), float(y), float(yaw))
+        self.gui.set_goal_fields(x, y, yaw)
+        self.gui.set_goal_status(f'({x:g}, {y:g}, {yaw:g})')
+        self._local_mission_override = False
+        self.gui.set_mission_status('running')
+        self.gui.set_feedback(
+            f'Mission started (id={result.mission_id}) → X={x:g} Y={y:g}'
+        )
 
     def _retry_pending_goal(self) -> None:
         if not self.start_request_pending or self._pending_goal is None:
@@ -1030,20 +1555,134 @@ class RobotStatusNode(Node):
         self._monitor_idle_since = None
         self.start_request_pending = False
         self._pending_goal = None
+        self._clear_start_mission_wait()
         if self.start_wait_timer is not None:
             self.start_wait_timer.cancel()
             self.start_wait_timer = None
 
+        # Prefer mission-owner StopMission (closes cmd_vel gate + latch).
+        if (
+            self._stop_mission_cli is not None
+            and self._stop_mission_cli.service_is_ready()
+        ):
+            from rs1_interfaces.srv import StopMission as StopMissionSrv
+            self._local_mission_override = True
+            self.gui.set_mission_status('stopping')
+            future = self._stop_mission_cli.call_async(StopMissionSrv.Request())
+            future.add_done_callback(self._stop_mission_service_callback)
+            # Still cancel local NTP handle if we own one.
+            if self.goal_handle is not None:
+                try:
+                    self.goal_handle.cancel_goal_async()
+                except Exception:  # noqa: BLE001
+                    pass
+            return
+
         if self.goal_handle is None:
             self.active_goal = None
-            self.gui.set_mission_status('ready')
             self.gui.set_mission_running(False)
+            self._local_mission_override = False
+            self._apply_owner_mission_banner()
             self.gui.set_feedback('Mission stopped')
             return
 
+        self._local_mission_override = True
         self.gui.set_mission_status('stopping')
         future = self.goal_handle.cancel_goal_async()
         future.add_done_callback(self._cancel_response_callback)
+
+    def _stop_mission_service_callback(self, future) -> None:
+        try:
+            result = future.result()
+        except Exception as exc:  # noqa: BLE001
+            self.gui.set_feedback(f'StopMission failed: {exc}', error=True)
+            self.gui.set_mission_status('stop failed')
+            return
+        self.goal_handle = None
+        self.active_goal = None
+        self.gui.set_mission_running(False)
+        self._local_mission_override = False
+        if result is not None and getattr(result, 'success', False):
+            inhibits = list(getattr(result, 'active_inhibits', []) or [])
+            if inhibits:
+                self.gui.set_mission_status(f'Stopped — blocked: {inhibits[0]}')
+                self._local_mission_override = True
+            else:
+                self._apply_owner_mission_banner()
+            self.gui.set_feedback('Mission stopped (gate NONE)')
+        else:
+            self._apply_owner_mission_banner()
+            self.gui.set_feedback(
+                getattr(result, 'message', 'StopMission completed')
+                if result is not None else 'StopMission completed'
+            )
+
+    def _owner_status_callback(self, msg) -> None:
+        """Drive Mission banner from mission_owner/status when not locally overriding."""
+        self._owner_state = str(getattr(msg, 'state', 'IDLE') or 'IDLE')
+        self._owner_latch = bool(getattr(msg, 'operator_stop_latch', False))
+        self._owner_inhibits = [
+            str(i) for i in (getattr(msg, 'active_inhibits', []) or [])
+        ]
+        self._owner_authority = str(
+            getattr(msg, 'command_authority', 'NONE') or 'NONE'
+        )
+        running = bool(getattr(msg, 'mission_running', False))
+        if running and not self.gui._mission_running:
+            # Owner accepted a mission (possibly outside this GUI).
+            self.gui.set_mission_running(True)
+        elif (
+            not running
+            and self.gui._mission_running
+            and not self._local_mission_override
+            and self.goal_handle is None
+            and not self._monitor_arrival
+            and self._pending_start_mission is None
+        ):
+            self.gui.set_mission_running(False)
+        if self._local_mission_override or self._pending_start_mission is not None:
+            return
+        # Owner terminal / inhibit states always win over stale bank FOLLOWING_PATH.
+        owner_phase = self._owner_state.strip().upper()
+        if owner_phase in (
+            'STOPPED', 'STOPPING', 'HOLDING', 'COSTMAP_REBUILD',
+        ) or self._owner_inhibits:
+            self._apply_owner_mission_banner(msg)
+            return
+        # Path-bank navigating / blocked labels take precedence while bank is active.
+        if self._path_bank_state in (
+            _PATH_BANK_NAVIGATING
+            | _PATH_BANK_RETURNING
+            | _PATH_BANK_ALL_BLOCKED_PRELUDE
+            | _PATH_BANK_RETURN_TERMINAL
+            | _NO_SAFE_ROUTE_STATES
+        ):
+            return
+        self._apply_owner_mission_banner(msg)
+
+    def _apply_owner_mission_banner(self, msg=None) -> None:
+        if msg is None:
+            banner = mission_banner_from_owner(
+                self._owner_state,
+                operator_stop_latch=self._owner_latch,
+                active_inhibits=self._owner_inhibits,
+                command_authority=self._owner_authority,
+                mission_running=self.gui._mission_running,
+            )
+        else:
+            banner = mission_banner_from_owner(
+                getattr(msg, 'state', 'IDLE'),
+                operator_stop_latch=bool(
+                    getattr(msg, 'operator_stop_latch', False)
+                ),
+                active_inhibits=getattr(msg, 'active_inhibits', []) or [],
+                command_authority=str(
+                    getattr(msg, 'command_authority', 'NONE') or 'NONE'
+                ),
+                stop_reason=str(getattr(msg, 'stop_reason', '') or ''),
+                mission_running=bool(getattr(msg, 'mission_running', False)),
+            )
+        self.gui.set_mission_status(banner)
 
     # -- obstacle UI ------------------------------------------------------
 
@@ -1063,27 +1702,98 @@ class RobotStatusNode(Node):
 
     def block_path_a(self) -> None:
         self._request_path(PATH_A, 'BLOCK PATH A')
+        self._publish_demo_poses()
 
     def block_path_b(self) -> None:
         self._request_path(PATH_B, 'BLOCK PATH B')
+        self._publish_demo_poses()
 
     def random_block(self) -> None:
         self._request_path(None, 'RANDOM BLOCK')
+        self._publish_demo_poses()
 
     def clear_obstacles(self) -> None:
         ok, message = self.obstacle_manager.clear_obstacles()
         self.gui.set_dyn_obstacle_status(message)
         self.gui.set_feedback('Obstacles cleared' if ok else message, error=not ok)
         self.obstacle_manager.status_message = 'Obstacle: READY'
+        self._publish_demo_poses()
+
+    def _publish_demo_poses(self) -> None:
+        """Latched PoseArray of active/armed GUI demo obstacles for fire bridge."""
+        msg = PoseArray()
+        msg.header.stamp = self.get_clock().now().to_msg()
+        msg.header.frame_id = 'husky1_map'
+        gaps = []
+        # Dual-block: publish every pending + active gap (G5 Path A+B).
+        for gap in list(getattr(self.obstacle_manager, 'pending_gaps', []) or []):
+            gaps.append(gap)
+        for gap in list(getattr(self.obstacle_manager, 'active_gaps', []) or []):
+            if gap not in gaps:
+                gaps.append(gap)
+        if not gaps:
+            gap = self.obstacle_manager.selected_gap
+            if (
+                gap is not None
+                and self.obstacle_manager.state in (
+                    ObstacleState.WAITING, ObstacleState.ACTIVE, ObstacleState.REQUESTED,
+                )
+            ):
+                gaps = [gap]
+        for gap in gaps:
+            p = Pose()
+            p.position.x = float(gap.x)
+            p.position.y = float(gap.y)
+            msg.poses.append(p)
+        self._demo_pose_pub.publish(msg)
+
+    def _srv_block_path_a(self, _req, response):
+        self.block_path_a()
+        self._publish_demo_poses()
+        response.success = self.obstacle_manager.state != ObstacleState.IDLE
+        response.message = self.obstacle_manager.status_message
+        return response
+
+    def _srv_block_path_b(self, _req, response):
+        self.block_path_b()
+        self._publish_demo_poses()
+        response.success = self.obstacle_manager.state != ObstacleState.IDLE
+        response.message = self.obstacle_manager.status_message
+        return response
+
+    def _srv_clear_fire(self, _req, response):
+        self.clear_obstacles()
+        response.success = True
+        response.message = self.obstacle_manager.status_message
+        return response
+
+    def _srv_start_mission_btn(self, _req, response):
+        if self.gui._mission_running:
+            response.success = False
+            response.message = 'mission already running'
+            return response
+        self.start_mission_from_fields()
+        response.success = True
+        response.message = 'START MISSION invoked'
+        return response
+
+    def _srv_stop_mission_btn(self, _req, response):
+        self.stop_mission()
+        response.success = True
+        response.message = 'STOP MISSION invoked'
+        return response
 
     def _obstacle_tick(self) -> None:
         pose = self.latest_pose
         robot_xy = (pose[0], pose[1]) if pose is not None else None
+        prev = self.obstacle_manager.state
         status = self.obstacle_manager.tick(robot_xy)
         if status:
             self.gui.set_dyn_obstacle_status(status)
             if self.obstacle_manager.state == ObstacleState.ACTIVE:
                 self.gui.set_feedback('Dynamic obstacle spawned')
+                if prev != ObstacleState.ACTIVE:
+                    self._publish_demo_poses()
         elif self.obstacle_manager.state == ObstacleState.WAITING:
             self.gui.set_dyn_obstacle_status(self.obstacle_manager.status_message)
 
@@ -1102,11 +1812,17 @@ class RobotStatusNode(Node):
         if not self.goal_handle.accepted:
             self.goal_handle = None
             self.active_goal = None
-            self.gui.set_mission_status('rejected')
-            self.gui.set_feedback('Goal rejected', error=True)
+            self._local_mission_override = True
+            self.gui.set_mission_status('rejected: NAV2_GOAL_REJECTED')
+            self.gui.set_feedback(
+                'NavigateToPose rejected (BT may be paused under '
+                'bank_follow_path — use mission_owner/start_mission)',
+                error=True,
+            )
             self.gui.set_mission_running(False)
             return
 
+        self._local_mission_override = False
         self.gui.set_mission_status('running')
         self.gui.set_mission_running(True)
         result_future = self.goal_handle.get_result_async()
@@ -1115,8 +1831,9 @@ class RobotStatusNode(Node):
     def _cancel_response_callback(self, future) -> None:
         if future.result().goals_canceling:
             self.goal_handle = None
-            self.gui.set_mission_status('ready')
             self.gui.set_mission_running(False)
+            self._local_mission_override = False
+            self._apply_owner_mission_banner()
             self.gui.set_feedback('Mission stopped')
         else:
             self.gui.set_mission_status('cancel failed')
@@ -1260,10 +1977,37 @@ class RobotStatusNode(Node):
         self.status.obstacle_detected = self.latest_obstacle_detected
 
     def _camera_callback(self, msg: Image) -> None:
-        self.gui.update_camera(msg)
+        # Latest-frame drop: overwrite only; never convert on the spin path.
+        self._latest_camera_image = msg
+        self._camera_dirty = True
 
     def _thermal_callback(self, msg: Image) -> None:
-        self.gui.update_thermal(msg)
+        self._latest_thermal_image = msg
+        self._thermal_dirty = True
+
+    def _camera_render_tick(self) -> None:
+        """Convert/render pending camera frames off the subscription hot path.
+
+        Profile-first: drop stale frames; display rate ≤ configured sensor caps.
+        Gazebo load can still starve the GUI — do not treat this as FPS acceptance.
+        """
+        now = time.monotonic()
+        if (
+            self._camera_dirty
+            and self._latest_camera_image is not None
+            and (now - self._last_camera_render) >= self._camera_min_interval
+        ):
+            self._camera_dirty = False
+            self._last_camera_render = now
+            self.gui.update_camera(self._latest_camera_image)
+        if (
+            self._thermal_dirty
+            and self._latest_thermal_image is not None
+            and (now - self._last_thermal_render) >= self._thermal_min_interval
+        ):
+            self._thermal_dirty = False
+            self._last_thermal_render = now
+            self.gui.update_thermal(self._latest_thermal_image)
 
     def _fire_callback(self, msg: Bool) -> None:
         # Live FOV thermal flag only (debounced upstream in fire_detector).
@@ -1299,7 +2043,8 @@ def main(args=None):
     node = RobotStatusNode(gui, robot_name)
     gui.set_mission_callback(node.toggle_mission)
     gui.set_speed_callback(node.set_speed)
-    node.set_speed('slow')
+    # Entry 063: boot to highest validated (Fast/MAXIMUM=0.50), not Slow 0.15.
+    node.set_speed('fast')
     gui.set_obstacle_callbacks(
         node.block_path_a,
         node.block_path_b,
@@ -1310,11 +2055,13 @@ def main(args=None):
     try:
         while rclpy.ok():
             rclpy.spin_once(node, timeout_sec=0.05)
+            node.poll_wall_clock_tasks()
             gui.update_idletasks()
             gui.update()
     except KeyboardInterrupt:
         pass
     finally:
+        node._clear_start_mission_wait()
         gui.destroy()
         node.destroy_node()
         rclpy.shutdown()

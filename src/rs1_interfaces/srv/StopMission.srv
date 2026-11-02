@@ -1,0 +1,6 @@
+---
+bool success
+string message
+string state
+string stop_reason
+string[] active_inhibits

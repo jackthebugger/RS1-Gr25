@@ -3,11 +3,15 @@
 
 Authority
 ---------
-* Live ObstacleLayer still marks/clears from scan for reactive local behaviour.
-* This node remembers previously observed hazards in a typed OccupancyGrid mask
-  consumed by ``nav2_costmap_2d::KeepoutFilter`` on the global costmap.
+* Live scan ObstacleLayer marks/clears lidar returns for reactive behaviour.
+* FIRE live lethals come from the KeepoutFilter mask (global + local, Entry
+  028). ``fire_memory_cloud`` is introspection only — Humble ObstacleLayer
+  cannot un-mark, so a dedicated fire layer was removed.
+* Bridge ``fire_hazards`` is ingress only: marks require a current thermal
+  positive + hot-blob bearing + LiDAR range (no default range, no hold).
 * Cells clear only with spatially valid lidar free-space evidence (LIDAR) or
-  consecutive in-FOV thermal negatives after hold expiry (FIRE).
+  consecutive optical-origin ROI-frustum, unoccluded thermal negatives after
+  hold expiry (FIRE; Entries 027/028).
 * Absence of messages, Gazebo GT, or lidar rays through FIRE cells never clear.
 
 Topics (robot namespace, e.g. husky1)
@@ -15,6 +19,10 @@ Topics (robot namespace, e.g. husky1)
 * Publishes TransientLocal:
     obstacle_memory/filter_info  (nav2_msgs/CostmapFilterInfo)
     obstacle_memory/mask         (nav_msgs/OccupancyGrid)
+* Publishes (volatile):
+    fire_memory_cloud            (sensor_msgs/PointCloud2 of FIRE cell centres)
+    obstacle_memory/lidar_memory_cloud
+    obstacle_memory/events
 * Subscribes: scan, fire_hazards, fire_detected, prior_map (metadata)
 """
 
@@ -32,7 +40,7 @@ from nav_msgs.msg import OccupancyGrid
 from rclpy.node import Node
 from rclpy.qos import DurabilityPolicy, HistoryPolicy, QoSProfile, ReliabilityPolicy
 from sensor_msgs.msg import LaserScan, PointCloud2, PointField
-from std_msgs.msg import Bool, String
+from std_msgs.msg import Bool, Header, String, UInt64
 import tf2_ros
 
 from rs1_nav.obstacle_memory import (
@@ -97,6 +105,8 @@ class ObstacleMemoryManager(Node):
         self.declare_parameter('prior_map_topic', 'prior_map')
         self.declare_parameter('filter_info_topic', 'obstacle_memory/filter_info')
         self.declare_parameter('mask_topic', 'obstacle_memory/mask')
+        # Entry 026: memory-synced FIRE cloud for fire_obstacle_layer (not lidar).
+        self.declare_parameter('fire_memory_cloud_topic', 'fire_memory_cloud')
         self.declare_parameter('publish_hz', 2.0)
         # KeepoutFilter resets its mask subscription on every new filter_info
         # (Humble keepout_filter.cpp → WARN + mask_sub_.reset()). Publish info
@@ -125,7 +135,20 @@ class ObstacleMemoryManager(Node):
         # Entry 023: skip marks inside Husky footprint halo (keepout trap).
         self.declare_parameter('mark_exclude_radius_m', 0.65)
         self.declare_parameter('fire_clear_confirm_scans', 3)
-        self.declare_parameter('thermal_cone_half_angle', 0.6)
+        # Entry 027: camera-frame ROI frustum (beer_thermal_camera).
+        self.declare_parameter('thermal_frame', '')  # default <robot>_camera_link
+        self.declare_parameter('thermal_hfov_rad', 1.047)
+        self.declare_parameter('thermal_vfov_rad', 0.810)
+        self.declare_parameter('thermal_roi_width_frac', 0.6)
+        self.declare_parameter('thermal_roi_height_frac', 0.7)
+        self.declare_parameter('thermal_near_m', 0.1)
+        self.declare_parameter('thermal_camera_height_m', 0.70)
+        # beer_thermal_camera <pose> vs camera_link (Entry 028).
+        self.declare_parameter('thermal_optical_forward_m', 0.45)
+        self.declare_parameter('thermal_optical_up_m', 0.45)
+        self.declare_parameter('thermal_tf_max_age_s', 0.5)
+        # Legacy mark-bridge align (HFOV/2); frustum gate ignores this.
+        self.declare_parameter('thermal_cone_half_angle', 0.5235)
         self.declare_parameter('thermal_max_range', 8.0)
         self.declare_parameter('fire_hold_s', 8.0)
         # Fallback map meta if prior_map not yet received (bush_trail defaults).
@@ -141,6 +164,10 @@ class ObstacleMemoryManager(Node):
         self._scan_frame = (
             str(self.get_parameter('scan_frame').value).strip()
             or f'{robot}_base_scan'
+        )
+        self._thermal_frame = (
+            str(self.get_parameter('thermal_frame').value).strip()
+            or f'{robot}_camera_link'
         )
         self._enabled = _as_bool(self.get_parameter('enabled').value)
         self._marking_enabled = _as_bool(
@@ -179,10 +206,26 @@ class ObstacleMemoryManager(Node):
                 self.get_parameter('mark_exclude_radius_m').value),
             fire_clear_confirm_scans=int(
                 self.get_parameter('fire_clear_confirm_scans').value),
+            thermal_hfov_rad=float(self.get_parameter('thermal_hfov_rad').value),
+            thermal_vfov_rad=float(self.get_parameter('thermal_vfov_rad').value),
+            thermal_roi_width_frac=float(
+                self.get_parameter('thermal_roi_width_frac').value),
+            thermal_roi_height_frac=float(
+                self.get_parameter('thermal_roi_height_frac').value),
+            thermal_near_m=float(self.get_parameter('thermal_near_m').value),
+            thermal_camera_height_m=float(
+                self.get_parameter('thermal_camera_height_m').value),
             thermal_cone_half_angle_rad=float(
                 self.get_parameter('thermal_cone_half_angle').value),
             thermal_max_range_m=float(self.get_parameter('thermal_max_range').value),
+            thermal_optical_forward_m=float(
+                self.get_parameter('thermal_optical_forward_m').value),
+            thermal_optical_up_m=float(
+                self.get_parameter('thermal_optical_up_m').value),
         )
+        self._optical_fwd = float(self.get_parameter('thermal_optical_forward_m').value)
+        self._optical_up = float(self.get_parameter('thermal_optical_up_m').value)
+        self._tf_max_age = float(self.get_parameter('thermal_tf_max_age_s').value)
         meta = MapMeta(
             origin_x=float(self.get_parameter('default_origin_x').value),
             origin_y=float(self.get_parameter('default_origin_y').value),
@@ -235,17 +278,36 @@ class ObstacleMemoryManager(Node):
         self._info_pub = self.create_publisher(CostmapFilterInfo, 'obstacle_memory/filter_info', LATCHED)
         self._mask_pub = self.create_publisher(OccupancyGrid, 'obstacle_memory/mask', LATCHED)
         self._diag_pub = self.create_publisher(String, 'obstacle_memory/status', 10)
+        # §G: monotonic revision on occupancy fingerprint change (UInt64 as string
+        # on status + dedicated topic for mission-owner rebuild gating).
+        self._revision = 0
+        self._revision_pub = self.create_publisher(
+            UInt64, 'obstacle_memory/memory_revision', LATCHED)
+        # Entry 028: typed mark/clear events for test assertions at a location
+        # (FIRE_MARK / FIRE_CLEAR_PASS / LIDAR_CLEAR), plus a LIDAR-cell cloud
+        # mirroring fire_memory_cloud so tests can tell FIRE from LIDAR memory.
+        self._event_pub = self.create_publisher(String, 'obstacle_memory/events', 50)
+        self._lidar_cloud_pub = self.create_publisher(
+            PointCloud2, 'obstacle_memory/lidar_memory_cloud', 5)
+        fire_cloud_topic = str(self.get_parameter('fire_memory_cloud_topic').value).strip()
+        if not fire_cloud_topic:
+            fire_cloud_topic = 'fire_memory_cloud'
+        # Relative name under robot namespace → /husky1/fire_memory_cloud for Nav2.
+        self._fire_cloud_pub = self.create_publisher(
+            PointCloud2, fire_cloud_topic, 10)
 
         hz = float(self.get_parameter('publish_hz').value)
         self.create_timer(1.0 / max(hz, 0.2), self._on_timer)
 
         self.get_logger().info(
             f'obstacle_memory_manager ready (robot={robot}, enabled={self._enabled}, '
-            f'mask={mask_topic}, cells={self._memory.occupied_count()})'
+            f'mask={mask_topic}, fire_cloud={fire_cloud_topic}, '
+            f'cells={self._memory.occupied_count()})'
         )
         # Publish empty mask + info once so KeepoutFilter can latch.
         self._maybe_publish_filter_info(force=True)
         self._publish_mask()
+        self._publish_fire_memory_cloud()
         self._dirty = False
 
     # -- callbacks ---------------------------------------------------------
@@ -369,12 +431,17 @@ class ObstacleMemoryManager(Node):
             origin_yaw=yaw,
             scan_age_s=age,
             tf_ok=True,
+            prior_free=self._prior_free,
         )
         fp_after = self._occupancy_fingerprint()
         # Only republish when the occupied cell *set* changes. Count-only
         # checks miss swap churn and over-trigger when count oscillates.
         if fp_after != fp_before:
             self._dirty = True
+        if accepted:
+            self._publish_event(
+                f'LIDAR_CLEAR accepted={accepted} rejected={rejected} '
+                f'memory={fp_after[0]}')
         if accepted and (now - self._last_accept_log) > 5.0:
             self._last_accept_log = now
             self.get_logger().info(
@@ -391,11 +458,22 @@ class ObstacleMemoryManager(Node):
             return
         fp_before = self._occupancy_fingerprint()
         robot_xy = self._robot_xy_map()
+        new_cells = 0
         for x, y in pts:
-            self._memory.mark_fire_hit(
+            marked = self._memory.mark_fire_hit(
                 x, y, now, prior_free=self._prior_free, robot_xy=robot_xy)
-        if self._occupancy_fingerprint() != fp_before:
+            new_cells += len(marked)
+        fp_after = self._occupancy_fingerprint()
+        if fp_after != fp_before:
             self._dirty = True
+            cx = sum(p[0] for p in pts) / len(pts)
+            cy = sum(p[1] for p in pts) / len(pts)
+            rx, ry = robot_xy if robot_xy is not None else (float('nan'), float('nan'))
+            self._publish_event(
+                f'FIRE_MARK pts={len(pts)} cells={new_cells} '
+                f'centre=({cx:.2f},{cy:.2f}) robot=({rx:.2f},{ry:.2f}) '
+                f'fire_detected={self._fire_detected} '
+                f'memory_fire={len(self._memory.fire_cell_world_points())}')
 
     def _on_fire_detected(self, msg: Bool) -> None:
         self._last_fire_msg_time = time.monotonic()
@@ -411,23 +489,63 @@ class ObstacleMemoryManager(Node):
             if self._dirty:
                 self._publish_mask()
                 self._dirty = False
+            self._publish_fire_memory_cloud()
             return
 
-        # Fire clear pass (uses base_link pose for thermal cone).
-        tf_base = self._lookup_base()
-        if tf_base is not None and self._last_fire_msg_time is not None:
-            ox = tf_base.transform.translation.x
-            oy = tf_base.transform.translation.y
-            yaw = _yaw_from_quat(tf_base.transform.rotation)
+        # Fire clear pass (Entry 027/028: optical-origin ROI frustum + LOS).
+        tf_cam = self._lookup_thermal()
+        if tf_cam is not None and self._last_fire_msg_time is not None:
+            ox = tf_cam.transform.translation.x
+            oy = tf_cam.transform.translation.y
+            oz = tf_cam.transform.translation.z
+            yaw = _yaw_from_quat(tf_cam.transform.rotation)
             hold_active = time.monotonic() < self._fire_true_until
             fresh = (time.monotonic() - self._last_fire_msg_time) < 1.0
-            n = self._memory.clear_fire_with_observation(
+            tf_age = _tf_age_s(tf_cam, self.get_clock())
+            if tf_age is not None and tf_age > self._tf_max_age:
+                fresh = False
+            scan_kwargs = {}
+            scan = self._latest_scan
+            tf_scan = self._lookup_scan()
+            if scan is not None and tf_scan is not None:
+                scan_kwargs = dict(
+                    ranges=list(scan.ranges),
+                    angle_min=float(scan.angle_min),
+                    angle_increment=float(scan.angle_increment),
+                    range_min=float(scan.range_min),
+                    range_max=float(scan.range_max),
+                    scan_origin_xy=(
+                        tf_scan.transform.translation.x,
+                        tf_scan.transform.translation.y,
+                    ),
+                    scan_origin_yaw=_yaw_from_quat(tf_scan.transform.rotation),
+                )
+            counts = self._memory.clear_fire_with_observation_detailed(
                 fire_detected=self._fire_detected,
                 hold_active=hold_active,
                 origin_xy=(ox, oy),
                 origin_yaw=yaw,
                 observation_fresh=fresh,
+                camera_z=oz,
+                optical_forward_m=self._optical_fwd,
+                optical_up_m=self._optical_up,
+                **scan_kwargs,
             )
+            n = counts.get(ClearResult.ACCEPTED, 0)
+            # Event only when at least one FIRE cell changed state (progress or
+            # clear) — off-FOV passes with no counter movement stay silent.
+            progressed = (
+                n
+                or counts.get(ClearResult.NEED_MORE_NEGATIVES, 0)
+            )
+            if progressed:
+                self._publish_event(
+                    'FIRE_CLEAR_PASS '
+                    + ' '.join(f'{k.value}={v}' for k, v in counts.items())
+                    + f' cam=({ox:.2f},{oy:.2f},{oz:.2f},yaw={yaw:.2f}) '
+                    f'fire_detected={self._fire_detected} hold={hold_active} '
+                    f'fresh={fresh} memory_fire='
+                    f'{len(self._memory.fire_cell_world_points())}')
             if n:
                 self._dirty = True
                 self.get_logger().info(
@@ -457,7 +575,16 @@ class ObstacleMemoryManager(Node):
             self._last_mask_pub = now
             if force_mask:
                 self._last_mask_force = now
+        # Always refresh FIRE cloud so fire_obstacle_layer observation_persistence
+        # does not age out cells that typed memory still holds (Entry 026).
+        self._publish_fire_memory_cloud()
+        self._publish_lidar_memory_cloud()
         self._publish_status()
+
+    def _publish_event(self, text: str) -> None:
+        msg = String()
+        msg.data = text
+        self._event_pub.publish(msg)
 
     def _maybe_publish_filter_info(self, *, force: bool) -> bool:
         """Publish filter_info when due. Returns True if a message was sent."""
@@ -482,6 +609,15 @@ class ObstacleMemoryManager(Node):
         try:
             return self._tf_buffer.lookup_transform(
                 self._map_frame, f'{self._robot}_base_link', rclpy.time.Time()
+            )
+        except Exception:
+            return None
+
+    def _lookup_thermal(self) -> Optional[TransformStamped]:
+        """Map → thermal camera_link for FIRE clear frustum (Entry 027)."""
+        try:
+            return self._tf_buffer.lookup_transform(
+                self._map_frame, self._thermal_frame, rclpy.time.Time()
             )
         except Exception:
             return None
@@ -524,8 +660,47 @@ class ObstacleMemoryManager(Node):
         data = self._memory.build_occupancy_data()
         msg.data = data.tolist()
         self._mask_pub.publish(msg)
-        self._last_mask_fp = self._occupancy_fingerprint()
+        fp = self._occupancy_fingerprint()
+        if fp != getattr(self, '_last_mask_fp', None):
+            self._revision += 1
+            rev = UInt64()
+            rev.data = int(self._revision)
+            self._revision_pub.publish(rev)
+        self._last_mask_fp = fp
         self._last_mask_pub = time.monotonic()
+
+    def _publish_fire_memory_cloud(self) -> None:
+        """PointCloud2 of FIRE cell centres for fire_obstacle_layer (Entry 026)."""
+        self._fire_cloud_pub.publish(
+            self._cloud_msg(self._memory.fire_cell_world_points()))
+
+    def _publish_lidar_memory_cloud(self) -> None:
+        """PointCloud2 of LIDAR cell centres (introspection only, Entry 028)."""
+        self._lidar_cloud_pub.publish(
+            self._cloud_msg(self._memory.lidar_cell_world_points()))
+
+    def _cloud_msg(self, pts) -> PointCloud2:
+        header = Header()
+        header.stamp = self.get_clock().now().to_msg()
+        header.frame_id = self._memory.meta.frame_id or self._map_frame
+        msg = PointCloud2()
+        msg.header = header
+        msg.height = 1
+        msg.width = len(pts)
+        msg.fields = [
+            PointField(name='x', offset=0, datatype=PointField.FLOAT32, count=1),
+            PointField(name='y', offset=4, datatype=PointField.FLOAT32, count=1),
+            PointField(name='z', offset=8, datatype=PointField.FLOAT32, count=1),
+        ]
+        msg.is_bigendian = False
+        msg.point_step = 12
+        msg.row_step = msg.point_step * msg.width
+        msg.is_dense = True
+        buf = bytearray()
+        for x, y in pts:
+            buf += struct.pack('<fff', float(x), float(y), 0.0)
+        msg.data = bytes(buf)
+        return msg
 
     def _publish_status(self) -> None:
         lidar_n = sum(
@@ -535,9 +710,23 @@ class ObstacleMemoryManager(Node):
         msg = String()
         msg.data = (
             f'cells={self._memory.occupied_count()} lidar={lidar_n} fire={fire_n} '
-            f'fire_detected={self._fire_detected}'
+            f'fire_detected={self._fire_detected} revision={self._revision}'
         )
         self._diag_pub.publish(msg)
+
+
+def _tf_age_s(tf: TransformStamped, clock) -> Optional[float]:
+    """Age of a TF stamp versus the node's clock, or None if stamp is zero."""
+    try:
+        sec = int(tf.header.stamp.sec)
+        nsec = int(tf.header.stamp.nanosec)
+        if sec == 0 and nsec == 0:
+            return None
+        now = clock.now().nanoseconds * 1e-9
+        stamp = sec + nsec * 1e-9
+        return max(0.0, now - stamp)
+    except Exception:
+        return None
 
 
 def _yaw_from_quat(q) -> float:

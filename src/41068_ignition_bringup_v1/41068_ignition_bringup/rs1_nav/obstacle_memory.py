@@ -33,6 +33,7 @@ class ClearResult(str, Enum):
     NOT_MARKED = 'NOT_MARKED'
     HOLD_ACTIVE = 'FIRE_HOLD_ACTIVE'
     NEED_MORE_NEGATIVES = 'FIRE_NEED_MORE_NEGATIVES'
+    OCCLUDED = 'FIRE_OCCLUDED'
 
 
 @dataclass
@@ -65,8 +66,25 @@ class ObstacleMemoryConfig:
     mark_exclude_radius_m: float = 0.65
     # Fire: consecutive in-FOV negatives after hold expires.
     fire_clear_confirm_scans: int = 3
-    thermal_cone_half_angle_rad: float = 0.6
+    # Entry 027: camera-frame ROI frustum (beer_thermal_camera HFOV=1.047,
+    # 320x240 → VFOV≈0.810; detector ROI 0.6×0.7). Clear ⊆ detect FOV.
+    # Legacy thermal_cone_half_angle_rad is unused by the frustum gate.
+    thermal_hfov_rad: float = 1.047
+    thermal_vfov_rad: float = 0.810
+    thermal_roi_width_frac: float = 0.6
+    thermal_roi_height_frac: float = 0.7
+    thermal_near_m: float = 0.1
     thermal_max_range_m: float = 8.0
+    # Fallback camera height (map z) when TF z is not supplied.
+    thermal_camera_height_m: float = 0.70
+    thermal_cone_half_angle_rad: float = 0.5235  # HFOV/2; mark-bridge align only
+    # beer_thermal_camera <pose> relative to camera_link (husky.gazebo.xacro).
+    # Applied by the manager; unit tests pass 0 unless testing the offset.
+    thermal_optical_forward_m: float = 0.45
+    thermal_optical_up_m: float = 0.45
+    # A LiDAR hit this close to the FIRE cell is the same cluster (0.9 m disc),
+    # not a nearer occluder. Only a distinctly nearer return vetoes the clear.
+    thermal_occlusion_margin_m: float = 1.0
 
 
 @dataclass
@@ -293,6 +311,49 @@ class ObstacleMemory:
             return False
         return True
 
+    def _hit_is_prior_wall(
+        self,
+        origin_xy: Point,
+        origin_yaw: float,
+        bearing_scan: float,
+        r_meas: float,
+        prior_free: Optional[np.ndarray],
+        *,
+        margin_m: float = 0.35,
+    ) -> bool:
+        """True if the measured hit lands on/near static prior occupied.
+
+        Used when a beam reports HIT_AT_CELL on a prior-free memory cell: the
+        return is the trail wall beside the dynamic mark, not the obstacle
+        (Entry 035 T5 halo — cells at ~1.3 m from barrier never cleared).
+        """
+        if prior_free is None or r_meas is None or not math.isfinite(r_meas):
+            return False
+        ox, oy = origin_xy
+        ang = origin_yaw + bearing_scan
+        hx = ox + float(r_meas) * math.cos(ang)
+        hy = oy + float(r_meas) * math.sin(ang)
+        hit = self.meta.world_to_grid(hx, hy)
+        if hit is None:
+            return False
+        h, w = prior_free.shape
+        r_cells = max(1, int(math.ceil(margin_m / max(1e-6, self.meta.resolution))))
+        hx_i, hy_i = hit
+        for dy in range(-r_cells, r_cells + 1):
+            for dx in range(-r_cells, r_cells + 1):
+                nx, ny = hx_i + dx, hy_i + dy
+                if 0 <= nx < w and 0 <= ny < h and not bool(prior_free[ny, nx]):
+                    return True
+        return False
+
+    def _cell_is_prior_free(
+        self, ix: int, iy: int, prior_free: Optional[np.ndarray]
+    ) -> bool:
+        if prior_free is None:
+            return False
+        h, w = prior_free.shape
+        return 0 <= iy < h and 0 <= ix < w and bool(prior_free[iy, ix])
+
     def try_clear_lidar_cell(
         self,
         ix: int,
@@ -307,6 +368,7 @@ class ObstacleMemory:
         origin_yaw: float,
         scan_age_s: float,
         tf_ok: bool,
+        prior_free: Optional[np.ndarray] = None,
     ) -> ClearResult:
         cell = self.cells.get((ix, iy))
         if cell is None:
@@ -332,8 +394,38 @@ class ObstacleMemory:
             # Occlusion: nearer opaque hit — cannot clear behind it.
             if r_meas < dist - eps:
                 return ClearResult.REJECTED
-            # Hit still at C (obstacle present) — do not clear.
+            # Hit still at C: either the dynamic obstacle remains, or the beam
+            # latched onto an adjacent static wall (bush_trail knife-edge).
             if r_meas <= dist + eps:
+                if (
+                    self._cell_is_prior_free(ix, iy, prior_free)
+                    and self._hit_is_prior_wall(
+                        origin_xy, origin_yaw, bearing, r_meas, prior_free)
+                ):
+                    del self.cells[(ix, iy)]
+                    return ClearResult.ACCEPTED
+                # Also try neighbouring beams (±1..2): primary index may sit on
+                # the wall while a free beam still passes through C.
+                if ranges and angle_increment != 0.0:
+                    idx0 = int(round((bearing - angle_min) / angle_increment))
+                    for d_idx in (-2, -1, 1, 2):
+                        j = idx0 + d_idx
+                        if j < 0 or j >= len(ranges):
+                            continue
+                        rj = float(ranges[j])
+                        if not math.isfinite(rj) or rj < range_min:
+                            # Free / invalid neighbour beam through C's bearing
+                            # neighbourhood — treat as free-through when C is
+                            # prior-free (Entry 035 halo).
+                            if self._cell_is_prior_free(ix, iy, prior_free):
+                                del self.cells[(ix, iy)]
+                                return ClearResult.ACCEPTED
+                            continue
+                        if rj > range_max:
+                            continue
+                        if rj > dist + eps:
+                            del self.cells[(ix, iy)]
+                            return ClearResult.ACCEPTED
                 return ClearResult.REJECTED
             # Hit behind C: free-space ray passes through C.
             del self.cells[(ix, iy)]
@@ -357,6 +449,7 @@ class ObstacleMemory:
         origin_yaw: float,
         scan_age_s: float,
         tf_ok: bool,
+        prior_free: Optional[np.ndarray] = None,
     ) -> Tuple[int, int]:
         """Attempt clear on all LIDAR cells. Returns (accepted, rejected)."""
         accepted = 0
@@ -375,6 +468,7 @@ class ObstacleMemory:
                 origin_yaw=origin_yaw,
                 scan_age_s=scan_age_s,
                 tf_ok=tf_ok,
+                prior_free=prior_free,
             )
             if result == ClearResult.ACCEPTED:
                 accepted += 1
@@ -384,21 +478,101 @@ class ObstacleMemory:
 
     # -- fire clear --------------------------------------------------------
 
+    def thermal_roi_half_angles(self) -> Tuple[float, float]:
+        """Half H (ROI-shrunk) and half V (full VFOV) for clear gate (Entry 027).
+
+        Horizontal uses detector ``roi_width_frac`` so clear ⊆ detect FOV.
+        Vertical uses full VFOV/2 (not ROI height) so level cameras can still
+        see ground cells at mid-range without falsely rejecting clears.
+        """
+        roi_w = max(0.01, min(1.0, float(self.cfg.thermal_roi_width_frac)))
+        half_h = 0.5 * float(self.cfg.thermal_hfov_rad) * roi_w
+        half_v = 0.5 * float(self.cfg.thermal_vfov_rad)
+        return half_h, half_v
+
+    def _cell_in_thermal_frustum(
+        self,
+        ix: int,
+        iy: int,
+        origin_xy: Point,
+        origin_yaw: float,
+        camera_z: Optional[float] = None,
+    ) -> bool:
+        """True if cell centre projects into the thermal clear frustum.
+
+        ``origin_xy`` / ``origin_yaw`` are the thermal camera pose in map
+        (``*_camera_link``). Ground cell assumed at z=0. LiDAR FOV is irrelevant.
+        """
+        cx, cy = self.meta.grid_to_world(ix, iy)
+        dx = cx - origin_xy[0]
+        dy = cy - origin_xy[1]
+        cos_y = math.cos(origin_yaw)
+        sin_y = math.sin(origin_yaw)
+        # Camera optical: +X forward, +Y left (ROS base-aligned camera_link).
+        x_cam = cos_y * dx + sin_y * dy
+        y_cam = -sin_y * dx + cos_y * dy
+        cam_z = (
+            float(camera_z)
+            if camera_z is not None
+            else float(self.cfg.thermal_camera_height_m)
+        )
+        z_cam = 0.0 - cam_z  # ground point relative to camera
+
+        if x_cam < float(self.cfg.thermal_near_m):
+            return False
+        dist = math.hypot(x_cam, y_cam)
+        if dist > float(self.cfg.thermal_max_range_m):
+            return False
+
+        half_h, half_v = self.thermal_roi_half_angles()
+        az = math.atan2(y_cam, x_cam)
+        if abs(az) > half_h:
+            return False
+        # Elevation vs forward range (same convention as pinhole FOV).
+        el = math.atan2(z_cam, x_cam)
+        if abs(el) > half_v:
+            return False
+        return True
+
+    # Back-compat alias for older call sites / docs.
     def _cell_in_thermal_cone(
         self,
         ix: int,
         iy: int,
         origin_xy: Point,
         origin_yaw: float,
+        camera_z: Optional[float] = None,
     ) -> bool:
-        cx, cy = self.meta.grid_to_world(ix, iy)
-        dx = cx - origin_xy[0]
-        dy = cy - origin_xy[1]
-        dist = math.hypot(dx, dy)
-        if dist > self.cfg.thermal_max_range_m:
+        return self._cell_in_thermal_frustum(
+            ix, iy, origin_xy, origin_yaw, camera_z=camera_z)
+
+    def _fire_los_occluded(
+        self,
+        ix: int,
+        iy: int,
+        *,
+        ranges: Sequence[float],
+        angle_min: float,
+        angle_increment: float,
+        range_min: float,
+        range_max: float,
+        scan_origin_xy: Point,
+        scan_origin_yaw: float,
+    ) -> bool:
+        """True if a nearer LiDAR return sits between the scanner and the cell.
+
+        Camera LOS is proxied by the 360° scan: a hit closer than the FIRE
+        cell means the camera cannot see that ground cell as clear.
+        """
+        cell_xy = self.meta.grid_to_world(ix, iy)
+        r_meas, _bearing, dist = self._beam_range_toward(
+            ranges, angle_min, angle_increment, range_min, range_max,
+            scan_origin_xy, scan_origin_yaw, cell_xy,
+        )
+        if r_meas is None:
             return False
-        bearing = _angle_diff(math.atan2(dy, dx), origin_yaw)
-        return abs(bearing) <= self.cfg.thermal_cone_half_angle_rad
+        margin = max(self.cfg.range_epsilon_m, self.cfg.thermal_occlusion_margin_m)
+        return r_meas < dist - margin
 
     def try_clear_fire_cell(
         self,
@@ -410,6 +584,16 @@ class ObstacleMemory:
         origin_xy: Point,
         origin_yaw: float,
         observation_fresh: bool,
+        camera_z: Optional[float] = None,
+        optical_forward_m: float = 0.0,
+        optical_up_m: float = 0.0,
+        ranges: Optional[Sequence[float]] = None,
+        angle_min: float = 0.0,
+        angle_increment: float = 0.0,
+        range_min: float = 0.0,
+        range_max: float = 100.0,
+        scan_origin_xy: Optional[Point] = None,
+        scan_origin_yaw: float = 0.0,
     ) -> ClearResult:
         cell = self.cells.get((ix, iy))
         if cell is None:
@@ -417,21 +601,48 @@ class ObstacleMemory:
         if cell.source != CellSource.FIRE:
             return ClearResult.WRONG_SOURCE
         if not observation_fresh:
+            # Stale / missing camera evidence must not accumulate toward clear.
+            cell.fire_clear_confirm_count = 0
             return ClearResult.STALE
-        if not self._cell_in_thermal_cone(ix, iy, origin_xy, origin_yaw):
-            # Off-FOV: leave count unchanged (do not clear).
+        ox = origin_xy[0] + float(optical_forward_m) * math.cos(origin_yaw)
+        oy = origin_xy[1] + float(optical_forward_m) * math.sin(origin_yaw)
+        oz = (
+            float(camera_z)
+            if camera_z is not None
+            else float(self.cfg.thermal_camera_height_m)
+        ) + float(optical_up_m)
+        if not self._cell_in_thermal_frustum(
+            ix, iy, (ox, oy), origin_yaw, camera_z=oz
+        ):
+            cell.fire_clear_confirm_count = 0
             return ClearResult.OUT_OF_FOV
+        if (
+            ranges is not None
+            and scan_origin_xy is not None
+            and self._fire_los_occluded(
+                ix, iy,
+                ranges=ranges,
+                angle_min=angle_min,
+                angle_increment=angle_increment,
+                range_min=range_min,
+                range_max=range_max,
+                scan_origin_xy=scan_origin_xy,
+                scan_origin_yaw=scan_origin_yaw,
+            )
+        ):
+            cell.fire_clear_confirm_count = 0
+            return ClearResult.OCCLUDED
         if fire_detected or hold_active:
             cell.fire_clear_confirm_count = 0
             return ClearResult.HOLD_ACTIVE
-        # In-FOV negative.
+        # In-FOV, unoccluded negative.
         cell.fire_clear_confirm_count += 1
         if cell.fire_clear_confirm_count < self.cfg.fire_clear_confirm_scans:
             return ClearResult.NEED_MORE_NEGATIVES
         del self.cells[(ix, iy)]
         return ClearResult.ACCEPTED
 
-    def clear_fire_with_observation(
+    def clear_fire_with_observation_detailed(
         self,
         *,
         fire_detected: bool,
@@ -439,8 +650,30 @@ class ObstacleMemory:
         origin_xy: Point,
         origin_yaw: float,
         observation_fresh: bool,
-    ) -> int:
-        accepted = 0
+        camera_z: Optional[float] = None,
+        optical_forward_m: float = 0.0,
+        optical_up_m: float = 0.0,
+        ranges: Optional[Sequence[float]] = None,
+        angle_min: float = 0.0,
+        angle_increment: float = 0.0,
+        range_min: float = 0.0,
+        range_max: float = 100.0,
+        scan_origin_xy: Optional[Point] = None,
+        scan_origin_yaw: float = 0.0,
+    ) -> Dict[ClearResult, int]:
+        """Run the FIRE clear pass; return per-result counts (Entry 028 events)."""
+        counts: Dict[ClearResult, int] = {}
+        extra = dict(
+            optical_forward_m=optical_forward_m,
+            optical_up_m=optical_up_m,
+            ranges=ranges,
+            angle_min=angle_min,
+            angle_increment=angle_increment,
+            range_min=range_min,
+            range_max=range_max,
+            scan_origin_xy=scan_origin_xy,
+            scan_origin_yaw=scan_origin_yaw,
+        )
         for ix, iy in list(self.cells.keys()):
             if self.cells[(ix, iy)].source != CellSource.FIRE:
                 continue
@@ -451,10 +684,49 @@ class ObstacleMemory:
                 origin_xy=origin_xy,
                 origin_yaw=origin_yaw,
                 observation_fresh=observation_fresh,
+                camera_z=camera_z,
+                **extra,
             )
-            if result == ClearResult.ACCEPTED:
-                accepted += 1
-        return accepted
+            counts[result] = counts.get(result, 0) + 1
+        return counts
+
+    def clear_fire_with_observation(
+        self,
+        *,
+        fire_detected: bool,
+        hold_active: bool,
+        origin_xy: Point,
+        origin_yaw: float,
+        observation_fresh: bool,
+        camera_z: Optional[float] = None,
+        optical_forward_m: float = 0.0,
+        optical_up_m: float = 0.0,
+        ranges: Optional[Sequence[float]] = None,
+        angle_min: float = 0.0,
+        angle_increment: float = 0.0,
+        range_min: float = 0.0,
+        range_max: float = 100.0,
+        scan_origin_xy: Optional[Point] = None,
+        scan_origin_yaw: float = 0.0,
+    ) -> int:
+        counts = self.clear_fire_with_observation_detailed(
+            fire_detected=fire_detected,
+            hold_active=hold_active,
+            origin_xy=origin_xy,
+            origin_yaw=origin_yaw,
+            observation_fresh=observation_fresh,
+            camera_z=camera_z,
+            optical_forward_m=optical_forward_m,
+            optical_up_m=optical_up_m,
+            ranges=ranges,
+            angle_min=angle_min,
+            angle_increment=angle_increment,
+            range_min=range_min,
+            range_max=range_max,
+            scan_origin_xy=scan_origin_xy,
+            scan_origin_yaw=scan_origin_yaw,
+        )
+        return counts.get(ClearResult.ACCEPTED, 0)
 
     # -- mask export -------------------------------------------------------
 
@@ -464,6 +736,33 @@ class ObstacleMemory:
         for (ix, iy) in self.cells:
             data[iy * self.meta.width + ix] = 100
         return data
+
+    def fire_cell_world_points(self) -> List[Point]:
+        """Map-frame centres of cells tagged ``CellSource.FIRE`` (Entry 026)."""
+        return self.cell_world_points(CellSource.FIRE)
+
+    def lidar_cell_world_points(self) -> List[Point]:
+        """Map-frame centres of cells tagged ``CellSource.LIDAR`` (Entry 028 introspection)."""
+        return self.cell_world_points(CellSource.LIDAR)
+
+    def cell_world_points(self, source: CellSource) -> List[Point]:
+        pts: List[Point] = []
+        for (ix, iy), cell in self.cells.items():
+            if cell.source == source:
+                pts.append(self.meta.grid_to_world(ix, iy))
+        return pts
+
+    def cells_near(self, x: float, y: float, radius_m: float,
+                   source: Optional[CellSource] = None) -> List[MemoryCell]:
+        """Typed cells whose centre lies within ``radius_m`` of (x, y)."""
+        out: List[MemoryCell] = []
+        for (ix, iy), cell in self.cells.items():
+            if source is not None and cell.source != source:
+                continue
+            cx, cy = self.meta.grid_to_world(ix, iy)
+            if math.hypot(cx - x, cy - y) <= radius_m:
+                out.append(cell)
+        return out
 
     def path_intersects_memory(
         self,

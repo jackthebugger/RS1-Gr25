@@ -47,10 +47,10 @@ Install Ignition Gazebo Fortress if you do not already have it (see package `REA
 export WS="$HOME/git/RS1-Gr25"   # ← your clone
 cd "$WS"
 source /opt/ros/humble/setup.bash
-colcon build --symlink-install --packages-select beer_fire_detection 41068_ignition_bringup
+colcon build --symlink-install --packages-select rs1_interfaces beer_fire_detection 41068_ignition_bringup
 ```
 
-Rebuild after every `git pull` that touches this package.
+Rebuild after every `git pull` that touches these packages. Include `rs1_interfaces` so StartMission / MissionOwnerStatus message+service types are on the overlay (`AMENT_PREFIX_PATH` must list `install/rs1_interfaces`).
 
 ### 0.4 Environment block (paste into every new terminal)
 
@@ -296,6 +296,10 @@ ros2 run 41068_ignition_bringup obstacle_injector.py
 
 ### Robot status GUI
 
+Requires the **same** sourced overlay as Terminal 1 (`source "$WS/install/setup.bash"`), including `rs1_interfaces`. Keep Terminal 1 husky launch alive — Start Mission needs `/husky1/mission_owner/start_mission` from `path_bank_manager`.
+
+`bush_trail_world` default spawn is **(−18, 3, 0.50)** (not the Start Mission goal 16, −0.1). Prefer verified startup with `enable_camera:=false` — enabling the RGB-D camera can stall Ignition on WSL/software GL (no `/clock`, no scan). If Gazebo was closed while an orphan `ign gazebo server` kept a mid-mission pose, relaunch runs `ign_pre_spawn_remove` then `create` only after pre-remove exits (Entry 038 hygiene + Entry 039 OnProcessExit order; the old fixed +1.5 s create timer could race).
+
 ```bash
 ros2 launch 41068_ignition_bringup robot_status_gui.launch.py
 ```
@@ -356,6 +360,9 @@ Then start again from a fresh sourced terminal.
 | Symptom | Likely cause | Fix |
 |---------|--------------|-----|
 | `Package '41068_ignition_bringup' not found` | Workspace not sourced | `source "$WS/install/setup.bash"` |
+| `STARTMISSION_UNAVAILABLE` in status GUI | `rs1_interfaces` missing from shell / stale GUI | Re-source `install/setup.bash` (must list `install/rs1_interfaces` on `AMENT_PREFIX_PATH`); relaunch GUI |
+| `TIMEOUT_WAITING_MISSION_OWNER` / Start does nothing | Husky launch / path_bank_manager down | Keep Terminal 1 husky launch running; do not launch GUI alone |
+| Husky appears at end-goal on relaunch | Orphan Gazebo kept old `husky1` | Kill orphan `ign gazebo` / use cleanup §8; relaunch — pre-remove restores (−18, 3) on bush_trail |
 | Teleop does nothing | Wrong terminal focus, or wrong topic | Focus teleop terminal; remap `cmd_vel:=/husky1/cmd_vel` |
 | Robot jerks / ignores WASD | `nav2:=true` fighting teleop | Use Workflow A (`nav2:=false`). For Nav2 goals use Workflow B and stop teleop |
 | Empty map in RViz | Wrong Fixed Frame / topic | Frame `husky1_map`, topic `/husky1/map` |
@@ -384,4 +391,4 @@ Then start again from a fresh sourced terminal.
 3. Optionally save the map (Terminal 3).
 4. Stop Terminal 1 (`Ctrl-C`).
 5. **Workflow B:** same world/spawn with `nav2:=true`, then send goal `-4.5 -4.5 0`.
-6. Confirm `/husky1/plan` appears in RViz and the robot drives.
+6. Confirm `/husky1/path_bank/active_path` (Global Path, purple) appears in RViz for bank FollowPath missions and the robot drives.
