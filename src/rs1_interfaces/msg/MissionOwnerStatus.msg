@@ -1,0 +1,10 @@
+std_msgs/Header header
+string state
+bool operator_stop_latch
+bool mission_running
+string stop_reason
+string[] active_inhibits
+string command_authority
+string detail
+uint64 mission_id
+uint64 generation

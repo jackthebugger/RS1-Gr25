@@ -1,0 +1,34 @@
+# Wave 2 bake-off OVERLAY — SmacPlanner2D (Humble DiffDrive / circular footprint).
+# Applied only when planner_bake:=smac2d (or listed in nav2_params_overlay).
+# Does NOT change production nav2_params_husky1.yaml (NavFn remains default).
+#
+# Soft-cost note: do not raise inflation here without measured evidence; this
+# overlay only swaps the global planner plugin. cost_travel_multiplier > 1
+# biases Smac away from inflated soft cost (centre-of-corridor preference).
+planner_server:
+  ros__parameters:
+    expected_planner_frequency: 5.0
+    use_sim_time: true
+    planner_plugins:
+    - GridBased
+    GridBased:
+      plugin: nav2_smac_planner/SmacPlanner2D
+      tolerance: 1.5
+      downsample_costmap: false
+      downsampling_factor: 1
+      # >1.0 prefers lower soft-cost cells (away from inflation) without
+      # changing inflation_radius / KeepoutFilter / footprint.
+      cost_travel_multiplier: 2.0
+      allow_unknown: true
+      max_iterations: 1000000
+      max_on_approach_iterations: 1000
+      max_planning_time: 2.0
+      use_final_approach_orientation: false
+      # Built-in Smac path smoother (holonomic/grid); independent of
+      # smoother_server bake overlays.
+      smoother:
+        tolerance: 1.0e-10
+        max_iterations: 1000
+        w_data: 0.2
+        w_smooth: 0.3
+        do_refinement: true

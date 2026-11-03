@@ -191,11 +191,11 @@ Gazebo + Husky + sensors, without autonomy.
 export ROS_LOCALHOST_ONLY=1
 source /opt/ros/humble/setup.bash
 cd ~/git/RS1-Gr25   # ← your local clone path
-colcon build --symlink-install --packages-select beer_fire_detection 41068_ignition_bringup
+colcon build --symlink-install --packages-select rs1_interfaces beer_fire_detection 41068_ignition_bringup
 source install/setup.bash
 ```
 
-Do **not** run `colcon` inside `src/.../41068_ignition_bringup/` — always build from the workspace root so `install/setup.bash` is created in the right place. Rebuild both packages after a pull (`41068_ignition_bringup` depends on `beer_fire_detection`).
+Do **not** run `colcon` inside `src/.../41068_ignition_bringup/` — always build from the workspace root so `install/setup.bash` is created in the right place. Rebuild after a pull; include `rs1_interfaces` (StartMission overlay) plus `beer_fire_detection` and `41068_ignition_bringup`.
 
 ### Terminal layout
 
@@ -215,7 +215,7 @@ source install/setup.bash
 ros2 launch 41068_ignition_bringup 41068_ignition_husky.launch.py
 ```
 
-Useful args: `world:=simple_trees|large_demo|custom_world_1`, `gui:=true|false`, `husky_x:=…`, `husky_y:=…`, `husky_yaw:=…`, `enable_camera:=false` (default).
+Useful args: `world:=simple_trees|large_demo|custom_world_1|bush_trail_world`, `gui:=true|false`, `husky_x:=…`, `husky_y:=…`, `husky_yaw:=…`, `enable_camera:=false` (default; keep false unless GPU is known-good — camera can stall Ignition on WSL/software GL). Spawn order: `ign_pre_spawn_remove` then `create` on pre-remove exit (Entry 039; avoids Entry 038+1.5 s create race).
 
 For `custom_world_1`, use `husky_z:=0.4` (flat solid ground). That world uses lightweight solid-color models (no PNG/PBR/Fuel meshes) so the Gazebo GUI does not thrash textures.
 
@@ -285,7 +285,7 @@ Rebuild after pulling the WASD script:
 
 ```bash
 cd ~/git/RS1-Gr25
-colcon build --symlink-install --packages-select 41068_ignition_bringup
+colcon build --symlink-install --packages-select rs1_interfaces beer_fire_detection 41068_ignition_bringup
 source install/setup.bash
 ```
 
@@ -464,7 +464,7 @@ python3 scripts/basic_autonomy_demo.py --attach --goal 0 -5 0
 
 - Map growing on `/husky1/map`
 - LaserScan `/husky1/scan`
-- Global Path `/husky1/plan`
+- Global Path `/husky1/path_bank/active_path` (bank FollowPath; TransientLocal) — not Nav2 `/husky1/plan`
 - Global costmap `/husky1/global_costmap/costmap`
 - Robot motion toward goal
 
@@ -633,7 +633,8 @@ Config: `config/41068_husky1.rviz` (launched under namespace `husky1` when `rviz
 | RobotModel | `/husky1/robot_description` |
 | LaserScan | `/husky1/scan` |
 | Map | `/husky1/map` |
-| Global Path | `/husky1/plan` |
+| Global Path | `/husky1/path_bank/active_path` (Reliable + TransientLocal; purple) |
+| Path Bank Markers | `/husky1/path_bank/markers` |
 | Local Path | `/husky1/local_plan` |
 | Global costmap | `/husky1/global_costmap/costmap` |
 | Goal tool | Nav2 Goal → `/husky1/navigate_to_pose` |
@@ -906,11 +907,16 @@ pkill -f 'ign gazebo' ; pkill -f 'ros2 launch 41068'
 - DiffDrive default; VelocityControl optional
 - Lidar 10 Hz; camera off by default
 - SLAM owns `map→odom`; AMCL not launched
-- Rolling global costmap 40×40 m; tuned footprint / inflation
-- NavFn (A*) + Regulated Pure Pursuit + velocity smoother
+- Non-rolling global StaticLayer on prior_map + KeepoutFilter obstacle memory
+- NavFn + Regulated Pure Pursuit + velocity smoother
+- `rs1_cmd_vel_gate` sole `/cmd_vel` publisher (controller + behavior_server → `cmd_vel_nav`)
+- Mission owner: StartMission/StopMission, inhibits, `bank_follow_path` FollowPath ownership + BT PAUSE
+- Status GUI: StartMission-first (wait/retry; `allow_ntp_fallback` default false); banner from `mission_owner/status` (IDLE≠STOPPED); Entry 037–038 (overlay inject `rs1_interfaces`; wall-time wait; UNAVAILABLE≠TIMEOUT)
+- Spawn orphan hygiene: `ign_pre_spawn_remove` then `create` on pre-remove exit (Entry 038 + Entry 039 OnProcessExit; no fixed +1.5 s create race); bush_trail defaults (−18, 3, 0.50); prefer `enable_camera:=false`
+- §G local rebuild on FIRE mark/clear only (revision-gated); pending FIRE hold + fail-safe
 - One-command start→goal and `--replan` with real Gazebo barrier
 - Manual `obstacle_injector.py`
-- Bounded tests under `test/`
+- Bounded tests under `test/` (T2/T5/T9REAL/stuck/priority/K1b/path_bank_nav clean+block/forest_gap green — Entry 036; block arrival fixed via epoch-gated FP handle + no densify-on-NavFn-fail)
 
 ### Present but unused / partial
 

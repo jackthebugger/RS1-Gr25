@@ -90,12 +90,18 @@ class NavObserver(Node):
         self.odom: Optional[Odometry] = None
         self.cmd_vel_count = 0
         self.peak_commanded_speed = 0.0
+        self._bank_mission_active = False
+        self._bank_mission_saw_follow = False
+        self.path_bank_status: str = ''
 
         self.create_subscription(LaserScan, 'scan', self._on_scan, 5)
         self.create_subscription(OccupancyGrid, 'map', self._on_map, LATCHED)
         self.create_subscription(Path, 'plan', self._on_plan, 5)
         self.create_subscription(Odometry, 'odom', self._on_odom, 5)
         self.create_subscription(Twist, 'cmd_vel', self._on_cmd_vel, 10)
+        from std_msgs.msg import String as StringMsg
+        self.create_subscription(
+            StringMsg, 'path_bank/status', self._on_path_bank_status, LATCHED)
         self.create_subscription(
             Costmap, 'global_costmap/costmap_raw', self._on_global_costmap, 2)
         self.create_subscription(
@@ -297,11 +303,121 @@ class NavObserver(Node):
 
     # -- Nav2 goals -------------------------------------------------------
 
+    def _ensure_start_mission_client(self):
+        if getattr(self, '_start_mission_cli', None) is not None:
+            return self._start_mission_cli
+        try:
+            from rs1_interfaces.srv import StartMission
+        except ImportError:
+            self._start_mission_cli = False
+            return False
+        self._start_mission_cli = self.create_client(
+            StartMission, 'mission_owner/start_mission')
+        return self._start_mission_cli
+
     def nav2_ready(self, timeout: float = 1.0) -> bool:
+        """True if StartMission (bank_follow_path) or NavigateToPose is up.
+
+        With BT inactive, navigate_to_pose may be unavailable; mission owner
+        StartMission + controller FollowPath is the Phase-3 ready signal.
+        """
+        cli = self._ensure_start_mission_client()
+        if cli and cli is not False and cli.wait_for_service(timeout_sec=min(timeout, 0.5)):
+            return True
         return self.nav_client.wait_for_server(timeout_sec=timeout)
 
+    def arm_nav_authority(self) -> None:
+        """Phase-2 harness helper: open cmd_vel gate for NavigateToPose tests.
+
+        Publishes latched ``mission_owner/command_authority=NAV`` so
+        ``rs1_cmd_vel_gate`` forwards smoother output. Production StartMission
+        owns this; tests that call ``send_goal`` NTP fallback need the arm.
+
+        Heartbeats at 2 Hz — gate fail-closes after ``authority_stale_s`` (~1 s)
+        without a fresh message (one-shot publish left forest_gap at 0.5 m).
+        """
+        if not hasattr(self, '_authority_pub') or self._authority_pub is None:
+            from rclpy.qos import (
+                DurabilityPolicy, HistoryPolicy, QoSProfile, ReliabilityPolicy,
+            )
+            from std_msgs.msg import String as StringMsg
+            latched = QoSProfile(
+                depth=1,
+                reliability=ReliabilityPolicy.RELIABLE,
+                durability=DurabilityPolicy.TRANSIENT_LOCAL,
+                history=HistoryPolicy.KEEP_LAST,
+            )
+            self._authority_pub = self.create_publisher(
+                StringMsg, 'mission_owner/command_authority', latched)
+        self._authority_heartbeat_value = 'NAV'
+        self._publish_authority_heartbeat()
+        if getattr(self, '_authority_heartbeat_timer', None) is None:
+            self._authority_heartbeat_timer = self.create_timer(
+                0.5, self._publish_authority_heartbeat)
+
+    def _publish_authority_heartbeat(self) -> None:
+        if not hasattr(self, '_authority_pub') or self._authority_pub is None:
+            return
+        from std_msgs.msg import String as StringMsg
+        msg = StringMsg()
+        msg.data = getattr(self, '_authority_heartbeat_value', 'NAV')
+        self._authority_pub.publish(msg)
+
+    def disarm_nav_authority(self) -> None:
+        """Stop NTP harness heartbeat and force gate NONE."""
+        self._authority_heartbeat_value = 'NONE'
+        if getattr(self, '_authority_heartbeat_timer', None) is not None:
+            self._authority_heartbeat_timer.cancel()
+            self._authority_heartbeat_timer = None
+        if hasattr(self, '_authority_pub') and self._authority_pub is not None:
+            from std_msgs.msg import String as StringMsg
+            msg = StringMsg()
+            msg.data = 'NONE'
+            self._authority_pub.publish(msg)
+
     def send_goal(self, x: float, y: float, yaw: float = 0.0) -> bool:
-        """Send one NavigateToPose goal. Returns True once Nav2 accepts it."""
+        """Start a mission: prefer StartMission, else NavigateToPose fallback."""
+        self.goal_status = None
+        self.goal_handle = None
+        if self._send_start_mission(x, y, yaw):
+            return True
+        return self._send_navigate_to_pose(x, y, yaw)
+
+    def _send_start_mission(self, x: float, y: float, yaw: float) -> bool:
+        cli = self._ensure_start_mission_client()
+        if not cli or cli is False:
+            return False
+        if not cli.wait_for_service(timeout_sec=1.0):
+            return False
+        from rs1_interfaces.srv import StartMission
+        req = StartMission.Request()
+        req.goal_x = float(x)
+        req.goal_y = float(y)
+        req.goal_yaw = float(yaw)
+        future = cli.call_async(req)
+        deadline = time.monotonic() + 15.0
+        while time.monotonic() < deadline and not future.done():
+            rclpy.spin_once(self, timeout_sec=0.1)
+        if not future.done():
+            self.log('FAIL  StartMission service did not respond')
+            return False
+        resp = future.result()
+        if resp is None or not resp.success:
+            code = getattr(resp, 'reject_code', '') if resp else ''
+            msg = getattr(resp, 'message', '') if resp else ''
+            self.log(f'FAIL  StartMission rejected ({code}): {msg}')
+            return False
+        self.log(f'OK    StartMission accepted mission_id={resp.mission_id}')
+        # Harness: no NTP goal_handle — completion via path_bank/status ARRIVED.
+        self.goal_status = None
+        self.goal_handle = None
+        self._bank_mission_active = True
+        self._bank_mission_saw_follow = False
+        return True
+
+    def _send_navigate_to_pose(self, x: float, y: float, yaw: float) -> bool:
+        """Legacy NavigateToPose path (BT active / Phase-2 rollback)."""
+        self.arm_nav_authority()
         goal = NavigateToPose.Goal()
         goal.pose = PoseStamped()
         goal.pose.header.frame_id = self.map_frame
@@ -311,8 +427,6 @@ class NavObserver(Node):
         goal.pose.pose.orientation.z = math.sin(0.5 * yaw)
         goal.pose.pose.orientation.w = math.cos(0.5 * yaw)
 
-        self.goal_status = None
-        self.goal_handle = None
         send_future = self.nav_client.send_goal_async(
             goal, feedback_callback=self._on_feedback)
 
@@ -341,6 +455,31 @@ class NavObserver(Node):
         wrapped = future.result()
         self.goal_status = wrapped.status if wrapped is not None else GoalStatus.STATUS_UNKNOWN
 
+    def _on_path_bank_status(self, msg) -> None:
+        """Map bank_follow_path terminal states onto goal_status for MissionRunner."""
+        text = msg.data or ''
+        self.path_bank_status = text
+        if not self._bank_mission_active or self.goal_status is not None:
+            return
+        state = ''
+        for line in text.splitlines():
+            if line.startswith('state='):
+                state = line.split('=', 1)[1].strip()
+                break
+        # Ignore latched ARRIVED from a prior mission until we see this run
+        # enter PLANNING/FOLLOWING_PATH (StartMission resets state).
+        if state in ('PLANNING', 'FOLLOWING_PATH', 'SWITCHING_PATH', 'PATH_BLOCKED'):
+            self._bank_mission_saw_follow = True
+            return
+        if not self._bank_mission_saw_follow:
+            return
+        if state == 'ARRIVED':
+            self.goal_status = GoalStatus.STATUS_SUCCEEDED
+            self._bank_mission_active = False
+        elif state in ('FAILED', 'NO_PATH_AVAILABLE', 'RETURNED_TO_START'):
+            self.goal_status = GoalStatus.STATUS_ABORTED
+            self._bank_mission_active = False
+
     def goal_finished(self) -> bool:
         return self.goal_status is not None
 
@@ -363,7 +502,21 @@ class NavObserver(Node):
 
     def cancel_goal(self) -> None:
         """Stop the current mission immediately (used as soon as a test passes)."""
+        self.disarm_nav_authority()
+        # Prefer StopMission when no NTP handle (StartMission / bank FollowPath).
         if self.goal_handle is None or self.goal_finished():
+            try:
+                from rs1_interfaces.srv import StopMission
+                if not hasattr(self, '_stop_mission_cli') or self._stop_mission_cli is None:
+                    self._stop_mission_cli = self.create_client(
+                        StopMission, 'mission_owner/stop_mission')
+                if self._stop_mission_cli.wait_for_service(timeout_sec=0.5):
+                    fut = self._stop_mission_cli.call_async(StopMission.Request())
+                    deadline = time.monotonic() + 6.0
+                    while time.monotonic() < deadline and not fut.done():
+                        rclpy.spin_once(self, timeout_sec=0.1)
+            except Exception:  # noqa: BLE001
+                pass
             return
         future = self.goal_handle.cancel_goal_async()
         deadline = time.monotonic() + 6.0

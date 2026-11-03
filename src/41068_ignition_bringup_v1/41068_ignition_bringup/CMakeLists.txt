@@ -33,6 +33,9 @@ install(
     scripts/fire_hazard_nav_bridge.py
     scripts/prior_map_publisher.py
     scripts/path_bank_manager.py
+    scripts/obstacle_memory_manager.py
+    scripts/rs1_cmd_vel_gate.py
+    scripts/ign_pre_spawn_remove.py
     scripts/rebuild_bush_trail_nav_geometry.py
     scripts/generate_hilly_heightmap.py
     scripts/generate_custom_terrain_heightmap.py

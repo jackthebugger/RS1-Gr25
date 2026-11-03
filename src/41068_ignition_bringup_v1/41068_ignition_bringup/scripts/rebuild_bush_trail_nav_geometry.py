@@ -200,7 +200,20 @@ def wall_polyline_boxes(trail: np.ndarray, spacing_m: float = 0.6, wall_h: float
     return boxes
 
 
+# Leaf canopy is visual-only and sits above the planar lidar plane (~0.845 m AGL).
+# Trunk collision / size / XY stay identical so Nav2 costmaps and lidar returns
+# are unchanged. Lowest canopy point ≈ link_z + CANOPY_Z_LOCAL - CANOPY_RADIUS.
+CANOPY_RADIUS_M = 0.65
+CANOPY_Z_LOCAL_M = 1.20  # relative to link origin (mid-trunk)
+
+
 def write_walls_sdf(boxes: list, out_path: Path) -> None:
+    """Write trail posts as brown trunks + green leaf spheres (visual only).
+
+    Leaves have no <collision>: Ignition gpu_lidar / physics keep using the
+    trunk box only. Canopy centre is high enough that even if a sensor raycasts
+    visuals, the foliage stays above LIDAR_AGL_M.
+    """
     parts = [
         '<?xml version="1.0"?>',
         "<sdf version='1.8'>",
@@ -218,6 +231,14 @@ def write_walls_sdf(boxes: list, out_path: Path) -> None:
                      '</geometry>'
                      '<material><ambient>0.35 0.25 0.15 1</ambient>'
                      '<diffuse>0.45 0.32 0.18 1</diffuse></material></visual>')
+        # Visual-only canopy — no collision; above lidar plane.
+        parts.append(
+            f'      <visual name="leaves">'
+            f'<pose>0 0 {CANOPY_Z_LOCAL_M:.3f} 0 0 0</pose>'
+            f'<geometry><sphere><radius>{CANOPY_RADIUS_M:.3f}</radius></sphere></geometry>'
+            '<material><ambient>0.08 0.35 0.08 1</ambient>'
+            '<diffuse>0.12 0.48 0.10 1</diffuse></material></visual>'
+        )
         parts.append('    </link>')
     parts.append('  </model>')
     parts.append('</sdf>')
@@ -228,7 +249,7 @@ def write_walls_sdf(boxes: list, out_path: Path) -> None:
     cfg.write_text(
         '<?xml version="1.0"?>\n<model>\n  <name>bush_trail_nav_walls</name>\n'
         '  <version>1.0</version>\n  <sdf version="1.8">model.sdf</sdf>\n'
-        '  <description>Lidar-visible trail boundary posts from trail_mask</description>\n'
+        '  <description>Trail boundary tree posts (lidar trunk boxes + visual-only canopies)</description>\n'
         '</model>\n',
         encoding='utf-8',
     )
@@ -259,7 +280,8 @@ def pick_goal_on_trail(trail: np.ndarray) -> tuple[float, float]:
 def patch_world_include(world_sdf: Path, enable_walls: bool) -> None:
     text = world_sdf.read_text(encoding='utf-8')
     include = (
-        '\n    <!-- Lidar-visible trail boundary posts (from trail_mask). -->\n'
+        '\n    <!-- Trail boundary trees: trunk boxes are lidar/collision; leaf canopies\n'
+        '         are visual-only and above the planar lidar plane (nav unchanged). -->\n'
         '    <include>\n'
         '      <uri>model://bush_trail_nav_walls</uri>\n'
         '      <name>bush_trail_nav_walls</name>\n'
@@ -269,7 +291,7 @@ def patch_world_include(world_sdf: Path, enable_walls: bool) -> None:
     if 'bush_trail_nav_walls' in text:
         if not enable_walls:
             text = re.sub(
-                r'\s*<!-- Lidar-visible trail boundary posts.*?</include>\n',
+                r'\s*<!-- (?:Lidar-visible trail boundary posts|Trail boundary trees).*?</include>\n',
                 '\n',
                 text,
                 flags=re.S,

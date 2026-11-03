@@ -5,9 +5,15 @@ authority for follow/replan timing. The path bank:
 
 1. Builds alternative routes on a known occupancy/cost grid at mission start
 2. Ranks them with a simple, documented score
-3. Marks a candidate permanently unavailable for the mission when it becomes
-   collision-invalid on the live costmap
+3. Marks a candidate BLOCKED when it becomes collision-invalid on the live
+   combined costmap (plugins + KeepoutFilter memory)
 4. Hands the next still-valid candidate to the manager for a controlled switch
+5. Entry 021: BLOCKED→AVAILABLE only when memory + costmap_raw agree the
+   corridor is clear again — never from Gazebo GT or plan existence alone.
+   Unlock does not auto-preempt back onto that route.
+6. Entry 024: when every candidate is BLOCKED/REJECTED (``all_blocked``),
+   the manager owns return-to-start policy using ``PathBank.start`` as home —
+   this library only reports exhaustion.
 
 Candidate diversity uses corridor exclusion: after each successful path, a band
 around that polyline is treated as lethal on a working copy of the grid and
@@ -25,7 +31,7 @@ from typing import List, Optional, Sequence, Tuple
 
 import numpy as np
 
-from .geometry import path_length
+from .geometry import bilateral_balance, bilateral_side_clearances, path_length
 
 Point = Tuple[float, float]
 GridIndex = Tuple[int, int]
@@ -45,7 +51,13 @@ class CandidateState(str, Enum):
 
 @dataclass
 class PathBankConfig:
-    """Tunable path-bank behaviour (ROS parameters map onto these)."""
+    """Tunable path-bank behaviour (ROS parameters map onto these).
+
+    Wave 2: score weights + nudge + bilateral are constructor/ROS-parameter
+    gated. Defaults match production; set ``bilateral_weight > 0`` only for
+    bake experiments (do not change production launch defaults without
+    measured clearance wins).
+    """
 
     max_candidates: int = 4
     exclusion_radius_m: float = 2.5
@@ -58,10 +70,16 @@ class PathBankConfig:
     clearance_weight: float = 0.35
     cost_weight: float = 0.15
     smoothness_weight: float = 0.05
+    # Gated bilateral centre-of-corridor term (0 = disabled / production).
+    bilateral_weight: float = 0.0
     clearance_ref_m: float = 2.0
     max_turn_rad: float = math.pi
     validity_lookahead_m: float = 0.0  # 0 = whole remaining path
     sample_stride: int = 2
+    # Nudge polyline params (manager may pass these; defaults unchanged).
+    nudge_target_clearance_m: float = 0.55
+    nudge_max_offset_m: float = 0.40
+    nudge_offset_step_m: float = 0.05
 
 
 @dataclass
@@ -132,6 +150,19 @@ class PathBank:
                 if self.active_id == path_id:
                     self.active_id = None
                 return
+
+    def mark_available(self, path_id: int, reason: str = '') -> bool:
+        """Evidence-based unblock (BLOCKED → AVAILABLE). Does not activate.
+
+        Returns True if the candidate was BLOCKED and is now AVAILABLE.
+        Never auto-selects this path; caller must not preempt solely on unlock.
+        """
+        for c in self.candidates:
+            if c.path_id == path_id and c.state == CandidateState.BLOCKED:
+                c.state = CandidateState.AVAILABLE
+                c.block_reason = reason
+                return True
+        return False
 
     def all_blocked(self) -> bool:
         return bool(self.candidates) and all(
@@ -413,6 +444,91 @@ def _min_clearance(path: Sequence[Point], grid: OccupancyGrid2D) -> float:
     return best if best < float('inf') else 10.0
 
 
+def _point_clearance(x: float, y: float, grid: OccupancyGrid2D) -> float:
+    """Clearance of one world point to nearest lethal (m)."""
+    lethal = grid.costs >= LETHAL
+    if not lethal.any():
+        return 10.0
+    idx = grid.world_to_grid(x, y)
+    if idx is None:
+        return 0.0
+    # Local window search — full-grid scan per sample is too slow for densify.
+    ix, iy = idx
+    r = max(1, int(math.ceil(2.0 / max(grid.resolution, 1e-3))))
+    h, w = grid.costs.shape
+    y0, y1 = max(0, iy - r), min(h, iy + r + 1)
+    x0, x1 = max(0, ix - r), min(w, ix + r + 1)
+    window = lethal[y0:y1, x0:x1]
+    if not window.any():
+        return float(r) * grid.resolution
+    ys, xs = np.where(window)
+    obs_x = grid.origin_x + (xs + x0 + 0.5) * grid.resolution
+    obs_y = grid.origin_y + (ys + y0 + 0.5) * grid.resolution
+    return float(np.min(np.hypot(obs_x - x, obs_y - y)))
+
+
+def point_clearance(x: float, y: float, grid: OccupancyGrid2D) -> float:
+    """Public clearance helper (same formula as nudge / via SELECT).
+
+    Thin wrapper over ``_point_clearance`` — do not invent a weaker predicate.
+    """
+    return _point_clearance(x, y, grid)
+
+
+def nudge_polyline_away_from_lethal(
+    path: Sequence[Point],
+    grid: OccupancyGrid2D,
+    *,
+    target_clearance_m: float = 0.55,
+    max_offset_m: float = 0.40,
+    offset_step_m: float = 0.05,
+) -> List[Point]:
+    """Laterally offset undersized-clearance vertices toward free space.
+
+    Does **not** shrink the robot footprint — it moves the FollowPath
+    centreline toward the corridor middle so RPP's footprint collision check
+    (local costmap) is not knife-edging trail walls (path_bank_nav clean).
+    """
+    if len(path) < 2:
+        return list(path)
+    target = max(0.0, float(target_clearance_m))
+    max_off = max(0.0, float(max_offset_m))
+    step = max(0.01, float(offset_step_m))
+    out: List[Point] = []
+    n = len(path)
+    for i, (x, y) in enumerate(path):
+        if i == 0 or i == n - 1:
+            out.append((float(x), float(y)))
+            continue
+        clear0 = _point_clearance(x, y, grid)
+        if clear0 >= target:
+            out.append((float(x), float(y)))
+            continue
+        # Perpendicular to local tangent.
+        x_a, y_a = path[i - 1]
+        x_b, y_b = path[min(i + 1, n - 1)]
+        tx, ty = x_b - x_a, y_b - y_a
+        tlen = math.hypot(tx, ty)
+        if tlen < 1e-6:
+            out.append((float(x), float(y)))
+            continue
+        nx, ny = -ty / tlen, tx / tlen
+        best = (clear0, float(x), float(y))
+        off = step
+        while off <= max_off + 1e-9:
+            for sign in (1.0, -1.0):
+                cx = x + sign * off * nx
+                cy = y + sign * off * ny
+                c = _point_clearance(cx, cy, grid)
+                if c > best[0]:
+                    best = (c, cx, cy)
+            if best[0] >= target:
+                break
+            off += step
+        out.append((best[1], best[2]))
+    return out
+
+
 def _mean_cost(path: Sequence[Point], grid: OccupancyGrid2D) -> float:
     if not path:
         return 0.0
@@ -471,19 +587,20 @@ def score_candidate(
     *,
     ref_length_m: float,
     cfg: PathBankConfig,
+    bilateral_balance_01: Optional[float] = None,
 ) -> float:
     """Higher is better. Normalised blend of length, clearance, cost, smoothness.
 
     score = 100 * (
-        w_len   * (1 - length / ref_length) clamped
+        w_len   * (ref_length / length) clamped
       + w_clear * (min_clearance / clearance_ref) clamped
       + w_cost  * (1 - mean_cost / 253)
       + w_smooth* (1 - turn_penalty / max_turn)
+      + w_bilat * bilateral_balance          # only if bilateral_weight > 0
     )
+
+    Production defaults keep ``bilateral_weight=0`` so scores are unchanged.
     """
-    ref_len = max(ref_length_m, 1e-3)
-    length_term = max(0.0, min(1.0, 1.0 - (length_m - ref_length_m) / ref_len))
-    # Prefer not-much-longer than the shortest; still reward absolute shortness.
     length_term = max(0.0, min(1.0, ref_length_m / max(length_m, 1e-3)))
     clear_term = max(0.0, min(1.0, min_clearance_m / max(cfg.clearance_ref_m, 1e-3)))
     cost_term = max(0.0, min(1.0, 1.0 - mean_cost / 253.0))
@@ -494,6 +611,9 @@ def score_candidate(
         + cfg.cost_weight * cost_term
         + cfg.smoothness_weight * smooth_term
     )
+    if cfg.bilateral_weight > 0.0 and bilateral_balance_01 is not None:
+        bilat = max(0.0, min(1.0, float(bilateral_balance_01)))
+        raw += cfg.bilateral_weight * bilat
     return 100.0 * raw
 
 
@@ -516,6 +636,69 @@ def path_is_valid(
         if c >= lethal_threshold and c != NO_INFO:
             return False, f'lethal_at_index_{start_index + i * sample_stride}_cost_{c}'
     return True, ''
+
+
+def occupancy_mask_intersects_path(
+    path: Sequence[Point],
+    *,
+    width: int,
+    height: int,
+    resolution: float,
+    origin_x: float,
+    origin_y: float,
+    data: Sequence[int],
+    sample_stride: int = 2,
+    occupied_threshold: int = 50,
+    neighbourhood: int = 1,
+) -> bool:
+    """True if OccupancyGrid mask (≥ occupied_threshold) touches the path.
+
+    Entry 023: used for both active-path validity and ``_pick_next_valid`` so
+    keepout memory cannot asymmetrically block only after a switch.
+    Checks a ``neighbourhood``-cell halo around each sample.
+    """
+    return first_occupancy_hit_on_path(
+        path,
+        width=width,
+        height=height,
+        resolution=resolution,
+        origin_x=origin_x,
+        origin_y=origin_y,
+        data=data,
+        sample_stride=sample_stride,
+        occupied_threshold=occupied_threshold,
+        neighbourhood=neighbourhood,
+    ) is not None
+
+
+def first_occupancy_hit_on_path(
+    path: Sequence[Point],
+    *,
+    width: int,
+    height: int,
+    resolution: float,
+    origin_x: float,
+    origin_y: float,
+    data: Sequence[int],
+    sample_stride: int = 2,
+    occupied_threshold: int = 50,
+    neighbourhood: int = 1,
+) -> Optional[Point]:
+    """World XY of the first mask hit near the path, or None if clear."""
+    if not path or not data or width <= 0 or height <= 0 or resolution <= 0:
+        return None
+    stride = max(1, int(sample_stride))
+    nb = max(0, int(neighbourhood))
+    for x, y in path[::stride]:
+        cx = int((x - origin_x) / resolution)
+        cy = int((y - origin_y) / resolution)
+        for dx in range(-nb, nb + 1):
+            for dy in range(-nb, nb + 1):
+                ix, iy = cx + dx, cy + dy
+                if 0 <= ix < width and 0 <= iy < height:
+                    if int(data[iy * width + ix]) >= occupied_threshold:
+                        return (float(x), float(y))
+    return None
 
 
 def downsample_grid(grid: OccupancyGrid2D, factor: int) -> OccupancyGrid2D:
@@ -610,13 +793,31 @@ def build_path_bank(
 
     lengths = [path_length(p) for p in raw_paths]
     ref_len = min(lengths)
+    # Lethal world points for optional bilateral scoring (gated; default off).
+    bilat_obstacles: Optional[List[Point]] = None
+    if cfg.bilateral_weight > 0.0:
+        bilat_obstacles = []
+        ys, xs = np.where(
+            (source.costs >= cfg.lethal_threshold) & (source.costs < NO_INFO)
+        )
+        for ix, iy in zip(xs.tolist(), ys.tolist()):
+            bilat_obstacles.append((
+                source.origin_x + (float(ix) + 0.5) * source.resolution,
+                source.origin_y + (float(iy) + 0.5) * source.resolution,
+            ))
     for i, path in enumerate(raw_paths):
         length = lengths[i]
         clear = _min_clearance(path, source)
         mean_c = _mean_cost(path, source)
         turns = _turn_penalty(path)
+        bilat_01: Optional[float] = None
+        if bilat_obstacles is not None:
+            left, right = bilateral_side_clearances(
+                path, bilat_obstacles, sample_stride=cfg.sample_stride)
+            bilat_01 = bilateral_balance(left, right)
         sc = score_candidate(
             length, clear, mean_c, turns, ref_length_m=ref_len, cfg=cfg,
+            bilateral_balance_01=bilat_01,
         )
         bank.candidates.append(PathCandidate(
             path_id=i + 1,

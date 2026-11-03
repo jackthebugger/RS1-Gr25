@@ -95,10 +95,49 @@ def probe_topic_exists(topic: str) -> Callable[[], Tuple[bool, str]]:
 
 
 def probe_topic_publishing(topic: str, min_hz: float = 0.5, window: float = 4.0):
-    """True once `topic` delivers messages. Uses `ros2 topic hz` with a hard cap."""
-    def check() -> Tuple[bool, str]:
+    """True once `topic` delivers messages.
+
+    Uses an rclpy subscription when rclpy is already initialised (Entry 028
+    — avoids a 12 s ``ros2 topic hz`` subprocess per stage). Falls back to
+    a short hz probe otherwise.
+    """
+    def check_rclpy() -> Tuple[bool, str]:
+        import rclpy
+        from rclpy.node import Node
+        from nav_msgs.msg import Odometry
+        from rosgraph_msgs.msg import Clock
+        from sensor_msgs.msg import LaserScan
+
+        type_map = {
+            '/clock': Clock,
+            '/husky1/scan': LaserScan,
+            '/husky1/odom': Odometry,
+            '/husky1/thermal/image': None,
+        }
+        msg_type = type_map.get(topic)
+        if msg_type is None and topic.endswith('thermal/image'):
+            from sensor_msgs.msg import Image
+            msg_type = Image
+        if msg_type is None:
+            return False, 'no rclpy type for topic'
+        node = Node('_hz_probe_' + topic.strip('/').replace('/', '_'))
+        count = [0]
+
+        def _cb(_msg):
+            count[0] += 1
+
+        qos = 10
+        node.create_subscription(msg_type, topic, _cb, qos)
+        t0 = time.monotonic()
+        while time.monotonic() - t0 < window:
+            rclpy.spin_once(node, timeout_sec=0.05)
+        node.destroy_node()
+        hz = count[0] / max(window, 1e-3)
+        return (hz >= min_hz), f'{hz:.2f} Hz'
+
+    def check_cli() -> Tuple[bool, str]:
         code, out = ros2(
-            f'topic hz {topic} --window 5', timeout=window + 8.0,
+            f'topic hz {topic} --window 3', timeout=window + 3.0,
         )
         rates = []
         for line in out.splitlines():
@@ -112,11 +151,16 @@ def probe_topic_publishing(topic: str, min_hz: float = 0.5, window: float = 4.0)
             return False, f'no rate reported (exit {code})'
         best = max(rates)
         return (best >= min_hz), f'{best:.2f} Hz'
-    # `ros2 topic hz` never exits on its own, so the timeout above is the
-    # mechanism that stops it. Wrap so the timeout is treated as normal.
+
     def bounded() -> Tuple[bool, str]:
         try:
-            return check()
+            import rclpy
+            if rclpy.ok():
+                return check_rclpy()
+        except Exception:
+            pass
+        try:
+            return check_cli()
         except subprocess.TimeoutExpired:
             return False, 'hz probe timed out'
     return bounded
@@ -140,6 +184,29 @@ def probe_action_exists(action: str):
             return False, 'ros2 action list timed out'
         actions = out.split()
         return (action in actions), f'({len(actions)} actions visible)'
+    return check
+
+
+def probe_lifecycle_active(node: str):
+    """True once a lifecycle node reports primary state active.
+
+    Needed for bank_follow_path: navigate_to_pose can exist while
+    controller_server is still only configured (FollowPath rejects).
+    """
+    def check() -> Tuple[bool, str]:
+        code, out = ros2(f'lifecycle get {node}', timeout=12.0)
+        text = (out or '').strip().lower()
+        if code == 124:
+            return False, 'lifecycle get timed out'
+        # Humble prints e.g. "active [3]" or "Primary state: active [3]"
+        active = bool(
+            'primary state: active' in text
+            or text.startswith('active')
+            or '\nactive' in text
+            or text.rstrip().endswith('active')
+            or ('[3]' in text and 'active' in text)
+        )
+        return active, (text.splitlines()[-1] if text else f'exit={code}')[:120]
     return check
 
 
@@ -186,6 +253,26 @@ def await_simulation(sup: SimSupervisor, *, require_nav2: bool = True) -> Tuple[
             ('TF husky1_map->husky1_odom (SLAM)', probe_tf('husky1_map', 'husky1_odom'), 90.0, 3.0),
             ('SLAM map topic', probe_topic_exists('/husky1/map'), 90.0, 3.0),
             ('Nav2 navigate_to_pose action', probe_action_exists('/husky1/navigate_to_pose'), 180.0, 4.0),
+            # bank_follow_path RH-POS: controller must be active or FollowPath
+            # rejects and stuck→home fires before Path A→B (bringup flake).
+            (
+                'Nav2 controller_server active',
+                probe_lifecycle_active('/husky1/controller_server'),
+                180.0,
+                4.0,
+            ),
+            (
+                'Nav2 follow_path action',
+                probe_action_exists('/husky1/follow_path'),
+                120.0,
+                4.0,
+            ),
+            (
+                'Nav2 planner_server active',
+                probe_lifecycle_active('/husky1/planner_server'),
+                120.0,
+                4.0,
+            ),
         ]
 
     stages: List[Stage] = []
