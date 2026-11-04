@@ -390,7 +390,7 @@ def test_random_gap_selection_covers_both():
     assert seen == {PATH_A, PATH_B}
 
 
-def test_ui_has_unified_mission_and_four_obstacle_buttons():
+def test_ui_has_unified_mission_and_obstacle_buttons():
     win = gui.RobotStatusWindow('husky1')
     win.update_idletasks()
     assert win.mission_button.cget('text') == 'START MISSION'
@@ -400,7 +400,9 @@ def test_ui_has_unified_mission_and_four_obstacle_buttons():
     assert win.block_path_a_button.cget('text') == 'BLOCK FIRE A'
     assert win.block_path_b_button.cget('text') == 'BLOCK FIRE B'
     assert win.random_block_button.cget('text') == 'RANDOM FIRE'
+    assert win.block_both_paths_button.cget('text') == 'BLOCK BOTH PATHS'
     assert win.clear_obstacle_button.cget('text') == 'CLEAR FIRE'
+    assert win.thermal_mode_button.cget('text') == 'FUSED THERMAL'
     assert win.goal_x_var.get() == '16'
     assert win.goal_y_var.get() in ('-0.1', '-0.10')
     assert win.goal_yaw_var.get() == '0'
@@ -409,6 +411,20 @@ def test_ui_has_unified_mission_and_four_obstacle_buttons():
     win.set_mission_running(False)
     assert win.mission_button.cget('text') == 'START MISSION'
     win.destroy()
+
+
+def test_resize_rgb_scales_without_distortion():
+    pixels = bytes([255, 0, 0] * 4)
+    out, width, height = gui.resize_rgb(pixels, 2, 2, 100, 50)
+    assert width == 50 and height == 50
+    assert len(out) == width * height * 3
+
+
+def test_thermal_colour_hot_fire_is_warm():
+    cool = gui._thermal_colour(280.0)
+    hot = gui._thermal_colour(600.0)
+    assert hot[0] >= cool[0]
+    assert hot[1] > 0
 
 
 def test_entry063_speed_presets_honest_maximum():

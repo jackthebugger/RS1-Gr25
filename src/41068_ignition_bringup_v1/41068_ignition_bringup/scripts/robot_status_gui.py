@@ -22,7 +22,7 @@ import rclpy
 from action_msgs.msg import GoalStatus
 from geometry_msgs.msg import Pose, PoseArray, PoseStamped
 from nav2_msgs.action import NavigateToPose
-from nav_msgs.msg import OccupancyGrid, Odometry
+from nav_msgs.msg import OccupancyGrid, Odometry, Path
 from rclpy.action import ActionClient
 from rclpy.node import Node
 from rclpy.parameter import Parameter
@@ -63,14 +63,72 @@ DEFAULT_GOAL_Y = -0.1
 DEFAULT_GOAL_YAW = 0.0
 DEFAULT_WORLD_NAME = 'bush_trail_world'
 GOAL_VISUAL_NAME = 'navigation_goal_visual'
+# Faiyad UI: treat mission arrival within 1 m of the goal visual.
+ARRIVAL_DISTANCE_THRESHOLD_M = 1.0
+CAMERA_DISPLAY_SIZE = (500, 300)
+MAP_DISPLAY_SIZE = (500, 300)
 
 
 def distance_to_goal(
     robot_pose: Tuple[float, float, float],
-    goal_pose: Tuple[float, float, float],
+    goal_pose: Optional[Tuple[float, float, float]],
 ) -> float:
     """Return planar distance between a robot pose and navigation goal."""
+    if goal_pose is None:
+        return 0.0
     return math.hypot(robot_pose[0] - goal_pose[0], robot_pose[1] - goal_pose[1])
+
+
+def _thermal_colour(temperature_k: float) -> Tuple[int, int, int]:
+    """Map absolute Kelvin values to thermal hue families (Faiyad GUI)."""
+    stops = (
+        (273.15, (8, 12, 72)),
+        (288.0, (20, 32, 125)),
+        (300.0, (48, 55, 165)),
+        (330.0, (105, 48, 175)),
+        (400.0, (130, 18, 28)),
+        (500.0, (205, 35, 0)),
+        (560.0, (235, 65, 0)),
+        (590.0, (255, 95, 0)),
+        (600.0, (255, 125, 0)),
+    )
+    temperature_k = max(stops[0][0], temperature_k)
+    for (start, start_rgb), (end, end_rgb) in zip(stops, stops[1:]):
+        if temperature_k <= end:
+            fraction = (temperature_k - start) / (end - start)
+            return tuple(
+                int(first + (second - first) * fraction)
+                for first, second in zip(start_rgb, end_rgb)
+            )
+    return stops[-1][1]
+
+
+def resize_rgb(
+    pixels: bytes,
+    source_width: int,
+    source_height: int,
+    target_width: int,
+    target_height: int,
+) -> Tuple[bytes, int, int]:
+    """Scale RGB pixels to fit a display area without distorting the image."""
+    if source_width <= 0 or source_height <= 0:
+        return pixels, source_width, source_height
+    scale = min(target_width / source_width, target_height / source_height)
+    width = max(1, int(source_width * scale))
+    height = max(1, int(source_height * scale))
+    if width == source_width and height == source_height:
+        return pixels, width, height
+    resized = bytearray(width * height * 3)
+    for y in range(height):
+        source_y = min(source_height - 1, int(y * source_height / height))
+        for x in range(width):
+            source_x = min(source_width - 1, int(x * source_width / width))
+            source_index = (source_y * source_width + source_x) * 3
+            target_index = (y * width + x) * 3
+            resized[target_index:target_index + 3] = pixels[
+                source_index:source_index + 3
+            ]
+    return bytes(resized), width, height
 
 # Soft bounds for coordinate validation (60×60 m bush_trail / forest arena).
 MAP_X_MIN, MAP_X_MAX = -29.0, 29.0
@@ -353,7 +411,7 @@ def rgb_image_to_ppm(image: Image) -> Tuple[Optional[bytes], Optional[str]]:
 
 
 def thermal_image_to_ppm(image: Image) -> Tuple[Optional[bytes], Optional[str]]:
-    """Convert mono16 thermal Image to false-color PPM. Returns (ppm, error)."""
+    """Convert mono16 thermal Image to Kelvin false-color PPM. Returns (ppm, error)."""
     if image.encoding != 'mono16' or image.width <= 0 or image.height <= 0:
         return None, f'unsupported {image.encoding}'
 
@@ -368,19 +426,9 @@ def thermal_image_to_ppm(image: Image) -> Tuple[Optional[bytes], Optional[str]]:
     if not values:
         return None, 'invalid frame'
 
-    low = min(values)
-    high = max(values)
-    span = max(1, high - low)
     pixels = bytearray()
     for value in values:
-        intensity = (value - low) / span
-        if intensity < 0.33:
-            red, green, blue = 0, int(intensity * 3 * 180), 180
-        elif intensity < 0.66:
-            red, green, blue = int((intensity - 0.33) * 3 * 255), 180, 30
-        else:
-            red, green, blue = 255, int(180 - (intensity - 0.66) * 3 * 140), 20
-        pixels.extend((red, green, blue))
+        pixels.extend(_thermal_colour(value * 0.01))
 
     return f'P6\n{image.width} {image.height}\n255\n'.encode() + pixels, None
 
@@ -549,12 +597,12 @@ class RobotStatusWindow(tk.Tk):
         for column in range(3):
             self.views_frame.columnconfigure(column, weight=1)
 
-        self.map_frame = tk.Frame(self.views_frame, width=250, height=220, bg='#111827')
+        self.map_frame = tk.Frame(self.views_frame, width=520, height=320, bg='#111827')
         self.map_frame.grid(row=0, column=0, padx=4, sticky='nsew')
         self.map_frame.grid_propagate(False)
         self.map_label = tk.Label(
             self.map_frame,
-            text='LiDAR map: waiting for SLAM',
+            text='Nav2 cost map: waiting for global costmap',
             bg='#111827',
             fg='#ffffff',
             anchor='center',
@@ -562,7 +610,7 @@ class RobotStatusWindow(tk.Tk):
         self.map_label.pack(fill='both', expand=True)
         self.map_photo = None
 
-        self.camera_frame = tk.Frame(self.views_frame, width=250, height=220, bg='#111827')
+        self.camera_frame = tk.Frame(self.views_frame, width=520, height=320, bg='#111827')
         self.camera_frame.grid(row=0, column=1, padx=4, sticky='nsew')
         self.camera_frame.grid_propagate(False)
         self.camera_label = tk.Label(
@@ -574,9 +622,10 @@ class RobotStatusWindow(tk.Tk):
         )
         self.camera_label.pack(fill='both', expand=True)
         self.camera_photo = None
+        self.camera_luminance = None
 
         self.thermal_frame = tk.Frame(
-            self.views_frame, width=250, height=220, bg='#111827',
+            self.views_frame, width=520, height=320, bg='#111827',
         )
         self.thermal_frame.grid(row=0, column=2, padx=4, sticky='nsew')
         self.thermal_frame.grid_propagate(False)
@@ -589,6 +638,18 @@ class RobotStatusWindow(tk.Tk):
         )
         self.thermal_label.pack(fill='both', expand=True)
         self.thermal_photo = None
+        self.thermal_mode = 'FUSED THERMAL'
+        self.thermal_mode_button = tk.Button(
+            self.thermal_frame,
+            text=self.thermal_mode,
+            command=self.toggle_thermal_mode,
+            bg='#374151',
+            fg='#ffffff',
+            activebackground='#4b5563',
+            activeforeground='#ffffff',
+            relief='flat',
+        )
+        self.thermal_mode_button.pack(fill='x')
 
         self.info_frame = tk.Frame(self.robot_section, bg='#ffffff', bd=1, relief='solid')
         self.info_frame.pack(fill='x', padx=20, pady=(0, 10))
@@ -713,6 +774,16 @@ class RobotStatusWindow(tk.Tk):
         self.random_block_button.grid(
             row=1, column=0, sticky='ew', padx=(0, 6), pady=4, ipady=4,
         )
+        self.block_both_paths_button = tk.Button(
+            self.obstacle_frame,
+            text='BLOCK BOTH PATHS',
+            state='disabled',
+            command=lambda: None,
+            height=2,
+        )
+        self.block_both_paths_button.grid(
+            row=1, column=1, sticky='ew', padx=(6, 0), pady=4, ipady=4,
+        )
         self.clear_obstacle_button = tk.Button(
             self.obstacle_frame,
             text='CLEAR FIRE',
@@ -721,7 +792,7 @@ class RobotStatusWindow(tk.Tk):
             height=2,
         )
         self.clear_obstacle_button.grid(
-            row=1, column=1, sticky='ew', padx=(6, 0), pady=4, ipady=4,
+            row=2, column=0, columnspan=2, sticky='ew', padx=0, pady=4, ipady=4,
         )
 
         self.sim_updates = []
@@ -861,11 +932,13 @@ class RobotStatusWindow(tk.Tk):
         path_a_callback,
         path_b_callback,
         random_callback,
+        both_callback,
         clear_callback,
     ) -> None:
         self.block_path_a_button.configure(command=path_a_callback, state='normal')
         self.block_path_b_button.configure(command=path_b_callback, state='normal')
         self.random_block_button.configure(command=random_callback, state='normal')
+        self.block_both_paths_button.configure(command=both_callback, state='normal')
         self.clear_obstacle_button.configure(command=clear_callback, state='normal')
 
     def set_mission_running(self, running: bool) -> None:
@@ -936,28 +1009,152 @@ class RobotStatusWindow(tk.Tk):
         self.goal_yaw_var.set(f'{yaw:g}')
 
     def update_camera(self, image: Image) -> None:
-        """Render one RGB frame (PPM conversion off the subscription hot path)."""
-        ppm, err = rgb_image_to_ppm(image)
-        if err or ppm is None:
+        """Render one RGB frame and cache luminance for fused thermal (Faiyad)."""
+        if image.encoding not in ('rgb8', 'bgr8', 'rgba8', 'bgra8', 'mono8'):
             self.camera_label.configure(
-                text=f'Camera: {err or "invalid image frame"}', image='',
+                text=f'Camera: unsupported {image.encoding}', image='',
             )
             return
+
+        source_channels = (
+            1 if image.encoding == 'mono8'
+            else 4 if image.encoding in ('rgba8', 'bgra8')
+            else 3
+        )
+        row_width = image.width * source_channels
+        pixels = bytearray()
+        luminance: List[int] = []
+        for row in range(image.height):
+            start = row * image.step
+            current = image.data[start:start + row_width]
+            row_luminance: List[int] = []
+            if image.encoding == 'mono8':
+                row_luminance = list(current[:image.width])
+            else:
+                channel_count = 4 if image.encoding in ('rgba8', 'bgra8') else 3
+                for pixel in range(image.width):
+                    offset = pixel * channel_count
+                    if image.encoding in ('bgr8', 'bgra8'):
+                        r, g, b = (
+                            current[offset + 2],
+                            current[offset + 1],
+                            current[offset],
+                        )
+                    else:
+                        r, g, b = (
+                            current[offset],
+                            current[offset + 1],
+                            current[offset + 2],
+                        )
+                    row_luminance.append(int(0.299 * r + 0.587 * g + 0.114 * b))
+            luminance.extend(row_luminance)
+            if image.encoding in ('bgr8', 'bgra8'):
+                current = bytes(
+                    current[index]
+                    for pixel in range(image.width)
+                    for index in (
+                        pixel * (4 if image.encoding == 'bgra8' else 3) + 2,
+                        pixel * (4 if image.encoding == 'bgra8' else 3) + 1,
+                        pixel * (4 if image.encoding == 'bgra8' else 3),
+                    )
+                )
+            elif image.encoding in ('rgba8', 'bgra8'):
+                current = bytes(
+                    current[index]
+                    for pixel in range(image.width)
+                    for index in (pixel * 4, pixel * 4 + 1, pixel * 4 + 2)
+                )
+            elif image.encoding == 'mono8':
+                current = bytes(value for value in current for _ in range(3))
+            pixels.extend(current)
+
+        display_pixels, display_width, display_height = resize_rgb(
+            pixels, image.width, image.height, *CAMERA_DISPLAY_SIZE,
+        )
+        ppm = (
+            f'P6\n{display_width} {display_height}\n255\n'.encode()
+            + display_pixels
+        )
         try:
             self.camera_photo = tk.PhotoImage(data=ppm, format='PPM')
         except tk.TclError:
             self.camera_label.configure(text='Camera: invalid image frame', image='')
             return
         self.camera_label.configure(image=self.camera_photo, text='')
+        self.camera_luminance = (image.width, image.height, luminance)
+
+    def toggle_thermal_mode(self) -> None:
+        self.thermal_mode = (
+            'RAW THERMAL' if self.thermal_mode == 'FUSED THERMAL'
+            else 'FUSED THERMAL'
+        )
+        self.thermal_mode_button.configure(text=self.thermal_mode)
+
+    def _thermal_brightness(self, width: int, height: int) -> Optional[List[float]]:
+        if self.thermal_mode != 'FUSED THERMAL' or self.camera_luminance is None:
+            return None
+        camera_width, camera_height, luminance = self.camera_luminance
+        if camera_width <= 0 or camera_height <= 0:
+            return None
+        brightness: List[float] = []
+        for y in range(height):
+            source_y = min(camera_height - 1, int(y * camera_height / height))
+            for x in range(width):
+                # RGB FOV is 2x wider than thermal FOV; use its centred half.
+                source_x = min(
+                    camera_width - 1,
+                    int((camera_width * 0.25) + x * camera_width * 0.5 / width),
+                )
+                value = luminance[source_y * camera_width + source_x] / 255.0
+                tone = value ** 0.60
+                brightness.append(0.50 + 0.48 * tone)
+        return brightness
 
     def update_thermal(self, image: Image) -> None:
-        """Render one thermal frame (PPM conversion off the subscription hot path)."""
-        ppm, err = thermal_image_to_ppm(image)
-        if err or ppm is None:
+        """Render Kelvin thermal, optionally fused with RGB luminance (Faiyad)."""
+        if image.encoding != 'mono16' or image.width <= 0 or image.height <= 0:
             self.thermal_label.configure(
-                text=f'Thermal camera: {err or "invalid frame"}', image='',
+                text=f'Thermal camera: unsupported {image.encoding}', image='',
             )
             return
+
+        values = []
+        for row in range(image.height):
+            start = row * image.step
+            row_bytes = image.data[start:start + image.width * 2]
+            values.extend(
+                row_bytes[index] | (row_bytes[index + 1] << 8)
+                for index in range(0, len(row_bytes) - 1, 2)
+            )
+        if not values:
+            return
+
+        brightness = self._thermal_brightness(image.width, image.height)
+        pixels = bytearray()
+        for value in values:
+            temperature_k = value * 0.01
+            red, green, blue = _thermal_colour(temperature_k)
+            if brightness is not None:
+                factor = brightness[len(pixels) // 3]
+                if temperature_k >= 400.0:
+                    fire_brightness = min(
+                        1.0, 0.80 + (temperature_k - 400.0) / 1000.0,
+                    )
+                    factor = max(factor, fire_brightness)
+                red, green, blue = (
+                    min(255, int(red * factor)),
+                    min(255, int(green * factor)),
+                    min(255, int(blue * factor)),
+                )
+            pixels.extend((red, green, blue))
+
+        display_pixels, display_width, display_height = resize_rgb(
+            pixels, image.width, image.height, *CAMERA_DISPLAY_SIZE,
+        )
+        ppm = (
+            f'P6\n{display_width} {display_height}\n255\n'.encode()
+            + display_pixels
+        )
         try:
             self.thermal_photo = tk.PhotoImage(data=ppm, format='PPM')
         except tk.TclError:
@@ -970,14 +1167,15 @@ class RobotStatusWindow(tk.Tk):
         grid: OccupancyGrid,
         robot_pose: Optional[Tuple[float, float, float]] = None,
         goal_pose: Optional[Tuple[float, float, float]] = None,
+        path: Optional[List[Tuple[float, float]]] = None,
     ) -> None:
         width = int(grid.info.width)
         height = int(grid.info.height)
         if width <= 0 or height <= 0 or len(grid.data) < width * height:
             return
 
-        display_width = min(240, width)
-        display_height = min(210, height)
+        display_width = min(MAP_DISPLAY_SIZE[0], width)
+        display_height = min(MAP_DISPLAY_SIZE[1], height)
         pixels = bytearray()
         for display_y in range(display_height):
             source_y = height - 1 - (display_y * height // display_height)
@@ -1024,16 +1222,46 @@ class RobotStatusWindow(tk.Tk):
                         index = (pixel_y * display_width + pixel_x) * 3
                         pixels[index:index + 3] = bytes(color)
 
+        def draw_path(points: List[Tuple[int, int]], color: Tuple[int, int, int]) -> None:
+            for start, end in zip(points, points[1:]):
+                x0, y0 = start
+                x1, y1 = end
+                steps = max(abs(x1 - x0), abs(y1 - y0), 1)
+                for step in range(steps + 1):
+                    x = round(x0 + (x1 - x0) * step / steps)
+                    y = round(y0 + (y1 - y0) * step / steps)
+                    for offset_x, offset_y in (
+                        (0, 0), (1, 0), (-1, 0), (0, 1), (0, -1),
+                    ):
+                        pixel_x = x + offset_x
+                        pixel_y = y + offset_y
+                        if 0 <= pixel_x < display_width and 0 <= pixel_y < display_height:
+                            index = (pixel_y * display_width + pixel_x) * 3
+                            pixels[index:index + 3] = bytes(color)
+
+        path_pixels = [
+            point for point in (
+                map_pixel((x, y, 0.0)) for x, y in (path or [])
+            )
+            if point is not None
+        ]
+        draw_path(path_pixels, (236, 72, 153))  # pink planned route
         draw_marker(map_pixel(goal_pose), (22, 163, 74))
         draw_marker(map_pixel(robot_pose), (37, 99, 235))
 
+        display_pixels, display_width, display_height = resize_rgb(
+            pixels, display_width, display_height, *MAP_DISPLAY_SIZE,
+        )
         ppm = (
-            f'P6\n{display_width} {display_height}\n255\n'.encode() + pixels
+            f'P6\n{display_width} {display_height}\n255\n'.encode()
+            + display_pixels
         )
         try:
             self.map_photo = tk.PhotoImage(data=ppm, format='PPM')
         except tk.TclError:
-            self.map_label.configure(text='Map: invalid occupancy grid', image='')
+            self.map_label.configure(
+                text='Nav2 cost map: invalid occupancy grid', image='',
+            )
             return
         self.map_label.configure(image=self.map_photo, text='')
 
@@ -1081,6 +1309,8 @@ class RobotStatusNode(Node):
         self.latest_distance = 0.0
         self.latest_time = 'Pending'
         self.latest_pose: Optional[Tuple[float, float, float]] = None
+        self.latest_path: List[Tuple[float, float]] = []
+        self.latest_map: Optional[OccupancyGrid] = None
         # Latest-frame drop: callbacks overwrite; convert/render on timer only.
         self._latest_camera_image: Optional[Image] = None
         self._latest_thermal_image: Optional[Image] = None
@@ -1248,6 +1478,10 @@ class RobotStatusNode(Node):
         self.create_subscription(Image, camera_topic, self._camera_callback, qos_profile_sensor_data)
         self.create_subscription(Image, thermal_topic, self._thermal_callback, qos_profile_sensor_data)
         self.create_subscription(OccupancyGrid, map_topic, self._map_callback, 10)
+        # Prefer path-bank active path for pink overlay; fall back to Nav2 plan.
+        self.create_subscription(
+            Path, 'path_bank/active_path', self._active_path_callback, 10)
+        self.create_subscription(Path, 'plan', self._plan_callback, 10)
         self.create_subscription(String, 'path_bank/status', self._path_bank_status_callback, 10)
         self.create_subscription(String, 'path_bank/state', self._path_bank_state_callback, 10)
         self.create_timer(0.1, self._update_gui)
@@ -2078,14 +2312,16 @@ class RobotStatusNode(Node):
         gx, gy, _gyaw = self.active_goal
         dist = math.hypot(pose[0] - gx, pose[1] - gy)
         self.latest_distance = dist
-        if dist < 0.6:
+        if dist <= ARRIVAL_DISTANCE_THRESHOLD_M:
             self._monitor_arrival = False
             self.active_goal = None
             self._publish_path_bank_cancel()
             self._remove_gazebo_goal()
             self.gui.set_mission_running(False)
-            self.gui.set_mission_status('complete')
-            self.gui.set_feedback('Goal reached')
+            self.gui.set_mission_status('successful')
+            self.gui.set_feedback(
+                f'Goal reached (within {ARRIVAL_DISTANCE_THRESHOLD_M:g} m)'
+            )
             return
         now = time.monotonic()
         if self._monitor_last_pose is None:
@@ -2164,7 +2400,42 @@ class RobotStatusNode(Node):
         self.latest_fire_detected = bool(msg.data)
 
     def _map_callback(self, msg: OccupancyGrid) -> None:
-        self.gui.update_map(msg, robot_pose=self.latest_pose, goal_pose=self.active_goal)
+        self.latest_map = msg
+        self.gui.update_map(
+            msg,
+            robot_pose=self.latest_pose,
+            goal_pose=self.active_goal,
+            path=self.latest_path,
+        )
+
+    def _active_path_callback(self, msg: Path) -> None:
+        self.latest_path = [
+            (float(pose.pose.position.x), float(pose.pose.position.y))
+            for pose in msg.poses
+        ]
+        if self.latest_map is not None:
+            self.gui.update_map(
+                self.latest_map,
+                robot_pose=self.latest_pose,
+                goal_pose=self.active_goal,
+                path=self.latest_path,
+            )
+
+    def _plan_callback(self, msg: Path) -> None:
+        # Only use Nav2 /plan when path-bank has not published an active path.
+        if self.latest_path:
+            return
+        self.latest_path = [
+            (float(pose.pose.position.x), float(pose.pose.position.y))
+            for pose in msg.poses
+        ]
+        if self.latest_map is not None:
+            self.gui.update_map(
+                self.latest_map,
+                robot_pose=self.latest_pose,
+                goal_pose=self.active_goal,
+                path=self.latest_path,
+            )
 
     def _update_gui(self) -> None:
         self.status.speed = self.latest_speed
@@ -2199,6 +2470,7 @@ def main(args=None):
         node.block_path_a,
         node.block_path_b,
         node.random_block,
+        node.block_both_paths,
         node.clear_obstacles,
     )
 
