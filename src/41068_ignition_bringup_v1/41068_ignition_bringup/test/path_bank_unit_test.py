@@ -23,13 +23,17 @@ ROOT = os.path.abspath(os.path.join(PKG, '..', '..', '..'))
 sys.path.insert(0, PKG)
 
 from rs1_nav.path_bank import (  # noqa: E402
+    INSCRIBED,
+    LETHAL,
     CandidateState,
     OccupancyGrid2D,
     PathBank,
     PathBankConfig,
     PathCandidate,
+    apply_soft_clearance_dt,
     build_path_bank,
     exclude_corridor,
+    inflate_lethal,
     occupancy_mask_intersects_path,
     path_is_valid,
     plan_dijkstra,
@@ -474,6 +478,58 @@ def main() -> int:
         failures.append('post_switch_grace_s too short')
     else:
         print(f'PASS  post_switch_grace_s contract ({post_switch_grace_s}s)')
+
+    # Issue A1: soft DT writes free-cell costs < lethal; max_cost=0 is no-op.
+    synth = OccupancyGrid2D(
+        origin_x=0.0, origin_y=0.0, resolution=0.5,
+        width=11, height=5,
+        costs=np.zeros((5, 11), dtype=np.uint8),
+    )
+    synth.costs[:, 0] = LETHAL
+    synth.costs[:, 10] = LETHAL
+    inflated = inflate_lethal(synth, 0.0)
+    soft = apply_soft_clearance_dt(
+        inflated, soft_dt_max_cost=80.0, soft_dt_decay_m=0.40)
+    if (soft.costs[:, 0] < LETHAL).any() or (soft.costs[:, 10] < LETHAL).any():
+        failures.append('soft DT must not clear lethal cells')
+    elif int(soft.costs[2, 5]) >= LETHAL:
+        failures.append('soft DT free mid-cell must stay < lethal')
+    elif int(soft.costs[2, 5]) >= int(soft.costs[2, 1]):
+        failures.append('soft DT mid-corridor cost should be lower than near-wall')
+    else:
+        print(
+            f'PASS  soft DT centre<{soft.costs[2, 5]} wall-near={soft.costs[2, 1]} '
+            f'(both < {LETHAL})'
+        )
+    noop = apply_soft_clearance_dt(inflated, soft_dt_max_cost=0.0)
+    if not np.array_equal(noop.costs, inflated.costs):
+        failures.append('soft_dt_max_cost=0 must be a no-op')
+    else:
+        print('PASS  soft_dt_max_cost=0 negative-control no-op')
+
+    # Issue A defaults + A1/A2 vs neg_nudge_only profile distinction.
+    prod = PathBankConfig()
+    neg = PathBankConfig(
+        bilateral_weight=0.0, soft_dt_max_cost=0.0, length_weight=0.45,
+        nudge_target_clearance_m=0.70,
+    )
+    if abs(prod.bilateral_weight - 0.20) > 1e-12 or abs(prod.length_weight - 0.35) > 1e-12:
+        failures.append(
+            f'A2 defaults expected bilat=0.20 length=0.35; got '
+            f'{prod.bilateral_weight}/{prod.length_weight}')
+    elif abs(prod.soft_dt_max_cost - 80.0) > 1e-12 or abs(prod.nudge_target_clearance_m - 0.80) > 1e-12:
+        failures.append('A1 soft-DT/nudge defaults mismatch')
+    elif neg.bilateral_weight != 0.0 or neg.soft_dt_max_cost != 0.0:
+        failures.append('neg_nudge_only profile must disable bilat + soft-DT')
+    else:
+        print('PASS  A1/A2 production defaults vs neg_nudge_only profile')
+
+    # Soft costs must stay at/below inscribed (253).
+    free_mask = inflated.costs < LETHAL
+    if free_mask.any() and int(soft.costs[free_mask].max()) > INSCRIBED:
+        failures.append('soft DT free costs must be <= INSCRIBED(253)')
+    else:
+        print('PASS  soft DT free costs <= INSCRIBED')
 
     if failures:
         print('FAIL')

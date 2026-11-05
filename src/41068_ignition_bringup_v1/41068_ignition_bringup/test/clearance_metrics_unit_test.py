@@ -102,15 +102,19 @@ def main() -> int:
         f'eq={b_eq} one_sided={b_one}',
     ))
 
-    # score_candidate: bilateral_weight=0 leaves score unchanged.
+    # score_candidate: bilateral_weight=0 (neg-control) ignores bilateral term.
+    cfg_neg = PathBankConfig(
+        bilateral_weight=0.0, soft_dt_max_cost=0.0, length_weight=0.45,
+        nudge_target_clearance_m=0.70,
+    )
     cfg0 = PathBankConfig()
     cfg_b = PathBankConfig(bilateral_weight=0.20, clearance_weight=0.15)
     base = score_candidate(
-        10.0, 1.0, 0.0, 0.0, ref_length_m=10.0, cfg=cfg0,
+        10.0, 1.0, 0.0, 0.0, ref_length_m=10.0, cfg=cfg_neg,
         bilateral_balance_01=0.5,
     )
     same = score_candidate(
-        10.0, 1.0, 0.0, 0.0, ref_length_m=10.0, cfg=cfg0,
+        10.0, 1.0, 0.0, 0.0, ref_length_m=10.0, cfg=cfg_neg,
         bilateral_balance_01=1.0,
     )
     results.append(check(
@@ -130,10 +134,22 @@ def main() -> int:
         high > low + 1.0, f'low={low:.2f} high={high:.2f}',
     ))
     results.append(check(
-        'production default weights unchanged',
+        'production A1/A2 defaults (soft-DT + bilateral + centre nudge)',
         abs(cfg0.clearance_weight - 0.35) < 1e-12
-        and abs(cfg0.bilateral_weight - 0.0) < 1e-12
-        and abs(cfg0.nudge_target_clearance_m - 0.55) < 1e-12,
+        and abs(cfg0.bilateral_weight - 0.20) < 1e-12
+        and abs(cfg0.length_weight - 0.35) < 1e-12
+        and abs(cfg0.nudge_target_clearance_m - 0.80) < 1e-12
+        and abs(cfg0.soft_dt_max_cost - 80.0) < 1e-12
+        and abs(cfg0.soft_dt_decay_m - 0.40) < 1e-12,
+    ))
+    # Negative control: nudge-only / no soft-DT / bilateral off must remain a
+    # distinct profile from full A1+A2 (centreline gates use this inequality).
+    results.append(check(
+        'neg_nudge_only profile disables soft-DT + bilateral',
+        abs(cfg_neg.bilateral_weight - 0.0) < 1e-12
+        and abs(cfg_neg.soft_dt_max_cost - 0.0) < 1e-12
+        and cfg_neg.nudge_target_clearance_m >= 0.70,
+        f'bilat={cfg_neg.bilateral_weight} dt={cfg_neg.soft_dt_max_cost}',
     ))
 
     # Empty / no obstacles → None metrics.

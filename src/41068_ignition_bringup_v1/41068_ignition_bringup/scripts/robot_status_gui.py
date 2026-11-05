@@ -188,11 +188,16 @@ def speed_param_writes(speed: str) -> dict:
 
 
 # Path-bank MissionNavState values that should drive the Mission Status label.
+# PLANNING is intentionally absent: Dijkstra (often ~60s) is not yet driving.
+# FOLLOWING_PATH before Spin (early-by-rotate) may still say navigating.
 _PATH_BANK_NAVIGATING = frozenset({
     'FOLLOWING_PATH',
     'SWITCHING_PATH',
-    'PLANNING',
     'PATH_BLOCKED',
+})
+_PATH_BANK_NOT_PLANNING = frozenset({
+    'ARRIVED',
+    'FAILED',
 })
 # Bare NO_PATH_AVAILABLE is prelude / all-blocked advisory — NOT "returning".
 _PATH_BANK_RETURNING = frozenset({
@@ -303,11 +308,39 @@ def mission_status_from_path_bank(
         return 'complete'
     if key == 'FAILED':
         return 'failed'
+    if key == 'PLANNING':
+        return 'planning'
     if key in _PATH_BANK_NAVIGATING:
         if active_id is not None:
             return f'navigating to goal (path {active_id} active)'
         return 'navigating to goal'
     return None
+
+
+def banner_is_planning(path_bank_state: str, owner_detail: str = '') -> bool:
+    """True while the mission banner must say planning, not running/navigating.
+
+    Path-bank ``PLANNING`` and the StartMission pre-seed window count.
+    ``owner.detail == PENDING_SEED`` alone does not: that string used to stick
+    after the seed finished. A driving bank state wins over a sticky detail.
+    """
+    bank = (path_bank_state or '').strip().upper()
+    detail_u = (owner_detail or '').strip().upper()
+    if bank in _PATH_BANK_NAVIGATING:
+        return False
+    if bank == 'PLANNING':
+        return True
+    if detail_u != 'PENDING_SEED':
+        return False
+    if bank in (
+        _PATH_BANK_RETURNING
+        | _PATH_BANK_ALL_BLOCKED_PRELUDE
+        | _PATH_BANK_RETURN_TERMINAL
+        | _NO_SAFE_ROUTE_STATES
+        | _PATH_BANK_NOT_PLANNING
+    ):
+        return False
+    return True
 
 
 def _format_inhibit_label(inhibit: str, detail_token: str = '') -> str:
@@ -328,6 +361,7 @@ def mission_banner_from_owner(
     mission_running: bool = False,
     detail: str = '',
     no_safe_detail: str = '',
+    path_bank_state: str = '',
 ) -> str:
     """Map MissionOwnerStatus fields to a Mission banner label (no 'Mission:' prefix).
 
@@ -365,6 +399,9 @@ def mission_banner_from_owner(
     ):
         if phase == 'RETURNING_TO_START':
             return 'all paths blocked - returning to home'
+        # NAVIGATING is set at StartMission accept, before FollowPath exists.
+        if banner_is_planning(path_bank_state, detail):
+            return 'planning'
         if auth not in ('NAV', 'BT_MANUAL', 'TELEOP'):
             if inhibits:
                 return (
@@ -967,6 +1004,7 @@ class RobotStatusWindow(tk.Tk):
             'waiting for nav2',
             'waiting for mission owner',
             'stopping',
+            'planning',
             'all paths blocked - returning to home',
         ):
             color = '#d97706'
@@ -1345,6 +1383,10 @@ class RobotStatusNode(Node):
         self._owner_latch = False
         self._owner_authority = 'NONE'
         self._owner_detail = ''
+        # StartMission accept through pre-seed / PLANNING. Cleared once the
+        # bank reports a driving state (FOLLOWING_PATH and the rest of
+        # _PATH_BANK_NAVIGATING). Keeps STOP MISSION; does not touch authority.
+        self._planning_until_follow = False
 
         goal_frame = self.declare_parameter('goal_frame', 'husky1_map').value
         goal_x = self.declare_parameter('goal_x', DEFAULT_GOAL_X).value
@@ -1882,9 +1924,14 @@ class RobotStatusNode(Node):
         self.gui.set_goal_fields(x, y, yaw)
         self.gui.set_goal_status(f'({x:g}, {y:g}, {yaw:g})')
         self._local_mission_override = False
-        self.gui.set_mission_status('running')
+        # Accept is not motion. Bank is still PLANNING / pre-seed; button
+        # stays STOP MISSION via _mission_running (set before the call).
+        self._planning_until_follow = True
+        self.gui.set_mission_running(True)
+        self.gui.set_mission_status('planning')
         self.gui.set_feedback(
-            f'Mission started (id={result.mission_id}) → X={x:g} Y={y:g}'
+            f'Mission accepted (id={result.mission_id}) — planning path '
+            f'to X={x:g} Y={y:g}'
         )
 
     def _retry_pending_goal(self) -> None:
@@ -1896,6 +1943,7 @@ class RobotStatusNode(Node):
 
     def stop_mission(self) -> None:
         self._user_stop = True
+        self._planning_until_follow = False
         self._monitor_arrival = False
         self._monitor_idle_since = None
         self.start_request_pending = False
@@ -1996,9 +2044,11 @@ class RobotStatusNode(Node):
         if owner_phase in (
             'STOPPED', 'STOPPING', 'HOLDING', 'COSTMAP_REBUILD',
         ) or self._owner_inhibits:
+            self._planning_until_follow = False
             self._apply_owner_mission_banner(msg)
             return
-        # Path-bank navigating / blocked labels take precedence while bank is active.
+        # Driving / return / terminal bank labels take precedence.
+        # PLANNING is not in _PATH_BANK_NAVIGATING, so it cannot say "navigating".
         if self._path_bank_state in (
             _PATH_BANK_NAVIGATING
             | _PATH_BANK_RETURNING
@@ -2006,6 +2056,15 @@ class RobotStatusNode(Node):
             | _PATH_BANK_RETURN_TERMINAL
             | _NO_SAFE_ROUTE_STATES
         ):
+            self._planning_until_follow = False
+            return
+        if (
+            self._planning_until_follow
+            or self._path_bank_state == 'PLANNING'
+            or banner_is_planning(self._path_bank_state, self._owner_detail)
+        ):
+            # NAVIGATING at accept is not motion. Do not promote to running.
+            self.gui.set_mission_status('planning')
             return
         self._apply_owner_mission_banner(msg)
 
@@ -2019,6 +2078,7 @@ class RobotStatusNode(Node):
                 mission_running=self.gui._mission_running,
                 detail=self._owner_detail,
                 no_safe_detail=self._last_no_safe_detail,
+                path_bank_state=self._path_bank_state,
             )
         else:
             banner = mission_banner_from_owner(
@@ -2034,6 +2094,7 @@ class RobotStatusNode(Node):
                 mission_running=bool(getattr(msg, 'mission_running', False)),
                 detail=str(getattr(msg, 'detail', '') or ''),
                 no_safe_detail=self._last_no_safe_detail,
+                path_bank_state=self._path_bank_state,
             )
         self.gui.set_mission_status(banner)
 
@@ -2275,6 +2336,9 @@ class RobotStatusNode(Node):
             self.gui.set_mission_running(False)
             if self._owner_inhibits or self._owner_state.strip().upper() == 'STOPPED':
                 self._apply_owner_mission_banner()
+        elif self._path_bank_state == 'PLANNING':
+            # Dijkstra / pre-seed: keep STOP MISSION, do not say navigating.
+            self.gui.set_mission_running(True)
         elif self._path_bank_state in _PATH_BANK_NAVIGATING and self.active_goal is not None:
             self.gui.set_mission_running(True)
 
@@ -2297,6 +2361,19 @@ class RobotStatusNode(Node):
 
     def _path_bank_state_callback(self, msg: String) -> None:
         self._path_bank_state = (msg.data or '').strip().upper()
+        if self._path_bank_state == 'PLANNING':
+            self._planning_until_follow = True
+        elif self._path_bank_state in (
+            _PATH_BANK_NAVIGATING
+            | _PATH_BANK_RETURNING
+            | _PATH_BANK_ALL_BLOCKED_PRELUDE
+            | _PATH_BANK_RETURN_TERMINAL
+            | _NO_SAFE_ROUTE_STATES
+            | _PATH_BANK_NOT_PLANNING
+            | frozenset({'IDLE'})
+        ):
+            # FOLLOWING_PATH (including before Spin) ends the planning banner.
+            self._planning_until_follow = False
         self._apply_path_bank_mission_status()
 
     def _arrival_monitor_tick(self) -> None:

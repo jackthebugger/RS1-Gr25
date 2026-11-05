@@ -542,6 +542,35 @@ def test_footprint_mark_exclusion() -> list:
     return fails
 
 
+def test_clear_lidar_disk_keeps_fire() -> list:
+    """Entry 072: footprint escape clears LIDAR disk only; FIRE retained."""
+    fails = []
+    m = _mem()
+    # LIDAR under robot + LIDAR at barrier + FIRE near robot.
+    m.mark_lidar_hit(0.2, 0.0, now=1.0)  # no robot_xy → marks
+    m.mark_lidar_hit(2.0, 0.0, now=1.0)
+    m.mark_fire_hit(0.3, 0.1, now=1.0)
+    n_before = m.occupied_count()
+    if n_before < 3:
+        fails.append(f'expected ≥3 cells before clear, got {n_before}')
+    n = m.clear_lidar_disk(0.0, 0.0, radius_m=1.0)
+    if n < 1:
+        fails.append(f'expected LIDAR disk clear, got n={n}')
+    # Barrier LIDAR at 2.0 m must remain.
+    if not m.has_cell(*m.meta.world_to_grid(2.0, 0.0)):
+        fails.append('barrier LIDAR beyond radius was cleared')
+    # FIRE near robot must remain.
+    fire_idx = m.meta.world_to_grid(0.3, 0.1)
+    if fire_idx is None or m.cell_source(*fire_idx) != CellSource.FIRE:
+        fails.append('FIRE cell near robot was cleared or missing')
+    # Near LIDAR should be gone.
+    near_idx = m.meta.world_to_grid(0.2, 0.0)
+    if near_idx is not None and m.has_cell(*near_idx):
+        fails.append('near LIDAR cell should have been cleared')
+    print('PASS  clear_lidar_disk keeps FIRE' if not fails else 'FAIL  clear_lidar_disk')
+    return fails
+
+
 def test_path_bank_evidence_unblock() -> list:
     fails = []
     bank = PathBank(start=(0.0, 0.0), goal=(5.0, 0.0), candidates=[
@@ -899,6 +928,7 @@ def main() -> int:
         test_fire_frustum_inside_roi_clears,
         test_lethal_region_report,
         test_footprint_mark_exclusion,
+        test_clear_lidar_disk_keeps_fire,
         test_path_bank_evidence_unblock,
     ):
         failures.extend(fn())

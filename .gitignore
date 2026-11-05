@@ -48,3 +48,6 @@ Thumbs.db
 
 # Local Cursor overrides (un-ignore gitignored docs for @ mentions)
 .cursorignore
+
+# Local C5 report drafts, evidence, and audit work (keep private)
+/C5_Report/

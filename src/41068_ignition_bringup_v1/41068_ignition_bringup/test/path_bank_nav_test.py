@@ -265,6 +265,25 @@ def run_block(observer, mission, bank, world) -> bool:
             ok = switched
             log('PASS' if ok else 'FAIL (reached but no switch/replan evidence)')
             return ok
+        # Entry 071: bank ARRIVED alone is not mission success (escape-hop
+        # false ARRIVED @ ~10 m). Only stop-on-ARRIVED when near GOAL.
+        if (
+            switched
+            and str(bank.state).upper() == 'ARRIVED'
+            and pose is not None
+            and math.hypot(pose[0] - GOAL[0], pose[1] - GOAL[1]) < 1.0
+        ):
+            log(f'Bank ARRIVED near GOAL dist='
+                f'{math.hypot(pose[0] - GOAL[0], pose[1] - GOAL[1]):.3f}m')
+            return True
+        if (
+            switched
+            and str(bank.state).upper() == 'ARRIVED'
+            and pose is not None
+            and math.hypot(pose[0] - GOAL[0], pose[1] - GOAL[1]) >= 1.0
+        ):
+            # Keep waiting — false ARRIVED must not end the attempt.
+            idle_since = time.monotonic()
         if pose is not None and last_pose is not None:
             moved = math.hypot(pose[0] - last_pose[0], pose[1] - last_pose[1])
             if moved > 0.12:
@@ -280,6 +299,7 @@ def run_block(observer, mission, bank, world) -> bool:
     pose = observer.robot_pose()
     dist = None if pose is None else math.hypot(pose[0] - GOAL[0], pose[1] - GOAL[1])
     log(f'End dist={dist}; switches={bank.switch_count()}; state={bank.state}')
+    # Geometric mission success vs DEFAULT_GOAL (16,-0.1) — not ARRIVED alone.
     ok = switched and dist is not None and dist < 1.0
     log('PASS' if ok else 'FAIL')
     return ok

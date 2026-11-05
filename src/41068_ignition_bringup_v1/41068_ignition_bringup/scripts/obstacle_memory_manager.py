@@ -23,7 +23,8 @@ Topics (robot namespace, e.g. husky1)
     fire_memory_cloud            (sensor_msgs/PointCloud2 of FIRE cell centres)
     obstacle_memory/lidar_memory_cloud
     obstacle_memory/events
-* Subscribes: scan, fire_hazards, fire_detected, prior_map (metadata)
+* Subscribes: scan, fire_hazards, fire_detected, prior_map (metadata),
+  obstacle_memory/footprint_escape_clear (PoseStamped — LIDAR disk clear)
 """
 
 from __future__ import annotations
@@ -34,7 +35,7 @@ import time
 from typing import List, Optional, Sequence, Tuple
 
 import rclpy
-from geometry_msgs.msg import TransformStamped
+from geometry_msgs.msg import PoseStamped, TransformStamped
 from nav2_msgs.msg import CostmapFilterInfo
 from nav_msgs.msg import OccupancyGrid
 from rclpy.node import Node
@@ -134,6 +135,10 @@ class ObstacleMemoryManager(Node):
         self.declare_parameter('obstacle_max_range_m', 8.0)
         # Entry 023: skip marks inside Husky footprint halo (keepout trap).
         self.declare_parameter('mark_exclude_radius_m', 0.65)
+        # Entry 072: Path A→B switch LIDAR-only disk clear (≤1.0 m; never FIRE).
+        # Caps above mark_exclude so inflation-halo traps under the robot clear,
+        # but stays below typical exclusive-barrier standoff (~1.4 m).
+        self.declare_parameter('footprint_escape_clear_radius_m', 1.0)
         self.declare_parameter('fire_clear_confirm_scans', 3)
         # Entry 027: camera-frame ROI frustum (beer_thermal_camera).
         self.declare_parameter('thermal_frame', '')  # default <robot>_camera_link
@@ -263,6 +268,14 @@ class ObstacleMemoryManager(Node):
             self._on_prior,
             LATCHED,
         )
+        self._footprint_escape_r = float(
+            self.get_parameter('footprint_escape_clear_radius_m').value)
+        self.create_subscription(
+            PoseStamped,
+            'obstacle_memory/footprint_escape_clear',
+            self._on_footprint_escape_clear,
+            2,
+        )
 
         info_topic = str(self.get_parameter('filter_info_topic').value)
         mask_topic = str(self.get_parameter('mask_topic').value)
@@ -311,6 +324,25 @@ class ObstacleMemoryManager(Node):
         self._dirty = False
 
     # -- callbacks ---------------------------------------------------------
+
+    def _on_footprint_escape_clear(self, msg: PoseStamped) -> None:
+        """Entry 072: LIDAR-only disk clear at pose (FIRE retained)."""
+        if not self._enabled or self._memory is None:
+            return
+        x = float(msg.pose.position.x)
+        y = float(msg.pose.position.y)
+        r = max(0.0, min(1.0, float(self._footprint_escape_r)))
+        n = self._memory.clear_lidar_disk(x, y, r)
+        if n > 0:
+            self._dirty = True
+            self._publish_mask()
+            self._event_pub.publish(
+                String(data=f'FOOTPRINT_ESCAPE_CLEAR n={n} r={r:.2f} '
+                       f'at=({x:.2f},{y:.2f})'))
+            self.get_logger().info(
+                f'FOOTPRINT_ESCAPE_CLEAR lidar cells={n} r={r:.2f}m '
+                f'at=({x:.2f},{y:.2f}) (FIRE retained)'
+            )
 
     def _on_prior(self, msg: OccupancyGrid) -> None:
         import numpy as np

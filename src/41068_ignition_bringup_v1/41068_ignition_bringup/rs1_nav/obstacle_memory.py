@@ -437,6 +437,35 @@ class ObstacleMemory:
             return ClearResult.ACCEPTED
         return ClearResult.OUT_OF_FOV
 
+    def clear_lidar_disk(
+        self,
+        x: float,
+        y: float,
+        radius_m: float,
+    ) -> int:
+        """Remove LIDAR-only memory cells inside a disk (Entry 072).
+
+        Safety: never clears FIRE. Used to restore the Entry 023 footprint
+        exclude invariant when Humble KeepoutFilter has no
+        ``override_lethal_cost`` and the robot is soft-stopped in a LIDAR
+        keepout halo after Path A→B switch. Barrier cells beyond ``radius_m``
+        remain marked. Returns number of cells removed.
+        """
+        r = max(0.0, float(radius_m))
+        if r <= 0.0:
+            return 0
+        removed = 0
+        # Copy keys — mutating while iterating.
+        for (ix, iy) in list(self.cells.keys()):
+            cell = self.cells.get((ix, iy))
+            if cell is None or cell.source != CellSource.LIDAR:
+                continue
+            cx, cy = self.meta.grid_to_world(ix, iy)
+            if math.hypot(cx - float(x), cy - float(y)) <= r:
+                del self.cells[(ix, iy)]
+                removed += 1
+        return removed
+
     def clear_lidar_with_scan(
         self,
         *,

@@ -449,3 +449,75 @@ def test_entry063_speed_radio_labels_match_applied():
     assert win.speed_buttons['medium'].cget('text') == 'Medium 0.30'
     assert win.speed_buttons['slow'].cget('text') == 'Slow 0.15'
     win.destroy()
+
+
+def test_clearance_gui_surface_removed_speed_and_start_remain():
+    """Operator clearance buttons are gone; speed presets and START stay."""
+    assert not hasattr(gui, 'CLEARANCE_PRESETS')
+    assert not hasattr(gui, 'CLEARANCE_PARAM_NAME')
+    assert not hasattr(gui.RobotStatusWindow, 'set_clearance')
+    assert not hasattr(gui.RobotStatusWindow, 'set_clearance_callback')
+    assert not hasattr(gui.RobotStatusNode, 'set_clearance')
+    win = gui.RobotStatusWindow('husky1')
+    win.update_idletasks()
+    assert not hasattr(win, 'clearance_frame')
+    assert not hasattr(win, 'clearance_buttons')
+    assert not hasattr(win, 'clearance_var')
+    assert not hasattr(win, 'clearance_choice_var')
+    assert win.speed_frame.winfo_exists()
+    assert win.speed_buttons['slow'].cget('text') == 'Slow 0.15'
+    assert win.speed_buttons['medium'].cget('text') == 'Medium 0.30'
+    assert win.speed_buttons['fast'].cget('text') == 'Fast 0.50'
+    assert win.mission_button.cget('text') == 'START MISSION'
+    assert hasattr(win, '_canvas')
+    geom = win.geometry()
+    assert geom.startswith('560x780'), geom
+    win.destroy()
+
+
+def test_planning_banner_is_not_navigating_until_driving():
+    """PLANNING / pre-seed stay planning; FOLLOWING_PATH wins over sticky detail."""
+    assert 'PLANNING' not in gui._PATH_BANK_NAVIGATING
+    assert gui.mission_status_from_path_bank('PLANNING') == 'planning'
+    assert gui.mission_status_from_path_bank('PLANNING', 1) == 'planning'
+    assert gui.mission_status_from_path_bank('FOLLOWING_PATH', 1) == (
+        'navigating to goal (path 1 active)'
+    )
+    assert gui.banner_is_planning('PLANNING', '') is True
+    assert gui.banner_is_planning('', 'PENDING_SEED') is True
+    assert gui.banner_is_planning('FOLLOWING_PATH', 'PENDING_SEED') is False
+    assert gui.mission_banner_from_owner(
+        'NAVIGATING',
+        mission_running=True,
+        command_authority='NAV',
+        detail='PENDING_SEED',
+        path_bank_state='',
+    ) == 'planning'
+    assert gui.mission_banner_from_owner(
+        'NAVIGATING',
+        mission_running=True,
+        command_authority='NAV',
+        detail='',
+        path_bank_state='PLANNING',
+    ) == 'planning'
+    assert gui.mission_banner_from_owner(
+        'NAVIGATING',
+        mission_running=True,
+        command_authority='NAV',
+        detail='PENDING_SEED',
+        path_bank_state='FOLLOWING_PATH',
+    ) == 'running'
+    assert gui.mission_banner_from_owner(
+        'NAVIGATING',
+        mission_running=True,
+        command_authority='NAV',
+    ) == 'running'
+    win = gui.RobotStatusWindow('husky1')
+    win.update_idletasks()
+    win.set_mission_running(True)
+    win.set_mission_status('planning')
+    assert win.mission_button.cget('text') == 'STOP MISSION'
+    assert 'PLANNING' in win.mission_var.get()
+    assert 'NAVIGATING' not in win.mission_var.get()
+    assert win.mission_label.cget('bg') == '#d97706'
+    win.destroy()

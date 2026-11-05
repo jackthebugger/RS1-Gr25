@@ -53,10 +53,10 @@ class CandidateState(str, Enum):
 class PathBankConfig:
     """Tunable path-bank behaviour (ROS parameters map onto these).
 
-    Wave 2: score weights + nudge + bilateral are constructor/ROS-parameter
-    gated. Defaults match production; set ``bilateral_weight > 0`` only for
-    bake experiments (do not change production launch defaults without
-    measured clearance wins).
+    Issue A (A1/A2): soft distance-transform clearance cost on free cells,
+    centre-seeking nudge target (~0.80 m), and bilateral scoring are
+    production defaults. Set ``soft_dt_max_cost=0`` / ``bilateral_weight=0``
+    for negative-control / legacy bake profiles.
     """
 
     max_candidates: int = 4
@@ -66,20 +66,24 @@ class PathBankConfig:
     # Match Nav2 IsPathValid / lethal semantics: 254 = LETHAL_OBSTACLE.
     # Cost 253 is inscribed soft cost — RPP slows there; it is NOT a blockage.
     lethal_threshold: int = 254
-    length_weight: float = 0.45
+    length_weight: float = 0.35
     clearance_weight: float = 0.35
     cost_weight: float = 0.15
     smoothness_weight: float = 0.05
-    # Gated bilateral centre-of-corridor term (0 = disabled / production).
-    bilateral_weight: float = 0.0
+    # Bilateral centre-of-corridor term (A2 production default 0.20).
+    bilateral_weight: float = 0.20
     clearance_ref_m: float = 2.0
     max_turn_rad: float = math.pi
     validity_lookahead_m: float = 0.0  # 0 = whole remaining path
     sample_stride: int = 2
-    # Nudge polyline params (manager may pass these; defaults unchanged).
-    nudge_target_clearance_m: float = 0.55
-    nudge_max_offset_m: float = 0.40
+    # Centre-seeking nudge (A1): prefer ~0.80 m equidistant where corridor allows.
+    nudge_target_clearance_m: float = 0.80
+    nudge_max_offset_m: float = 0.80
     nudge_offset_step_m: float = 0.05
+    # Soft DT clearance cost on binary-inflated free cells (A1).
+    # cost ≈ soft_dt_max_cost * exp(−d / soft_dt_decay_m); must stay < lethal.
+    soft_dt_max_cost: float = 80.0
+    soft_dt_decay_m: float = 0.40
 
 
 @dataclass
@@ -251,6 +255,70 @@ def inflate_lethal(grid: OccupancyGrid2D, radius_m: float) -> OccupancyGrid2D:
         mask = (yy - iy) ** 2 + (xx - ix) ** 2 <= cells * cells
         region = out[y0:y1, x0:x1]
         region[mask] = np.maximum(region[mask], LETHAL)
+    return OccupancyGrid2D(
+        grid.origin_x, grid.origin_y, grid.resolution,
+        grid.width, grid.height, out,
+    )
+
+
+def apply_soft_clearance_dt(
+    grid: OccupancyGrid2D,
+    *,
+    soft_dt_max_cost: float = 80.0,
+    soft_dt_decay_m: float = 0.40,
+) -> OccupancyGrid2D:
+    """Write soft distance-transform clearance cost onto free cells.
+
+    After binary ``inflate_lethal``, free cells are otherwise uniform. Soft DT
+    prefers corridor centre via ``_cell_traversal_cost`` without changing hard
+    lethal. Lethal / NO_INFO cells are never modified. ``soft_dt_max_cost <= 0``
+    is a no-op (negative-control / legacy profiles).
+    """
+    max_cost = float(soft_dt_max_cost)
+    if max_cost <= 0.0:
+        return OccupancyGrid2D(
+            grid.origin_x, grid.origin_y, grid.resolution,
+            grid.width, grid.height, grid.costs.copy(),
+        )
+    decay = max(1e-6, float(soft_dt_decay_m))
+    # Treat lethal as obstacles for EDT; NO_INFO is non-free for soft write.
+    lethal = (grid.costs >= LETHAL) & (grid.costs != NO_INFO)
+    free = ~lethal & (grid.costs != NO_INFO)
+    if not lethal.any() or not free.any():
+        return OccupancyGrid2D(
+            grid.origin_x, grid.origin_y, grid.resolution,
+            grid.width, grid.height, grid.costs.copy(),
+        )
+    # Distance (cells) to nearest lethal; lethal cells → 0.
+    try:
+        from scipy.ndimage import distance_transform_edt
+        dist_cells = distance_transform_edt(~lethal)
+    except ImportError:
+        # Pure-numpy fallback: multi-source BFS from lethal cells.
+        dist_cells = np.full(grid.costs.shape, np.inf, dtype=np.float64)
+        ys, xs = np.where(lethal)
+        dist_cells[ys, xs] = 0.0
+        queue = list(zip(ys.tolist(), xs.tolist()))
+        h, w = grid.costs.shape
+        head = 0
+        while head < len(queue):
+            cy, cx = queue[head]
+            head += 1
+            base = dist_cells[cy, cx]
+            for dy, dx in ((-1, 0), (1, 0), (0, -1), (0, 1)):
+                ny, nx = cy + dy, cx + dx
+                if not (0 <= ny < h and 0 <= nx < w):
+                    continue
+                nd = base + 1.0
+                if nd < dist_cells[ny, nx]:
+                    dist_cells[ny, nx] = nd
+                    queue.append((ny, nx))
+    dist_m = dist_cells.astype(np.float64) * float(grid.resolution)
+    soft = max_cost * np.exp(-dist_m / decay)
+    soft_u8 = np.clip(np.rint(soft), 0, INSCRIBED).astype(np.uint8)
+    out = grid.costs.copy()
+    # Free cells only — take max so prior soft inflation is not erased.
+    out[free] = np.maximum(out[free], soft_u8[free])
     return OccupancyGrid2D(
         grid.origin_x, grid.origin_y, grid.resolution,
         grid.width, grid.height, out,
@@ -479,15 +547,16 @@ def nudge_polyline_away_from_lethal(
     path: Sequence[Point],
     grid: OccupancyGrid2D,
     *,
-    target_clearance_m: float = 0.55,
-    max_offset_m: float = 0.40,
+    target_clearance_m: float = 0.80,
+    max_offset_m: float = 0.80,
     offset_step_m: float = 0.05,
 ) -> List[Point]:
-    """Laterally offset undersized-clearance vertices toward free space.
+    """Laterally offset vertices toward corridor centre (centre-seeking).
 
-    Does **not** shrink the robot footprint — it moves the FollowPath
-    centreline toward the corridor middle so RPP's footprint collision check
-    (local costmap) is not knife-edging trail walls (path_bank_nav clean).
+    Seeks ``target_clearance_m`` (~0.80 m equidistant on bush_trail) where the
+    corridor allows; otherwise keeps the max feasible mid-corridor clearance
+    within ``max_offset_m``. Does **not** shrink the robot footprint — moves
+    the FollowPath centreline so local footprint checks are not knife-edging.
     """
     if len(path) < 2:
         return list(path)
@@ -522,6 +591,8 @@ def nudge_polyline_away_from_lethal(
                 c = _point_clearance(cx, cy, grid)
                 if c > best[0]:
                     best = (c, cx, cy)
+            # Centre-seeking: keep improving while under target; do not stop
+            # at a weaker min-clearance floor when more offset still helps.
             if best[0] >= target:
                 break
             off += step
@@ -599,7 +670,8 @@ def score_candidate(
       + w_bilat * bilateral_balance          # only if bilateral_weight > 0
     )
 
-    Production defaults keep ``bilateral_weight=0`` so scores are unchanged.
+    Production A2 defaults use ``bilateral_weight=0.20``; set 0 for legacy /
+    negative-control profiles that must ignore the bilateral term.
     """
     length_term = max(0.0, min(1.0, ref_length_m / max(length_m, 1e-3)))
     clear_term = max(0.0, min(1.0, min_clearance_m / max(cfg.clearance_ref_m, 1e-3)))
@@ -740,6 +812,12 @@ def build_path_bank(
     source = planning_grid
     planning_grid = downsample_grid(planning_grid, downsample_factor)
     base = inflate_lethal(planning_grid, footprint_inflate_m)
+    # A1: soft DT on free cells so Dijkstra prefers corridor centre.
+    base = apply_soft_clearance_dt(
+        base,
+        soft_dt_max_cost=cfg.soft_dt_max_cost,
+        soft_dt_decay_m=cfg.soft_dt_decay_m,
+    )
     bank = PathBank(start=start, goal=goal)
     working = base
     raw_paths: List[List[Point]] = []

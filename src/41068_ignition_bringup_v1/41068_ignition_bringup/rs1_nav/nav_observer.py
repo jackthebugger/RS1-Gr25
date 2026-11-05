@@ -395,7 +395,9 @@ class NavObserver(Node):
         req.goal_y = float(y)
         req.goal_yaw = float(yaw)
         future = cli.call_async(req)
-        deadline = time.monotonic() + 15.0
+        # Manager accepts StartMission immediately (async bank seed). Keep a
+        # generous wait for older sync-build binaries / transient stalls.
+        deadline = time.monotonic() + 90.0
         while time.monotonic() < deadline and not future.done():
             rclpy.spin_once(self, timeout_sec=0.1)
         if not future.done():

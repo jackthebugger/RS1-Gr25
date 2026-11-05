@@ -170,8 +170,10 @@ class GoalVisualSpec:
             '</cone></geometry><material><ambient>1 0 0 1</ambient>'
             '<diffuse>1 0 0 1</diffuse><emissive>0.8 0 0 1</emissive>'
             '</material></visual>'
-            '<visual name="goal_pole"><pose>0 0 3.0 0 0 0</pose>'
-            '<geometry><cylinder><radius>0.12</radius><length>6.0</length>'
+            # Pole raised above Husky lidar (~0.845 m): z ∈ [1.5, 6.0]
+            # (pose z=3.75, length=4.5) so gpu_lidar cannot seal the goal cell.
+            '<visual name="goal_pole"><pose>0 0 3.75 0 0 0</pose>'
+            '<geometry><cylinder><radius>0.12</radius><length>4.5</length>'
             '</cylinder></geometry><material><ambient>1 0 0 1</ambient>'
             '<diffuse>1 0 0 1</diffuse><emissive>0.5 0 0 1</emissive>'
             '</material></visual>'
