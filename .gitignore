@@ -44,3 +44,9 @@ HUSKY_NAVIGATION_SYSTEM_BREAKDOWN.md
 
 # Local Cursor overrides (un-ignore gitignored docs for @ mentions)
 .cursorignore
+
+# Local C5 report drafts, evidence, and audit work (keep private)
+/C5_Report/
+
+# Local navigation engineering notes / artefacts (keep private)
+/navigation_engineering/

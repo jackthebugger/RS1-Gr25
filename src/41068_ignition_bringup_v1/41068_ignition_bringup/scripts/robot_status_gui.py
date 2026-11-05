@@ -201,9 +201,15 @@ class RobotStatusWindow(tk.Tk):
         super().__init__()
         self.robot_name = robot_name
         self.title(f'{robot_name} status')
-        # Compact default so windowed desktops show controls; content scrolls.
-        self.geometry('1800x1100')
-        self.minsize(1500, 850)
+        # Presentation-friendly default; window stays resizable/maximizable.
+        self.resizable(True, True)
+        self.minsize(800, 560)
+        try:
+            # Some WMs start large Tk windows maximized; clear so geometry sticks.
+            self.attributes('-zoomed', False)
+        except tk.TclError:
+            pass
+        self.geometry('1280x800')
 
         self.configure(bg='#f3f4f6')
 
@@ -240,8 +246,10 @@ class RobotStatusWindow(tk.Tk):
         )
         self._content.bind('<Configure>', self._on_content_configure)
         self._canvas.bind('<Configure>', self._on_canvas_configure)
+        self._bind_mousewheel(self)
         self._bind_mousewheel(self._canvas)
         self._bind_mousewheel(self._content)
+        self._bind_mousewheel(self.header)
 
         body = self._content
 
@@ -262,7 +270,7 @@ class RobotStatusWindow(tk.Tk):
         for column in range(3):
             self.views_frame.columnconfigure(column, weight=1)
 
-        self.map_frame = tk.Frame(self.views_frame, width=520, height=320, bg='#111827')
+        self.map_frame = tk.Frame(self.views_frame, width=360, height=220, bg='#111827')
         self.map_frame.grid(row=0, column=0, padx=4, sticky='nsew')
         self.map_frame.grid_propagate(False)
         self.map_label = tk.Label(
@@ -275,7 +283,7 @@ class RobotStatusWindow(tk.Tk):
         self.map_label.pack(fill='both', expand=True)
         self.map_photo = None
 
-        self.camera_frame = tk.Frame(self.views_frame, width=520, height=320, bg='#111827')
+        self.camera_frame = tk.Frame(self.views_frame, width=360, height=220, bg='#111827')
         self.camera_frame.grid(row=0, column=1, padx=4, sticky='nsew')
         self.camera_frame.grid_propagate(False)
         self.camera_label = tk.Label(
@@ -289,7 +297,7 @@ class RobotStatusWindow(tk.Tk):
         self.camera_photo = None
 
         self.thermal_frame = tk.Frame(
-            self.views_frame, width=520, height=320, bg='#111827',
+            self.views_frame, width=360, height=220, bg='#111827',
         )
         self.thermal_frame.grid(row=0, column=2, padx=4, sticky='nsew')
         self.thermal_frame.grid_propagate(False)
@@ -505,6 +513,29 @@ class RobotStatusWindow(tk.Tk):
         self.update_status()
         self._bind_mousewheel_tree(body)
         self.after_idle(self._refresh_scroll_region)
+        # Some WMs map large Tk windows maximized; retry until normal size sticks.
+        self._geometry_pin_attempts = 0
+        self.after(50, self._pin_default_geometry)
+
+    def _pin_default_geometry(self) -> None:
+        try:
+            self.attributes('-zoomed', False)
+        except tk.TclError:
+            pass
+        self.geometry('1280x800')
+        self.update_idletasks()
+        zoomed = False
+        try:
+            zoomed = bool(self.attributes('-zoomed'))
+        except tk.TclError:
+            pass
+        width = int(self.winfo_width())
+        if zoomed or width < 100:
+            self._geometry_pin_attempts += 1
+            if self._geometry_pin_attempts < 20:
+                self.after(50, self._pin_default_geometry)
+            return
+        self.after_idle(self._refresh_scroll_region)
 
     def _on_content_configure(self, _event=None) -> None:
         self._refresh_scroll_region()
@@ -658,7 +689,7 @@ class RobotStatusWindow(tk.Tk):
             pixels.extend(current)
 
         display_pixels, display_width, display_height = resize_rgb(
-            pixels, image.width, image.height, 500, 300,
+            pixels, image.width, image.height, 340, 200,
         )
         ppm = (
             f'P6\n{display_width} {display_height}\n255\n'.encode()
@@ -740,7 +771,7 @@ class RobotStatusWindow(tk.Tk):
             pixels.extend((red, green, blue))
 
         display_pixels, display_width, display_height = resize_rgb(
-            pixels, image.width, image.height, 500, 300,
+            pixels, image.width, image.height, 340, 200,
         )
         ppm = (
             f'P6\n{display_width} {display_height}\n255\n'.encode()
@@ -765,8 +796,8 @@ class RobotStatusWindow(tk.Tk):
         if width <= 0 or height <= 0 or len(grid.data) < width * height:
             return
 
-        display_width = min(500, width)
-        display_height = min(300, height)
+        display_width = min(340, width)
+        display_height = min(200, height)
         pixels = bytearray()
         for display_y in range(display_height):
             source_y = height - 1 - (display_y * height // display_height)
@@ -837,7 +868,7 @@ class RobotStatusWindow(tk.Tk):
         draw_marker(map_pixel(robot_pose), (37, 99, 235))
 
         display_pixels, display_width, display_height = resize_rgb(
-            pixels, display_width, display_height, 500, 300,
+            pixels, display_width, display_height, 340, 200,
         )
         ppm = (
             f'P6\n{display_width} {display_height}\n255\n'.encode()
