@@ -170,8 +170,10 @@ class GoalVisualSpec:
             '</cone></geometry><material><ambient>1 0 0 1</ambient>'
             '<diffuse>1 0 0 1</diffuse><emissive>0.8 0 0 1</emissive>'
             '</material></visual>'
-            '<visual name="goal_pole"><pose>0 0 3.0 0 0 0</pose>'
-            '<geometry><cylinder><radius>0.12</radius><length>6.0</length>'
+            # Pole raised above Husky lidar (~0.845 m): z ∈ [1.5, 6.0]
+            # (pose z=3.75, length=4.5) so gpu_lidar cannot seal the goal cell.
+            '<visual name="goal_pole"><pose>0 0 3.75 0 0 0</pose>'
+            '<geometry><cylinder><radius>0.12</radius><length>4.5</length>'
             '</cylinder></geometry><material><ambient>1 0 0 1</ambient>'
             '<diffuse>1 0 0 1</diffuse><emissive>0.5 0 0 1</emissive>'
             '</material></visual>'
@@ -310,6 +312,30 @@ class GazeboWorld:
         if ok:
             self._log(
                 f'Set pose "{name}" → ({x:.2f},{y:.2f},z={z:.2f}) yaw={yaw:.2f}'
+            )
+        return ok
+
+    def set_physics(
+        self,
+        *,
+        real_time_factor: float = 2.0,
+        max_step_size: float = 0.01,
+    ) -> bool:
+        """Request a runtime physics change (test-only RTF). Fortress ``Physics``.
+
+        Returns True if Gazebo acknowledged the request. Caller must measure
+        clock Hz to confirm the factor actually applied.
+        """
+        request = (
+            f'max_step_size: {max_step_size:.6f} '
+            f'real_time_factor: {real_time_factor:.4f} '
+            f'real_time_update_rate: {-1}'
+        )
+        ok = self._service('set_physics', request, 'Physics')
+        if ok:
+            self._log(
+                f'Set physics RTF={real_time_factor:.2f} '
+                f'step={max_step_size:.4f}s'
             )
         return ok
 

@@ -1,15 +1,18 @@
 import os
 
-from ament_index_python.packages import get_package_share_directory
+from ament_index_python.packages import get_package_prefix, get_package_share_directory
 from launch import LaunchDescription
 from launch.actions import (
     DeclareLaunchArgument,
+    ExecuteProcess,
     GroupAction,
     IncludeLaunchDescription,
+    RegisterEventHandler,
     SetEnvironmentVariable,
     TimerAction,
 )
 from launch.conditions import IfCondition, UnlessCondition
+from launch.event_handlers import OnProcessExit
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import Command, LaunchConfiguration, PathJoinSubstitution, PythonExpression
 from launch_ros.actions import Node
@@ -122,6 +125,28 @@ def add_robot(
         condition=robot_enabled,
     ))
 
+    # Orphan ign servers keep <gz_model_name> at its last pose. create with
+    # allow_renaming=false (default) often no-ops while exiting 0, so the
+    # operator sees the husky at the previous end-goal. Pre-remove first.
+    pre_spawn_remove = ExecuteProcess(
+        cmd=[
+            os.path.join(
+                get_package_prefix('41068_ignition_bringup'),
+                'lib',
+                '41068_ignition_bringup',
+                'ign_pre_spawn_remove.py',
+            ),
+            '--world', LaunchConfiguration('world'),
+            '--name', gz_model_name,
+            '--x', x,
+            '--y', y,
+            '--z', z,
+            '--yaw', yaw,
+        ],
+        name='pre_spawn_remove_' + namespace,
+        output='screen',
+    )
+
     robot_spawner = Node(
         package='ros_ign_gazebo',
         executable='create',
@@ -138,10 +163,21 @@ def add_robot(
         ],
     )
 
-    # Start Gazebo first, then insert robot entities in a predictable order.
+    # Start Gazebo first, pre-remove any stale model, then create only after
+    # pre-remove exits. Entry 038 used spawn_delay+1.5 TimerAction for create,
+    # which raced when remove waited on a slow world (create could run first and
+    # no-op on a stale husky1). Entry 039: OnProcessExit replaces that race.
+    # robot_enabled gates both sides so disabled robots never start remove/create.
     ld.add_action(TimerAction(
-        period=spawn_delay,
-        actions=[robot_spawner],
+        period=float(spawn_delay),
+        actions=[pre_spawn_remove],
+        condition=robot_enabled,
+    ))
+    ld.add_action(RegisterEventHandler(
+        OnProcessExit(
+            target_action=pre_spawn_remove,
+            on_exit=[robot_spawner],
+        ),
         condition=robot_enabled,
     ))
 
@@ -186,8 +222,14 @@ def add_navigation_instance(
             'prior_map_file': LaunchConfiguration('prior_map_file'),
             'path_bank': LaunchConfiguration('path_bank'),
             'path_bank_switch_resend': LaunchConfiguration('path_bank_switch_resend'),
+            'obstacle_memory': LaunchConfiguration('obstacle_memory'),
             'fire_avoidance': LaunchConfiguration('fire_avoidance'),
             'test_speed': LaunchConfiguration('test_speed'),
+            'planner_bake': LaunchConfiguration('planner_bake'),
+            'controller_bake': LaunchConfiguration('controller_bake'),
+            'smoother_bake': LaunchConfiguration('smoother_bake'),
+            'nav2_params_overlay': LaunchConfiguration('nav2_params_overlay'),
+            'mission_nav_authority': LaunchConfiguration('mission_nav_authority'),
         }.items(),
     )
 
@@ -242,23 +284,26 @@ def add_status_gui_instance(
     robot_arg,
     robot_namespace,
     start_delay,
+    world,
 ):
+    """Launch the full Robot Status GUI (mission owner + forest gaps).
+
+    Prefer ``robot_status_gui.launch.py`` over a bare Node so status_gui:=true
+    gets the same forest-gap / StartMission wiring as the standalone launch.
+    """
     ld.add_action(TimerAction(
         period=start_delay,
-        actions=[Node(
-            package='41068_ignition_bringup',
-            executable='robot_status_gui.py',
-            namespace=robot_namespace,
-            name='robot_status_gui',
-            output='screen',
-            parameters=[{
+        actions=[IncludeLaunchDescription(
+            PythonLaunchDescriptionSource(PathJoinSubstitution([
+                FindPackageShare('41068_ignition_bringup'),
+                'launch',
+                'robot_status_gui.launch.py',
+            ])),
+            launch_arguments={
                 'use_sim_time': use_sim_time,
-                'robot_name': robot_namespace,
-                'goal_frame': robot_namespace + '_map',
-                'odom_topic': 'odom',
-                'scan_topic': 'scan',
-                'map_topic': 'global_costmap/costmap',
-            }],
+                'robot': robot_namespace,
+                'world_name': world,
+            }.items(),
         )],
         condition=_if_true(robot_arg),
     ))
@@ -404,6 +449,11 @@ def generate_launch_description():
         description='Map YAML in share/.../maps/ for StaticLayer + path bank.',
     ))
     ld.add_action(DeclareLaunchArgument(
+        'obstacle_memory',
+        default_value='true',
+        description='When true (and nav2), launch obstacle_memory_manager.',
+    ))
+    ld.add_action(DeclareLaunchArgument(
         'path_bank',
         default_value='true',
         description='When true (and nav2), launch path_bank_manager.',
@@ -428,6 +478,43 @@ def generate_launch_description():
         description=(
             'TEST ONLY: forward to navigation launch to raise RPP/smoother '
             'linear limits for faster sim approach (default false = production).'
+        ),
+    ))
+    ld.add_action(DeclareLaunchArgument(
+        'planner_bake',
+        default_value='none',
+        description=(
+            'Wave 2 bake-off: none (NavFn) or smac2d overlay. Default none.'
+        ),
+    ))
+    ld.add_action(DeclareLaunchArgument(
+        'controller_bake',
+        default_value='none',
+        description=(
+            'Wave 2 bake-off: none (RPP) or mppi DiffDrive overlay. Default none.'
+        ),
+    ))
+    ld.add_action(DeclareLaunchArgument(
+        'smoother_bake',
+        default_value='none',
+        description=(
+            'Wave 2 bake-off: none (SimpleSmoother) or constrained. Default none.'
+        ),
+    ))
+    ld.add_action(DeclareLaunchArgument(
+        'nav2_params_overlay',
+        default_value='none',
+        description=(
+            'Optional comma-separated extra Nav2 YAML overlays after bake '
+            'presets. Default none.'
+        ),
+    ))
+    ld.add_action(DeclareLaunchArgument(
+        'mission_nav_authority',
+        default_value='bank_follow_path',
+        description=(
+            'Forward to navigation: bank_follow_path (BT PAUSE + FollowPath) or '
+            'legacy_navigate_to_pose (BT active NTP).'
         ),
     ))
 
@@ -654,6 +741,7 @@ def generate_launch_description():
         robot_arg='status_gui',
         robot_namespace='husky1',
         start_delay=15.0,
+        world=LaunchConfiguration('world'),
     )
 
     return ld

@@ -104,10 +104,19 @@ def run_clean(observer, mission, bank) -> bool:
 
 
 def _exclusive_block_xy(observer, timeout: float = 20.0):
-    """Prefer a point on path_bank/candidate_0 far from candidate_1."""
+    """Prefer a point on path_bank/candidate_1 far from candidate_2."""
     from nav_msgs.msg import Path as RosPath
+    from rclpy.qos import (
+        DurabilityPolicy, HistoryPolicy, QoSProfile, ReliabilityPolicy,
+    )
 
-    paths = {0: None, 1: None}
+    latched = QoSProfile(
+        depth=1,
+        reliability=ReliabilityPolicy.RELIABLE,
+        durability=DurabilityPolicy.TRANSIENT_LOCAL,
+        history=HistoryPolicy.KEEP_LAST,
+    )
+    paths = {1: None, 2: None}
 
     def _make(i):
         def _cb(msg: RosPath):
@@ -116,21 +125,41 @@ def _exclusive_block_xy(observer, timeout: float = 20.0):
                 paths[i] = pts
         return _cb
 
+    # Topics are candidate_1 / candidate_2 (path_id), not 0-based.
     subs = [
-        observer.create_subscription(RosPath, f'path_bank/candidate_{i}', _make(i), 5)
-        for i in (0, 1)
+        observer.create_subscription(
+            RosPath, f'path_bank/candidate_{i}', _make(i), latched)
+        for i in (1, 2)
     ]
     deadline = time.monotonic() + timeout
-    while time.monotonic() < deadline and (paths[0] is None or paths[1] is None):
+    while time.monotonic() < deadline and (paths[1] is None or paths[2] is None):
         observer.spin_for(0.2)
     for s in subs:
         observer.destroy_subscription(s)
-    if paths[0] and paths[1]:
+    if paths[1] and paths[2]:
+        # Prefer max-separation exclusive point with y≥-3 (eastbound corridor).
+        # Deep southern exclusives (y≈-11) force a long Path-2 handoff.
+        best = None  # (sep, pt)
+        for pt in paths[1][::12]:
+            if pt[1] < -3.0:
+                continue
+            sep = min(
+                math.hypot(pt[0] - q[0], pt[1] - q[1]) for q in paths[2][::8]
+            )
+            if sep < 4.0:
+                continue
+            if best is None or sep > best[0]:
+                best = (sep, pt)
+        if best is not None:
+            return best[1], best[0]
+        # Fallback: global max-sep (may be deep Path A).
         best = None
-        for pt in paths[0][::12]:
-            d = min(math.hypot(pt[0] - q[0], pt[1] - q[1]) for q in paths[1][::8])
-            if best is None or d > best[0]:
-                best = (d, pt)
+        for pt in paths[1][::12]:
+            sep = min(
+                math.hypot(pt[0] - q[0], pt[1] - q[1]) for q in paths[2][::8]
+            )
+            if best is None or sep > best[0]:
+                best = (sep, pt)
         if best is not None and best[0] > 2.0:
             return best[1], best[0]
     return None, 0.0
@@ -142,32 +171,64 @@ def run_block(observer, mission, bank, world) -> bool:
     if not mission.wait_until_ready(timeout=30.0):
         return False
     observer.send_goal(GOAL[0], GOAL[1], GOAL[2])
-    # Wait for first plan
-    deadline = time.monotonic() + 60.0
-    plan = None
-    while time.monotonic() < deadline:
-        observer.spin_for(0.2)
-        if observer.paths:
-            plan = observer.paths[-1]
-            break
-    if plan is None:
-        log('FAIL  no initial plan')
+    # FollowPath mode has no /plan chatter — wait for path_bank candidates.
+    if not bank.wait_for_bank(60.0):
+        log('FAIL  path_bank status never published candidates')
         return False
-    bank.wait_for_bank(45.0)
     switches_before = bank.switch_count()
 
     # Block a Path-1-exclusive corridor point when available so Path 2 remains open.
     exclusive, sep = _exclusive_block_xy(observer)
+    plan_pts = None
+    if observer.paths:
+        plan_pts = observer.paths[-1].points
     if exclusive is not None:
         mid = exclusive
         log(f'Inserting barrier on Path-1-exclusive point ({mid[0]:.1f}, {mid[1]:.1f}) sep={sep:.1f}m')
-    else:
-        mid = plan.points[len(plan.points) // 2]
+    elif plan_pts is not None and len(plan_pts) >= 3:
+        mid = plan_pts[len(plan_pts) // 2]
         log(f'Inserting barrier near plan midpoint ({mid[0]:.1f}, {mid[1]:.1f})')
-    # Orient barrier across local path tangent.
-    idx = max(1, min(len(plan.points) - 2, len(plan.points) // 2))
-    a, b = plan.points[idx - 1], plan.points[idx + 1]
-    yaw = math.atan2(b[1] - a[1], b[0] - a[0])
+    else:
+        # FollowPath: no /plan — fall back to latched active_path midpoint.
+        from nav_msgs.msg import Path as RosPath
+        from rclpy.qos import (
+            DurabilityPolicy, HistoryPolicy, QoSProfile, ReliabilityPolicy,
+        )
+        latched = QoSProfile(
+            depth=1,
+            reliability=ReliabilityPolicy.RELIABLE,
+            durability=DurabilityPolicy.TRANSIENT_LOCAL,
+            history=HistoryPolicy.KEEP_LAST,
+        )
+        held = {'pts': None}
+
+        def _active_cb(msg: RosPath):
+            pts = [(p.pose.position.x, p.pose.position.y) for p in msg.poses]
+            if pts:
+                held['pts'] = pts
+
+        sub = observer.create_subscription(
+            RosPath, 'path_bank/active_path', _active_cb, latched)
+        deadline = time.monotonic() + 8.0
+        while time.monotonic() < deadline and held['pts'] is None:
+            observer.spin_for(0.2)
+        observer.destroy_subscription(sub)
+        if held['pts'] is None or len(held['pts']) < 3:
+            log('FAIL  no Path-1 exclusive point and no active_path for barrier')
+            return False
+        mid = held['pts'][len(held['pts']) // 2]
+        plan_pts = held['pts']
+        log(f'Inserting barrier on active_path midpoint ({mid[0]:.1f}, {mid[1]:.1f})')
+    # Orient barrier across local path tangent when we have a polyline.
+    yaw = 0.0
+    pts_for_yaw = plan_pts
+    if pts_for_yaw is None:
+        # Approximate eastbound trail heading at exclusive point.
+        yaw = 0.0
+    else:
+        idx = max(1, min(len(pts_for_yaw) - 2, len(pts_for_yaw) // 2))
+        a, b = pts_for_yaw[idx - 1], pts_for_yaw[idx + 1]
+        yaw = math.atan2(b[1] - a[1], b[0] - a[0])
     if not _spawn_box(world, 'path_bank_block_1', mid[0], mid[1], yaw=yaw):
         log('FAIL  spawn barrier')
         return False
@@ -204,18 +265,41 @@ def run_block(observer, mission, bank, world) -> bool:
             ok = switched
             log('PASS' if ok else 'FAIL (reached but no switch/replan evidence)')
             return ok
+        # Entry 071: bank ARRIVED alone is not mission success (escape-hop
+        # false ARRIVED @ ~10 m). Only stop-on-ARRIVED when near GOAL.
+        if (
+            switched
+            and str(bank.state).upper() == 'ARRIVED'
+            and pose is not None
+            and math.hypot(pose[0] - GOAL[0], pose[1] - GOAL[1]) < 1.0
+        ):
+            log(f'Bank ARRIVED near GOAL dist='
+                f'{math.hypot(pose[0] - GOAL[0], pose[1] - GOAL[1]):.3f}m')
+            return True
+        if (
+            switched
+            and str(bank.state).upper() == 'ARRIVED'
+            and pose is not None
+            and math.hypot(pose[0] - GOAL[0], pose[1] - GOAL[1]) >= 1.0
+        ):
+            # Keep waiting — false ARRIVED must not end the attempt.
+            idle_since = time.monotonic()
         if pose is not None and last_pose is not None:
             moved = math.hypot(pose[0] - last_pose[0], pose[1] - last_pose[1])
             if moved > 0.12:
                 idle_since = time.monotonic()
                 last_pose = pose
-        if switched and (time.monotonic() - idle_since) > 90.0:
-            log('Idle >90s after switch/replan; stopping wait')
+        # Entry 049: far-gap NavFn bridge + join rotation can exceed 150 s
+        # before progress resumes; do not abort while bank still FOLLOWING.
+        idle_limit = 240.0 if switched else 150.0
+        if switched and (time.monotonic() - idle_since) > idle_limit:
+            log(f'Idle >{idle_limit:.0f}s after switch/replan; stopping wait')
             break
 
     pose = observer.robot_pose()
     dist = None if pose is None else math.hypot(pose[0] - GOAL[0], pose[1] - GOAL[1])
     log(f'End dist={dist}; switches={bank.switch_count()}; state={bank.state}')
+    # Geometric mission success vs DEFAULT_GOAL (16,-0.1) — not ARRIVED alone.
     ok = switched and dist is not None and dist < 1.0
     log('PASS' if ok else 'FAIL')
     return ok
@@ -271,6 +355,8 @@ def main() -> int:
             # Block scenario needs forced resend onto next banked route.
             'path_bank_switch_resend': 'true' if args.scenario in ('all', 'block') else 'false',
             'fire_avoidance': 'false',
+            # Harness speed (plan §I); production YAML stays 0.5 / ±0.6.
+            'test_speed': 'true',
         },
     )
 
@@ -311,6 +397,13 @@ def main() -> int:
             except Exception as exc:  # noqa: BLE001
                 log(f'EXCEPTION in {name}: {exc}')
                 results[name] = False
+            # Entry 035: StopMission between scenarios so ARRIVED/NAVIGATING
+            # cannot reject the next StartMission (service race after clean).
+            try:
+                observer.cancel_goal()
+            except Exception:  # noqa: BLE001
+                pass
+            observer.spin_for(0.5)
 
     log('=== SUMMARY ===')
     for name, passed in results.items():

@@ -34,19 +34,20 @@ Thumbs.db
 .env.*
 *.log
 
+# Run / experiment logs (keep local)
+*.jsonl
+**/runs/
+
 # Scratch / non-project files
 /hello
-MASTER_PROJECT_KNOWLEDGE_BASE.md
-NAVIGATION_ENGINEERING_LOG.md
-NAVIGATION_IMPLEMENTATION.md
-NAVIGATION_UI_IMPLEMENTATION.md
-HUSKY_NAVIGATION_SYSTEM_BREAKDOWN.md
+
+# Local engineering notes, prompts, and logs (root + navigation_engineering)
+/navigation_engineering/
+/*.md
+!/README.md
 
 # Local Cursor overrides (un-ignore gitignored docs for @ mentions)
 .cursorignore
 
 # Local C5 report drafts, evidence, and audit work (keep private)
 /C5_Report/
-
-# Local navigation engineering notes / artefacts (keep private)
-/navigation_engineering/

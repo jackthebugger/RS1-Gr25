@@ -5,7 +5,11 @@ from typing import Text
 import yaml
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription, Substitution
-from launch.actions import DeclareLaunchArgument, GroupAction, IncludeLaunchDescription
+from launch.actions import (
+    DeclareLaunchArgument,
+    GroupAction,
+    IncludeLaunchDescription,
+)
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration, PathJoinSubstitution, PythonExpression, TextSubstitution
 from launch.conditions import IfCondition
@@ -80,36 +84,160 @@ def _set_yaml_path(data, dotted_path, value):
         cur[last] = value
 
 
-class ConfiguredNav2Params(Substitution):
-    """Rewrite Nav2 YAML: BT path always; test_speed velocities when enabled.
+def _deep_merge_params(base, overlay):
+    """Deep-merge overlay into base; plugin swaps replace the whole subtree.
 
-    Production defaults in nav2_params_husky1.yaml stay 0.5 / ±0.6. When
-    test_speed is true: desired_linear_vel=0.9 and smoother max/min[0]=±1.0.
+    When both sides are dicts and the overlay declares ``plugin``, the overlay
+    dict replaces ``base`` entirely so bake-offs (Smac2D / MPPI / constrained
+    smoother) do not leave stale RPP/NavFn/SimpleSmoother leaf keys behind.
+    Lists from the overlay replace lists from the base.
+    """
+    if not isinstance(base, dict) or not isinstance(overlay, dict):
+        return overlay
+    out = dict(base)
+    for key, oval in overlay.items():
+        if key not in out:
+            out[key] = oval
+            continue
+        bval = out[key]
+        if (
+            isinstance(oval, dict)
+            and isinstance(bval, dict)
+            and 'plugin' in oval
+        ):
+            out[key] = oval
+        elif isinstance(oval, dict) and isinstance(bval, dict):
+            out[key] = _deep_merge_params(bval, oval)
+        else:
+            out[key] = oval
+    return out
+
+
+def _resolve_bake_overlay_paths(
+    pkg_config_dir,
+    planner_bake,
+    controller_bake,
+    smoother_bake,
+    extra_overlays,
+):
+    """Map bake launch args → absolute overlay YAML paths (may be empty)."""
+    presets = {
+        'planner': {
+            'smac2d': 'nav2_params_husky1_bake_smac2d.yaml',
+        },
+        'controller': {
+            'mppi': 'nav2_params_husky1_bake_mppi.yaml',
+        },
+        'smoother': {
+            'constrained': 'nav2_params_husky1_bake_constrained_smoother.yaml',
+        },
+    }
+    paths = []
+
+    def _add_preset(kind, token):
+        token = (token or 'none').strip().lower()
+        if token in ('', 'none', 'off', 'false', '0'):
+            return
+        name = presets.get(kind, {}).get(token)
+        if name is None:
+            raise ValueError(
+                f'Unknown {kind}_bake={token!r}; '
+                f'expected none|{"|".join(sorted(presets[kind]))}'
+            )
+        paths.append(os.path.join(pkg_config_dir, name))
+
+    _add_preset('planner', planner_bake)
+    _add_preset('controller', controller_bake)
+    _add_preset('smoother', smoother_bake)
+
+    for part in (extra_overlays or '').split(','):
+        part = part.strip()
+        if not part or part.lower() in ('none', 'off', 'false', '0'):
+            continue
+        if not os.path.isabs(part):
+            part = os.path.join(pkg_config_dir, part)
+        paths.append(part)
+    return paths
+
+
+class ConfiguredNav2Params(Substitution):
+    """Rewrite Nav2 YAML: BT path, optional bake overlays, optional test_speed.
+
+    Production defaults in nav2_params_husky1.yaml are NavFn+MPPI (Entry 054) and
+    0.5 / ±0.6. Bake overlays (Smac2D / MPPI / ConstrainedSmoother) merge
+    only when planner_bake / controller_bake / smoother_bake / nav2_params_overlay
+    select them. When test_speed is true (bake/non-GUI only): raise MPPI
+    FollowPath.vx_max / wz_max and smoother max/min[0] lockstep — NOT a GUI
+    max-speed proof (Entry 063; historical RPP desired_linear_vel=1.0 obsolete).
     """
 
-    def __init__(self, source_file, bt_xml, test_speed):
+    def __init__(
+        self,
+        source_file,
+        bt_xml,
+        test_speed,
+        *,
+        pkg_config_dir,
+        planner_bake,
+        controller_bake,
+        smoother_bake,
+        nav2_params_overlay,
+    ):
         super().__init__()
         self.__source_file = normalize_to_list_of_substitutions(source_file)
         self.__bt_xml = bt_xml
         self.__test_speed = normalize_to_list_of_substitutions(test_speed)
+        self.__pkg_config_dir = pkg_config_dir
+        self.__planner_bake = normalize_to_list_of_substitutions(planner_bake)
+        self.__controller_bake = normalize_to_list_of_substitutions(
+            controller_bake)
+        self.__smoother_bake = normalize_to_list_of_substitutions(smoother_bake)
+        self.__nav2_params_overlay = normalize_to_list_of_substitutions(
+            nav2_params_overlay)
 
     def describe(self) -> Text:
-        return 'ConfiguredNav2Params(bt + optional test_speed)'
+        return 'ConfiguredNav2Params(bt + optional bake overlays + test_speed)'
 
     def perform(self, context) -> Text:
         yaml_filename = perform_substitutions(context, self.__source_file)
         test_speed = perform_substitutions(
             context, self.__test_speed).strip().lower() in (
             'true', '1', 'yes', 'on')
+        planner_bake = perform_substitutions(context, self.__planner_bake)
+        controller_bake = perform_substitutions(
+            context, self.__controller_bake)
+        smoother_bake = perform_substitutions(context, self.__smoother_bake)
+        extra = perform_substitutions(context, self.__nav2_params_overlay)
         with open(yaml_filename, 'r', encoding='utf-8') as handle:
             data = yaml.safe_load(handle)
+        for overlay_path in _resolve_bake_overlay_paths(
+            self.__pkg_config_dir,
+            planner_bake,
+            controller_bake,
+            smoother_bake,
+            extra,
+        ):
+            with open(overlay_path, 'r', encoding='utf-8') as handle:
+                overlay = yaml.safe_load(handle) or {}
+            data = _deep_merge_params(data, overlay)
         _set_yaml_leaf(data, 'default_nav_to_pose_bt_xml', self.__bt_xml)
         if test_speed:
-            _set_yaml_leaf(data, 'desired_linear_vel', 0.9)
+            # Non-GUI bake only: lockstep MPPI + smoother (do not claim 1.0 under
+            # MPPI as production max; Wave-1 validated envelope remains 0.50).
             _set_yaml_path(
-                data, 'velocity_smoother.ros__parameters.max_velocity.0', 1.0)
+                data,
+                'controller_server.ros__parameters.FollowPath.vx_max',
+                0.5,
+            )
             _set_yaml_path(
-                data, 'velocity_smoother.ros__parameters.min_velocity.0', -1.0)
+                data,
+                'controller_server.ros__parameters.FollowPath.wz_max',
+                1.2,
+            )
+            _set_yaml_path(
+                data, 'velocity_smoother.ros__parameters.max_velocity.0', 0.5)
+            _set_yaml_path(
+                data, 'velocity_smoother.ros__parameters.min_velocity.0', -0.5)
         out = tempfile.NamedTemporaryFile(
             mode='w', delete=False, suffix='.yaml', encoding='utf-8')
         yaml.dump(data, out)
@@ -172,6 +300,15 @@ def generate_launch_description():
         ),
     )
 
+    obstacle_memory_launch_arg = DeclareLaunchArgument(
+        'obstacle_memory',
+        default_value='True',
+        description=(
+            'Launch obstacle_memory_manager + KeepoutFilter ingress. '
+            'Set false for custom_world_1 forest_gap (prior Keepout seal).'
+        ),
+    )
+
     path_bank_launch_arg = DeclareLaunchArgument(
         'path_bank',
         default_value='True',
@@ -197,9 +334,55 @@ def generate_launch_description():
         'test_speed',
         default_value='false',
         description=(
-            'TEST ONLY: raise RPP desired_linear_vel to 0.9 and velocity_smoother '
-            'max/min_velocity[0] to ±1.0 via params rewrite. Default false leaves '
-            'production 0.5 / ±0.6 unchanged in nav2_params_*.yaml.'
+            'TEST ONLY (non-GUI bake): lockstep MPPI FollowPath.vx_max/wz_max + '
+            'velocity_smoother to validated 0.50/1.2. NOT a GUI max-speed proof '
+            '(Entry 063). Default false leaves production YAML unchanged.'
+        ),
+    )
+
+    # Wave 2 bake-offs: optional overlays; default none keeps NavFn+RPP production.
+    planner_bake_launch_arg = DeclareLaunchArgument(
+        'planner_bake',
+        default_value='none',
+        description=(
+            'Bake-off planner overlay: none (production NavFn) or smac2d '
+            '(nav2_params_husky1_bake_smac2d.yaml). Does not mutate production yaml.'
+        ),
+    )
+    controller_bake_launch_arg = DeclareLaunchArgument(
+        'controller_bake',
+        default_value='none',
+        description=(
+            'Bake-off controller overlay: none (production RPP) or mppi '
+            '(nav2_params_husky1_bake_mppi.yaml DiffDrive). Default unchanged.'
+        ),
+    )
+    smoother_bake_launch_arg = DeclareLaunchArgument(
+        'smoother_bake',
+        default_value='none',
+        description=(
+            'Bake-off smoother overlay: none (production SimpleSmoother) or '
+            'constrained (ConstrainedSmoother). Default unchanged.'
+        ),
+    )
+    nav2_params_overlay_launch_arg = DeclareLaunchArgument(
+        'nav2_params_overlay',
+        default_value='none',
+        description=(
+            'Optional comma-separated extra Nav2 YAML overlays (absolute paths '
+            'or filenames under share/.../config/). Applied after planner/controller/'
+            'smoother bake presets. Default none.'
+        ),
+    )
+
+    mission_nav_authority_launch_arg = DeclareLaunchArgument(
+        'mission_nav_authority',
+        default_value='bank_follow_path',
+        description=(
+            'Phase 3 default bank_follow_path: split lifecycle in '
+            'rs1_navigation + bank-owned FollowPath. Rollback '
+            'legacy_navigate_to_pose: single lifecycle manager + NTP ownership. '
+            'Cmd path is always smoother→cmd_vel_nav_smooth→rs1_cmd_vel_gate→cmd_vel.'
         ),
     )
 
@@ -233,6 +416,11 @@ def generate_launch_description():
         source_file=nav2_params_file,
         bt_xml=_route_stable_bt,
         test_speed=LaunchConfiguration('test_speed'),
+        pkg_config_dir=os.path.join(_pkg_share, 'config'),
+        planner_bake=LaunchConfiguration('planner_bake'),
+        controller_bake=LaunchConfiguration('controller_bake'),
+        smoother_bake=LaunchConfiguration('smoother_bake'),
+        nav2_params_overlay=LaunchConfiguration('nav2_params_overlay'),
     )
 
     prior_map_yaml = PathJoinSubstitution([
@@ -272,32 +460,34 @@ def generate_launch_description():
         )
     ])
 
-    # Start Navigation Stack.
-    # We push the namespace ourselves rather than relying on nav2_bringup's
-    # use_namespace handling, which differs across distro/package versions.
+    # Package-local rs1_navigation: Node-level smoother→cmd_vel_nav_smooth +
+    # gate (SetRemap cannot override stock Node remaps). RewrittenYaml
+    # root_key MUST be the robot namespace (same as PushRosNamespace) so
+    # /husky1/controller_server loads FollowPath RPP — namespace:='' caused
+    # DWB default + "No critics defined for FollowPath".
     navigation_group = GroupAction(scoped=True, condition=_if_true('nav2'), actions=[
         PushRosNamespace(namespace),
         SetRemap(src='/tf', dst='tf'),
         SetRemap(src='/tf_static', dst='tf_static'),
-        # Some packages publish/subscribe absolute /map topics even when
-        # started under a namespace. Force them back to relative names so
-        # they become /<robot>/map and /<robot>/map_updates.
         SetRemap(src='/map', dst='map'),
         SetRemap(src='/map_updates', dst='map_updates'),
-
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(
                 PathJoinSubstitution([
-                    FindPackageShare('nav2_bringup'),
+                    pkg_share,
                     'launch',
-                    'navigation_launch.py'
+                    'rs1_navigation.launch.py',
                 ])
             ),
             launch_arguments={
                 'use_sim_time': use_sim_time,
                 'params_file': configured_nav2_params,
+                'namespace': namespace,
+                'robot_namespace': namespace,
+                'mission_nav_authority': LaunchConfiguration('mission_nav_authority'),
+                'log_level': 'info',
             }.items()
-        )
+        ),
     ])
 
     # Prior map for global StaticLayer (does not replace SLAM /map).
@@ -324,7 +514,10 @@ def generate_launch_description():
     # Sensor-only obstacle memory → KeepoutFilter mask on global costmap.
     # Must start with Nav2 so TransientLocal filter_info+mask exist before
     # KeepoutFilter initialises (Entry 021).
-    obstacle_memory = GroupAction(scoped=True, condition=_if_true('nav2'), actions=[
+    obstacle_memory = GroupAction(
+        scoped=True,
+        condition=_if_nav2_and('obstacle_memory'),
+        actions=[
         PushRosNamespace(namespace),
         SetRemap(src='/tf', dst='tf'),
         SetRemap(src='/tf_static', dst='tf_static'),
@@ -354,6 +547,17 @@ def generate_launch_description():
                 # Entry 023: never seal Keepout under the Husky footprint.
                 'mark_exclude_radius_m': 0.65,
                 'fire_hold_s': 8.0,
+                # Entry 027: FIRE clear only inside thermal camera ROI frustum.
+                'thermal_hfov_rad': 1.047,
+                'thermal_vfov_rad': 0.810,
+                'thermal_roi_width_frac': 0.6,
+                'thermal_roi_height_frac': 0.7,
+                'thermal_max_range': 8.0,
+                'thermal_near_m': 0.1,
+                # Entry 028: optical origin vs camera_link + TF age gate.
+                'thermal_optical_forward_m': 0.45,
+                'thermal_optical_up_m': 0.45,
+                'thermal_tf_max_age_s': 0.5,
             }],
         ),
     ])
@@ -377,18 +581,20 @@ def generate_launch_description():
                 'exclusion_radius_m': 2.5,
                 'min_path_separation_m': 2.0,
                 # Monitor + rank; resend mission goal on switch when enabled.
-                # Entry 024: empty bank → NavigateToPose home (not indefinite halt).
+                # Entry 024: empty bank → home FollowPath/NTP (not indefinite halt).
                 'auto_switch': True,
                 'switch_resend_goal': ParameterValue(
                     LaunchConfiguration('path_bank_switch_resend'), value_type=bool
                 ),
                 'cancel_on_no_path': False,
-                # Entry 024: bank exhaustion → NavigateToPose back to mission start.
+                # Entry 024: bank exhaustion → return to mission start.
                 'return_home_on_all_blocked': True,
                 'home_yaw': 0.0,
                 'validity_grace_s': 15.0,
                 # Entry 023: settle after A→B before re-validating active path.
                 'post_switch_grace_s': 8.0,
+                # Phase 3: bank_follow_path (default) or legacy_navigate_to_pose.
+                'mission_nav_authority': LaunchConfiguration('mission_nav_authority'),
             }],
         ),
     ])
@@ -410,10 +616,13 @@ def generate_launch_description():
                 'fire_threshold_kelvin': 350.0,
                 'minimum_hot_pixels': 10,
                 'thermal_resolution': 0.01,
+                'camera_hfov_rad': 1.047,
             }],
             remappings=[
                 ('/fire_detected', 'fire_detected'),
                 ('/fire_temperature', 'fire_temperature'),
+                ('/fire_bearing', 'fire_bearing'),
+                ('/fire_observation', 'fire_observation'),
             ],
         ),
         Node(
@@ -426,12 +635,18 @@ def generate_launch_description():
                 'robot_name': namespace,
                 'scan_topic': 'scan',
                 'fire_detected_topic': 'fire_detected',
+                'fire_bearing_topic': 'fire_bearing',
+                'fire_observation_topic': 'fire_observation',
                 'hazard_topic': 'fire_hazards',
-                # No default world fires (SDF fires remain commented). Thermal
-                # detections still mark a forward keep-out disc.
+                # No default world fires (SDF fires remain commented).
+                # Entry 028: thermal marks need detector positive + hot-blob
+                # bearing + LiDAR return along it (no default range, no hold).
                 'hazard_radius': 0.9,
                 'hazard_step': 0.25,
                 'publish_rate_hz': 5.0,
+                'thermal_max_range': 8.0,
+                'thermal_min_range': 1.5,
+                'camera_forward_m': 0.90,
             }],
         ),
     ])
@@ -443,10 +658,16 @@ def generate_launch_description():
     ld.add_action(nav2_launch_arg)
     ld.add_action(use_prior_map_launch_arg)
     ld.add_action(prior_map_file_launch_arg)
+    ld.add_action(obstacle_memory_launch_arg)
     ld.add_action(path_bank_launch_arg)
     ld.add_action(path_bank_switch_resend_launch_arg)
     ld.add_action(fire_avoidance_launch_arg)
     ld.add_action(test_speed_launch_arg)
+    ld.add_action(planner_bake_launch_arg)
+    ld.add_action(controller_bake_launch_arg)
+    ld.add_action(smoother_bake_launch_arg)
+    ld.add_action(nav2_params_overlay_launch_arg)
+    ld.add_action(mission_nav_authority_launch_arg)
     # prior_map before navigation_group so latched OccupancyGrid exists when
     # StaticLayer starts (avoids Entry 003 "no map received" hang).
     # obstacle_memory before/with nav so KeepoutFilter can latch filter_info.

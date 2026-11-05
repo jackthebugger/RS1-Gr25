@@ -34,7 +34,15 @@
                 </Inverter>
                 <IsPathValid path="{path}"/>
               </ReactiveSequence>
-              <ComputePathToPose goal="{goal}" path="{path}" planner_id="GridBased"/>
+              <Sequence name="ComputeAndSmoothPath">
+                <ComputePathToPose goal="{goal}" path="{path}" planner_id="GridBased"/>
+                <!-- Entry 028: NavFn poses have identity yaw. Humble IsPathValid
+                     uses footprintCostAtPose with that yaw when a polygon
+                     footprint is set, so a 1.1×0.76 m box at yaw 0 swept
+                     trail-bank lethals and forced a 1 Hz replan. SmoothPath
+                     writes path orientations for the next IsPathValid tick. -->
+                <SmoothPath unsmoothed_path="{path}" smoothed_path="{path}"/>
+              </Sequence>
             </Fallback>
             <!-- Local clear only: do not wipe global ObstacleLayer / KeepoutFilter. -->
             <ClearEntireCostmap name="ClearLocalCostmap-Context" service_name="local_costmap/clear_entirely_local_costmap"/>

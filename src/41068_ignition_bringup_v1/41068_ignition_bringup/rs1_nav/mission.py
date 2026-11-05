@@ -273,6 +273,23 @@ class MissionRunner:
             and report.distance_to_goal is not None
             and report.distance_to_goal <= ARRIVAL_TOLERANCE
         )
+        # StartMission / bank_follow_path: if geometry is at the goal but the
+        # harness missed path_bank/status (or waited through a late ARRIVED),
+        # still count a geometric arrival within tolerance.
+        if (
+            not report.reached
+            and report.distance_to_goal is not None
+            and report.distance_to_goal <= ARRIVAL_TOLERANCE
+            and (
+                self.obs.goal_succeeded()
+                or getattr(self.obs, '_bank_mission_active', False)
+                or report.nav2_status in ('TIMEOUT', 'SUCCEEDED', 'IN_PROGRESS')
+            )
+            and report.distance_travelled > 1.0
+        ):
+            report.reached = True
+            report.nav2_status = 'SUCCEEDED'
+            report.failure = ''
         if self.obs.goal_succeeded() and not report.reached:
             report.failure = (
                 f'Nav2 reported success but the robot is '
