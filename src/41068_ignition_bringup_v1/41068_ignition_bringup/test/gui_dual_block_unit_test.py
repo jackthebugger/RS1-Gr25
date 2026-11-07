@@ -7,6 +7,7 @@ pick / resume gates are exercised without Gazebo.
 
 from __future__ import annotations
 
+import math
 import os
 import sys
 import types
@@ -29,12 +30,34 @@ from rs1_nav.path_bank import (  # noqa: E402
     PathBankConfig,
     PathCandidate,
 )
+from rs1_nav.route_instance import make_route_instance
 
 # Import after path setup; requires rclpy (Humble) but not a spinning node.
 import path_bank_manager as pbm  # noqa: E402
 
 
 Point = Tuple[float, float]
+
+
+def test_switch_join_candidates_do_not_select_points_behind_robot():
+    """An alternate corridor must not make a switch command reverse travel."""
+    manager = pbm.PathBankManager.__new__(pbm.PathBankManager)
+    manager._robot_xyyaw = (5.0, 0.0, 0.0)
+    manager._goal_xyyaw = (10.0, 0.0, 0.0)
+    route = make_route_instance(
+        2,
+        [(0.0, 2.0), (5.0, 2.0), (10.0, 0.0)],
+        densify_m=0.5,
+    )
+
+    joins = manager._join_candidates(route)
+
+    assert joins
+    assert all(
+        math.hypot(x - 10.0, y) < math.hypot(5.0, 0.0) - 0.25
+        for x, y, _yaw, _index in joins
+    )
+    assert all(x >= 4.5 for x, _y, _yaw, _index in joins)
 
 
 class _FakeLogger:

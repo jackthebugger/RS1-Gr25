@@ -79,6 +79,19 @@ def distance_to_goal(
     return math.hypot(robot_pose[0] - goal_pose[0], robot_pose[1] - goal_pose[1])
 
 
+def distance_for_display(
+    feedback_distance: float,
+    robot_pose: Optional[Tuple[float, float, float]],
+    goal_pose: Optional[Tuple[float, float, float]],
+) -> float:
+    """Choose Nav2's route distance, falling back to live odometry distance."""
+    if math.isfinite(feedback_distance) and feedback_distance > 0.0:
+        return feedback_distance
+    if robot_pose is not None:
+        return distance_to_goal(robot_pose, goal_pose)
+    return max(0.0, feedback_distance) if math.isfinite(feedback_distance) else 0.0
+
+
 def _thermal_colour(temperature_k: float) -> Tuple[int, int, int]:
     """Map absolute Kelvin values to thermal hue families (Faiyad GUI)."""
     stops = (
@@ -143,7 +156,6 @@ class RobotStatus:
     speed: float = 0.0
     destination: str = 'Safehouse'
     distance_to_destination: float = 0.0
-    time_to_destination: str = 'Pending'
     battery: float = 100.0
     obstacle_detected: bool = False
     fire_detected: bool = False
@@ -153,7 +165,6 @@ class RobotStatus:
             f'Robot Name: {self.robot_name}',
             f'Speed: {format_speed(self.speed)}',
             f'Distance to Destination: {self.distance_to_destination:.1f} m',
-            f'Time to Destination: {self.time_to_destination}',
             f'Obstacle detected: {"yes" if self.obstacle_detected else "no"}',
             f'Fire detected: {"yes" if self.fire_detected else "no"}',
         ]
@@ -452,14 +463,6 @@ def start_mission_action(
     return 'fail_closed'
 
 
-def format_remaining_time(seconds: float) -> str:
-    total_seconds = max(0, int(round(float(seconds))))
-    minutes, remaining_seconds = divmod(total_seconds, 60)
-    if minutes:
-        return f'{minutes}m {remaining_seconds:02d}s'
-    return f'{remaining_seconds}s'
-
-
 def detect_obstacle(ranges: Iterable[float], threshold: float = 1.0) -> bool:
     """Return True when a nearby range measurement suggests an obstacle."""
     if ranges is None:
@@ -655,7 +658,6 @@ class RobotStatusWindow(tk.Tk):
         self.info_frame.pack(fill='x', padx=20, pady=(0, 10))
 
         self.distance_var = tk.StringVar(value='Distance to Destination: 0.0 m')
-        self.time_var = tk.StringVar(value='Time to Destination: Pending')
         self.battery_var = tk.StringVar(value='Battery: 100%')
         self.obstacle_var = tk.StringVar(value='Obstacle detected: no')
         self.fire_var = tk.StringVar(value='Fire detected: no')
@@ -671,7 +673,6 @@ class RobotStatusWindow(tk.Tk):
         self.labels = [
             self.mission_label,
             tk.Label(self.info_frame, textvariable=self.distance_var, font=('Arial', 18, 'bold'), bg='#ffffff', fg='#0f172a', anchor='w', padx=16, pady=8),
-            tk.Label(self.info_frame, textvariable=self.time_var, font=('Arial', 18, 'bold'), bg='#ffffff', fg='#0f172a', anchor='w', padx=16, pady=8),
             tk.Label(self.info_frame, textvariable=self.obstacle_var, font=('Arial', 12), bg='#ffffff', fg='#111827', anchor='w', padx=16, pady=3),
             tk.Label(self.info_frame, textvariable=self.fire_var, font=('Arial', 12), bg='#ffffff', fg='#111827', anchor='w', padx=16, pady=3),
             tk.Label(self.info_frame, textvariable=self.recent_status_var, font=('Arial', 12), bg='#ffffff', fg='#2563eb', anchor='w', padx=16, pady=6),
@@ -1270,7 +1271,6 @@ class RobotStatusWindow(tk.Tk):
         speed: float = 0.0,
         destination: str = 'Safehouse',
         distance_to_destination: float = 0.0,
-        time_to_destination: str = 'Pending',
         battery: float = 100.0,
         obstacle_detected: bool = False,
         fire_detected: bool = False,
@@ -1278,7 +1278,6 @@ class RobotStatusWindow(tk.Tk):
     ) -> None:
         self.speed_var.set(f'Speed: {format_speed(speed)}')
         self.distance_var.set(f'Distance to Destination: {distance_to_destination:.1f} m')
-        self.time_var.set(f'Time to Destination: {time_to_destination}')
         self.obstacle_var.set(f'Obstacle detected: {"yes" if obstacle_detected else "no"}')
         self.fire_var.set(f'Fire detected: {"yes" if fire_detected else "no"}')
 
@@ -1287,7 +1286,6 @@ class RobotStatusWindow(tk.Tk):
             speed=status.speed,
             destination=status.destination,
             distance_to_destination=status.distance_to_destination,
-            time_to_destination=status.time_to_destination,
             battery=status.battery,
             obstacle_detected=status.obstacle_detected,
             fire_detected=status.fire_detected,
@@ -1307,7 +1305,6 @@ class RobotStatusNode(Node):
         self.latest_obstacle_detected = False
         self.latest_fire_detected = False
         self.latest_distance = 0.0
-        self.latest_time = 'Pending'
         self.latest_pose: Optional[Tuple[float, float, float]] = None
         self.latest_path: List[Tuple[float, float]] = []
         self.latest_map: Optional[OccupancyGrid] = None
@@ -1405,7 +1402,6 @@ class RobotStatusNode(Node):
         self.speed_angular_limit = float(SPEED_ANGULAR_MAX)
         self.selected_speed = 'fast'
         self.status.distance_to_destination = 0.0
-        self.status.time_to_destination = 'Pending'
         self.status.battery = 100.0
 
         self.gui.set_goal_fields(
@@ -1643,7 +1639,6 @@ class RobotStatusNode(Node):
         self.active_goal = (float(x), float(y), float(yaw))
         self._update_gazebo_goal(x, y, yaw)
         self.latest_distance = 0.0
-        self.latest_time = 'Pending'
         self.gui.set_goal_fields(x, y, yaw)
         self.gui.set_goal_status(f'({x:g}, {y:g}, {yaw:g})')
         self.gui.set_mission_status('starting')
@@ -2163,10 +2158,6 @@ class RobotStatusNode(Node):
     def _feedback_callback(self, feedback_message) -> None:
         feedback = feedback_message.feedback
         self.latest_distance = float(feedback.distance_remaining)
-        duration = feedback.estimated_time_remaining
-        self.latest_time = format_remaining_time(
-            duration.sec + duration.nanosec / 1e9
-        )
 
     def _goal_response_callback(self, future) -> None:
         self.goal_handle = future.result()
@@ -2446,8 +2437,11 @@ class RobotStatusNode(Node):
             self.status.destination = f'({x:g}, {y:g}, {yaw:g})'
         else:
             self.status.destination = 'Safehouse'
-        self.status.distance_to_destination = self.latest_distance
-        self.status.time_to_destination = self.latest_time
+        self.status.distance_to_destination = distance_for_display(
+            self.latest_distance,
+            self.latest_pose,
+            self.active_goal,
+        )
         self.status.battery = 100.0
         self.gui.set_status(self.status)
 

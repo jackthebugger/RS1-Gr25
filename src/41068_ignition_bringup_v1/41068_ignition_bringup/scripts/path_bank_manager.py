@@ -2976,16 +2976,39 @@ class PathBankManager(Node):
         """
         if self._robot_xyyaw is None or not route.points:
             return []
-        rx, ry, _ = self._robot_xyyaw
+        rx, ry, robot_yaw = self._robot_xyyaw
         gx = gy = None
         if self._goal_xyyaw is not None:
             gx, gy, _ = self._goal_xyyaw
+        robot_goal_distance = (
+            math.hypot(rx - gx, ry - gy)
+            if gx is not None and gy is not None
+            else None
+        )
         stride = max(1, len(route.points) // 200)
         scored = []
         for i in range(0, len(route.points), stride):
             x, y = route.points[i]
             d = math.hypot(x - rx, y - ry)
             if d > 25.0:
+                continue
+            forward_projection = (
+                (x - rx) * math.cos(robot_yaw)
+                + (y - ry) * math.sin(robot_yaw)
+            )
+            if forward_projection < -0.5:
+                # A goal-progressing join can still be physically behind the
+                # robot when the alternate corridor runs alongside the
+                # current one. Do not make the handoff command a U-turn.
+                continue
+            # Never bridge to a point behind the robot.  The nearest point on
+            # an alternate corridor can be behind the robot after Path A
+            # diverges; selecting it makes the switch visibly turn around.
+            if (
+                robot_goal_distance is not None
+                and math.hypot(x - gx, y - gy)
+                    >= robot_goal_distance - 0.25
+            ):
                 continue
             same_x_bonus = -0.75 if abs(x - rx) <= 4.0 else 0.0
             # Penalise far joins so near corridor samples are tried first.
@@ -3007,7 +3030,7 @@ class PathBankManager(Node):
             out.append((x, y, yaw, i))
             if len(out) >= limit:
                 break
-        if not out:
+        if not out and robot_goal_distance is None:
             # Fallback: absolute nearest even if >25 m.
             best = None
             for i in range(0, len(route.points), stride):

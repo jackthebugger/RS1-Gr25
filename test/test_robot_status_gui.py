@@ -45,6 +45,32 @@ def test_distance_to_goal_uses_planar_position_only():
     )
 
 
+def test_distance_for_display_falls_back_to_live_pose():
+    assert math.isclose(
+        gui.distance_for_display(
+            0.0,
+            (1.0, 2.0, 0.0),
+            (4.0, 6.0, 1.5),
+        ),
+        5.0,
+    )
+
+
+def test_distance_for_display_prefers_nav2_route_distance():
+    assert gui.distance_for_display(
+        7.5,
+        (1.0, 2.0, 0.0),
+        (4.0, 6.0, 1.5),
+    ) == 7.5
+
+
+def test_status_display_lines_do_not_include_destination_time():
+    assert all(
+        'Time to Destination' not in line
+        for line in gui.RobotStatus().to_display_lines()
+    )
+
+
 def test_rgb_image_to_ppm_rgb8():
     # 2x1 rgb8: red, green
     data = bytes([255, 0, 0, 0, 255, 0])
