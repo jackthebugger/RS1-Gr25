@@ -323,6 +323,12 @@ def bilateral_side_clearances(
     lefts: List[float] = []
     rights: List[float] = []
     n = len(path_points)
+    nearby = None
+    try:
+        from scipy.spatial import cKDTree
+        nearby = cKDTree(obstacles)
+    except ImportError:
+        nearby = None
     for i in range(0, n, stride):
         x, y = path_points[i]
         if i < n - 1:
@@ -338,7 +344,13 @@ def bilateral_side_clearances(
         nx, ny = -dy / tlen, dx / tlen
         left_d = float(probe_m)
         right_d = float(probe_m)
-        for ox, oy in obstacles:
+        candidate_obstacles = obstacles
+        if nearby is not None:
+            candidate_obstacles = [
+                obstacles[j] for j in nearby.query_ball_point(
+                    (x, y), r=float(probe_m))
+            ]
+        for ox, oy in candidate_obstacles:
             vx, vy = ox - x, oy - y
             lat = vx * nx + vy * ny
             # Along-track discard is soft; use Euclidean for clearance.

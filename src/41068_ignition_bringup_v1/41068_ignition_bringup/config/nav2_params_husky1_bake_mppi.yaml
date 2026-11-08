@@ -1,6 +1,6 @@
 # Wave 2 bake-off OVERLAY — MPPI DiffDrive controller (Humble).
 # Applied only when controller_bake:=mppi (or listed in nav2_params_overlay).
-# Does NOT change production nav2_params_husky1.yaml (RPP remains default).
+# Production Husky navigation also uses the same forward-only MPPI limits.
 #
 # Velocity limits kept compatible with velocity_smoother (v≈0.5–0.6, ω≈1.2).
 # controller_frequency stays 10 Hz to match lidar / local costmap (model_dt=0.1).
@@ -38,7 +38,7 @@ controller_server:
       wz_std: 0.35
       # Compatible with velocity_smoother max 0.6 / 1.2.
       vx_max: 0.5
-      vx_min: -0.35
+      vx_min: 0.0
       vy_max: 0.0
       wz_max: 1.2
       iteration_count: 1

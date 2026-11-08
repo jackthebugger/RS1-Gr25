@@ -39,8 +39,12 @@ Validity monitoring always uses the live ``global_costmap/costmap_raw``.
 from __future__ import annotations
 
 import math
+import os
 import struct
 import time
+from collections import deque
+from concurrent.futures import Future, ThreadPoolExecutor
+from dataclasses import replace
 from enum import Enum
 from typing import List, Optional, Sequence, Tuple
 
@@ -90,6 +94,7 @@ from rs1_nav.mission_owner import (
     path_blocked_none_timed_out,
     seed_timed_out,
 )
+from rs1_nav.geometry import path_length
 from rs1_nav.path_bank import (
     LETHAL,
     CandidateState,
@@ -98,6 +103,7 @@ from rs1_nav.path_bank import (
     PathCandidate,
     build_path_bank,
     first_occupancy_hit_on_path,
+    length_primary_seed_config,
     nav2_costmap_to_grid,
     occupancy_mask_intersects_path,
     occupancy_msg_to_grid,
@@ -128,13 +134,16 @@ THETA_EXIT_RAD = 0.45  # hard FollowPath gate — never FP while |yaw| ≥ this
 SPIN_TIMEOUT_S = 12.0
 FALLBACK_TIMEOUT_S = 12.0
 VX_MIN_RESTORE_DEADLINE_S = 0.5
+FOLLOW_PATH_CANCEL_TIMEOUT_S = 1.0
+NAV2_CANCEL_RETRY_TIMEOUT_S = 1.0
+NAV2_RECOVERY_TIMEOUT_S = 5.0
 POST_REORIENT_FORWARD_ONLY_S = 8.0
 # NavFn paths start at the robot — pose[0]→pose[1] yaw is nearly current
 # heading (vacuous gate). Score yaw to a look-ahead chord instead.
 # 1.5 m was still near-aligned on GOAL fallback; 5 m catches first bend.
 PATH_YAW_LOOKAHEAD_M = 5.0
 FOLLOW_PATH_VX_MIN_PARAM = 'FollowPath.vx_min'
-FOLLOW_PATH_VX_MIN_DEFAULT = -0.35  # production YAML fallback if get fails
+FOLLOW_PATH_VX_MIN_DEFAULT = 0.0  # NAV forward-only fallback if get fails
 # Entry 073: sealed-start local unseal (NOT CostCritic weight — Humble
 # fail_flag is collision-only; enabled_ is configure-time only).
 LOCAL_OBSTACLE_LAYER_ENABLED_PARAM = 'obstacle_layer.enabled'
@@ -152,6 +161,19 @@ SEALED_UNSEAL_PATH_GAP_M = 5.0
 LIDAR_DRIVE_MIN_CLEAR_M = 1.25
 LIDAR_DRIVE_HALF_WIDTH_RAD = 0.45
 PATH_B_TANGENT_DRIVE_M = 2.5
+# Entry 083 Phase 1A: earlier active-path keepout invalidate / switch standoff.
+# Dedicated active-gate horizon — do NOT raise memory_block_horizon_m globally
+# (gui_stall distant-ghost false-abort risk).
+EARLY_SWITCH_HORIZON_M = 8.0
+SWITCH_STANDOFF_MIN_M = 4.0  # X: preferred dist(robot, locus) at switch arm
+KEEPOUT_SEAT_DISK_M = 1.5  # Y: seated-in-keepout failure class
+ENTRY083_BLOCK_DIAG_DIR = '/tmp/entry083_block_diag'
+# Entry 081: spawn-stem snap detection (shared Path A/B prefix).
+STEM_PREFIX_MAX_ARC_M = 8.0
+STEM_NEAR_START_M = 3.0
+STEM_ROBOT_AWAY_M = 5.0
+STEM_EXCLUSIVE_GAP_M = 2.0
+SHARED_PREFIX_SEP_M = 1.0
 
 
 def wrap_angle(rad: float) -> float:
@@ -550,6 +572,147 @@ def should_arm_sealed_start_unseal(
     return float(dist_to_locus_m) <= float(max_locus_m)
 
 
+def _resample_polyline_step(
+    points: Sequence[Tuple[float, float]], step_m: float = 0.5
+) -> List[Tuple[float, float]]:
+    """Resample a polyline at approximately ``step_m`` arc spacing."""
+    if not points:
+        return []
+    if len(points) == 1:
+        return [(float(points[0][0]), float(points[0][1]))]
+    out: List[Tuple[float, float]] = [
+        (float(points[0][0]), float(points[0][1]))
+    ]
+    acc = 0.0
+    step = max(1e-3, float(step_m))
+    for a, b in zip(points, points[1:]):
+        ax, ay = float(a[0]), float(a[1])
+        bx, by = float(b[0]), float(b[1])
+        seg = math.hypot(bx - ax, by - ay)
+        if seg < 1e-9:
+            continue
+        t = step - acc
+        while t <= seg:
+            u = t / seg
+            out.append((ax + u * (bx - ax), ay + u * (by - ay)))
+            t += step
+        acc = seg - (t - step)
+    last = (float(points[-1][0]), float(points[-1][1]))
+    if math.hypot(out[-1][0] - last[0], out[-1][1] - last[1]) > 1e-6:
+        out.append(last)
+    return out
+
+
+def nearest_vertex_index(
+    points: Sequence[Tuple[float, float]], rx: float, ry: float
+) -> int:
+    """Index of the polyline vertex nearest ``(rx, ry)``."""
+    if not points:
+        return 0
+    best_i, best_d = 0, float('inf')
+    for i, (x, y) in enumerate(points):
+        d = (float(x) - rx) * (float(x) - rx) + (float(y) - ry) * (float(y) - ry)
+        if d < best_d:
+            best_d, best_i = d, i
+    return best_i
+
+
+def arc_length_to_index(
+    points: Sequence[Tuple[float, float]], i: int
+) -> float:
+    """Arc length from start through vertex ``i`` (inclusive)."""
+    if not points or i < 0:
+        return 0.0
+    end = min(int(i) + 1, len(points))
+    return float(path_length(points[:end]))
+
+
+def shared_prefix_end_index(
+    path_a: Sequence[Tuple[float, float]],
+    path_b: Sequence[Tuple[float, float]],
+    sep_m: float = SHARED_PREFIX_SEP_M,
+) -> int:
+    """Last index on ``path_b`` still inside the shared spawn stem.
+
+    Sharedness is measured on 0.5 m-resampled polylines, then mapped back onto
+    ``path_b`` by **arc length** (never compare densified vs resampled indices).
+    Empty ``path_a`` → stem capped at ``STEM_PREFIX_MAX_ARC_M``.
+    """
+    if not path_b:
+        return 0
+    if not path_a:
+        # Arc-only stem: last vertex with arc ≤ STEM_PREFIX_MAX_ARC_M.
+        last = 0
+        for j in range(len(path_b)):
+            if arc_length_to_index(path_b, j) <= STEM_PREFIX_MAX_ARC_M:
+                last = j
+            else:
+                break
+        return last
+    a = _resample_polyline_step(path_a, 0.5)
+    b = _resample_polyline_step(path_b, 0.5)
+    last_r = 0
+    n = min(len(a), len(b))
+    for i in range(n):
+        if math.hypot(a[i][0] - b[i][0], a[i][1] - b[i][1]) <= float(sep_m):
+            last_r = i
+        else:
+            break
+    prefix_arc = arc_length_to_index(b, last_r)
+    # Cap stem to STEM_PREFIX_MAX_ARC_M for safety.
+    prefix_arc = min(prefix_arc, STEM_PREFIX_MAX_ARC_M)
+    last = 0
+    for j in range(len(path_b)):
+        if arc_length_to_index(path_b, j) <= prefix_arc + 1e-6:
+            last = j
+        else:
+            break
+    return last
+
+
+def is_spawn_stem_snap(
+    *,
+    robot_xy: Tuple[float, float],
+    bank_start: Tuple[float, float],
+    target_points: Sequence[Tuple[float, float]],
+    path_a_points: Sequence[Tuple[float, float]],
+) -> bool:
+    """True when nearest target vertex is on the shared spawn stem, not exclusive B."""
+    if not target_points:
+        return False
+    rx, ry = float(robot_xy[0]), float(robot_xy[1])
+    sx, sy = float(bank_start[0]), float(bank_start[1])
+    if math.hypot(rx - sx, ry - sy) < STEM_ROBOT_AWAY_M:
+        return False  # still at spawn — normal FollowPath OK
+
+    ni = nearest_vertex_index(target_points, rx, ry)
+    nx, ny = float(target_points[ni][0]), float(target_points[ni][1])
+    prefix_end = shared_prefix_end_index(path_a_points, target_points)
+    ni_arc = arc_length_to_index(target_points, ni)
+    prefix_arc = arc_length_to_index(target_points, prefix_end)
+
+    stem_by_arc = ni_arc <= STEM_PREFIX_MAX_ARC_M
+    stem_by_start = math.hypot(nx - sx, ny - sy) <= STEM_NEAR_START_M
+    # Compare by arc length (prefix_end already mapped onto target_points).
+    stem_by_shared = ni_arc <= prefix_arc + 1e-6
+
+    if not (stem_by_arc or stem_by_start or stem_by_shared):
+        return False
+
+    exclusive = [
+        (float(p[0]), float(p[1]))
+        for j, p in enumerate(target_points)
+        if arc_length_to_index(target_points, j) > STEM_PREFIX_MAX_ARC_M
+    ]
+    if not exclusive:
+        return False
+    stride = max(1, len(exclusive) // 50)
+    d_excl = min(
+        math.hypot(rx - x, ry - y) for x, y in exclusive[::stride]
+    )
+    return d_excl > STEM_EXCLUSIVE_GAP_M
+
+
 def should_restore_sealed_start_unseal(
     dist_to_locus_m: Optional[float],
     armed_at: float,
@@ -676,6 +839,19 @@ class MissionNavState(str, Enum):
     # NO_PATH_AVAILABLE here — that state stays in _on_timer active set and
     # can thrash). UX string / owner.detail also 'NO_SAFE_ROUTE'.
     NO_SAFE_ROUTE = 'NO_SAFE_ROUTE'
+    SAFE_HOLD = 'SAFE_HOLD'
+    NAV2_CANCEL_FAILED = 'NAV2_CANCEL_FAILED'
+    FIRE_UNLOCALIZED_HOLD = 'FIRE_UNLOCALIZED_HOLD'
+
+
+class RefuseContext(str, Enum):
+    """Why bare FollowPath was refused under spawn-stem snap (Entry 084)."""
+
+    SYNC_SWITCH_ARM = 'SYNC_SWITCH_ARM'
+    ASYNC_BRIDGE = 'ASYNC_BRIDGE'
+    CENTRAL_GATE_POST_DRIVE = 'CENTRAL_GATE_POST_DRIVE'
+    CENTRAL_GATE_STUCK = 'CENTRAL_GATE_STUCK'
+    CENTRAL_GATE_OTHER = 'CENTRAL_GATE_OTHER'
 
 
 class PathBankManager(Node):
@@ -792,6 +968,12 @@ class PathBankManager(Node):
         self._abort_resend_used = False
         # Generation captured when a FollowPath goal is submitted (fence).
         self._fp_submit_generation: int = -1
+        self._switch_action_token = 0
+        self._fp_cancel_context = None
+        self._fp_cancel_retry_used = False
+        self._fp_cancel_started_at = 0.0
+        self._fp_cancel_deadline = 0.0
+        self._fp_cancel_reason = ''
         self._home_route: Optional[RouteInstance] = None
         # Owner stuck recovery (BT inactive): progress watchdog + orphaned handle.
         self.declare_parameter('stuck_timeout_s', 8.0)
@@ -844,8 +1026,29 @@ class PathBankManager(Node):
         self._home_via_candidate_queue: List[Tuple[float, float]] = []
         self._dist_home_at_return_arm: float = -1.0
         self._pending_follow_seed_since: float = 0.0
+        # Planning is deliberately isolated from the ROS executor.  The
+        # generation token makes cancellation safe even when Python cannot
+        # interrupt a running CPU-bound worker immediately.
+        self._planning_executor = ThreadPoolExecutor(
+            max_workers=1, thread_name_prefix='path-bank')
+        self._planning_future: Optional[Future] = None
+        self._planning_token = 0
+        self._planning_mission_id = -1
+        self._planning_started_at = 0.0
+        self._planning_stage = ''
+        self._bank_expansion_pending = False
+        self._planning_grid = None
+        self._planning_start: Optional[Tuple[float, float]] = None
+        self._planning_goal: Optional[Tuple[float, float]] = None
         # Entry 049: rebuilds of join queue instead of premature home.
         self._far_gap_rebuilds: int = 0
+        # Entry 081: stem-snap bridge failure budget (does not reset each switch).
+        self._stem_snap_bridge_fails: int = 0
+        # Entry 082: after join+GOAL NavFn exhaust, allow one Drive retry then
+        # escalate — never orphaned_handle forever while "live-valid".
+        self._bridge_exhaust_drive_retries: int = 0
+        # Entry 083 Phase 0: one-shot Switch NavFn seating diagnostic per mission.
+        self._entry083_block_diag_logged: bool = False
 
         self._cfg = PathBankConfig(
             max_candidates=int(self.get_parameter('max_candidates').value),
@@ -1029,6 +1232,7 @@ class PathBankManager(Node):
         self._reorient_path_uid = ''
         self._reorient_path_id = 0
         self._spin_goal_handle = None
+        self._spin_action_token = 0
         self._splice_used = False
         self._splice_pending = False
         self._switch_bridge_join_i = 0
@@ -1422,6 +1626,12 @@ class PathBankManager(Node):
                     return  # terminal — do not downgrade
                 self.raise_blocking_inhibit(SafetyInhibit.THERMAL_FIRE_PENDING)
             return
+        if SafetyInhibit.PENDING_FIRE_UNRESOLVED in self._owner.active_inhibits:
+            self.get_logger().warn(
+                'Ignoring pending_fire=False while FIRE_UNLOCALIZED_HOLD '
+                'requires operator intervention'
+            )
+            return
         # Pending cleared by association/mark — only clear THERMAL_FIRE_PENDING
         # if still that code (not terminal unresolved). §S1 clear-without-mark
         # is handled separately; association path drops pending here.
@@ -1481,6 +1691,9 @@ class PathBankManager(Node):
         self._home_via_leg1_pts = []
         self._dist_home_at_return_arm = -1.0
         self._far_gap_rebuilds = 0
+        self._stem_snap_bridge_fails = 0
+        self._bridge_exhaust_drive_retries = 0
+        self._entry083_block_diag_logged = False
         self._path_blocked_none_since = 0.0
         self._switch_count = 0
         self._abort_resend_used = False
@@ -1547,12 +1760,15 @@ class PathBankManager(Node):
         if not self._enabled:
             return
         if self._pending_follow_seed and self._use_follow_path:
-            if self._try_seed_follow_path_bank():
+            if self._try_complete_follow_path_bank():
                 self.get_logger().info('Deferred FollowPath bank seed completed')
                 self._pending_follow_seed_since = 0.0
+            else:
+                self._try_start_follow_path_bank()
         self._maybe_finish_rebuild()
         self._maybe_restore_sealed_start_unseal()
         self._publish_forward_only()
+        self._tick_follow_path_cancellation()
         self._maybe_complete_pending_switch()
         # Hang bounds before bank switch (Wave 0) — may terminalize.
         self._maybe_terminal_hang_bounds()
@@ -1961,6 +2177,37 @@ class PathBankManager(Node):
             sample_stride=self._cfg.sample_stride,
         )
 
+    def _nearest_route_index_progress_aware(
+        self,
+        points: Sequence[Tuple[float, float]],
+        rx: float,
+        ry: float,
+        *,
+        window_m: float = 2.0,
+    ) -> int:
+        """Nearest route index preferring progress along the corridor.
+
+        Among vertices within ``window_m`` of the robot, pick the one with
+        **maximum** arc-from-start (avoids snapping back to a shared spawn
+        stem when mid-corridor geometry is also nearby). Else global nearest.
+        """
+        if not points:
+            return 0
+        within: List[int] = []
+        for i, (x, y) in enumerate(points):
+            if math.hypot(float(x) - rx, float(y) - ry) <= float(window_m):
+                within.append(i)
+        if within:
+            best_i = within[0]
+            best_arc = -1.0
+            for i in within:
+                arc = arc_length_to_index(points, i)
+                if arc > best_arc:
+                    best_arc = arc
+                    best_i = i
+            return best_i
+        return nearest_vertex_index(points, rx, ry)
+
     def _route_forward_from_robot(
         self, route: RouteInstance
     ) -> Tuple[Tuple[Tuple[float, float], ...], Tuple[float, ...]]:
@@ -1968,21 +2215,35 @@ class PathBankManager(Node):
 
         Validating the original start corridor after the robot has moved causes
         false Path-B rejects when oriented footprints clip trail walls behind
-        or beside the spawn (T2 / bush_trail).
+        or beside the spawn (T2 / bush_trail). Entry 081: progress-aware nearest
+        avoids stem snap when mid-corridor vertices are also within window.
         """
         pts = route.points
         yaws = route.yaw_rad
         if not pts or self._robot_xyyaw is None:
             return pts, yaws
         rx, ry = self._robot_xyyaw[0], self._robot_xyyaw[1]
-        best_i, best_d = 0, float('inf')
-        for i, (x, y) in enumerate(pts):
-            d = (x - rx) * (x - rx) + (y - ry) * (y - ry)
-            if d < best_d:
-                best_d, best_i = d, i
+        best_i = self._nearest_route_index_progress_aware(pts, rx, ry)
         # Skip the pose under the robot (footprint already occupies it).
         i0 = min(best_i + 1, len(pts) - 1)
         return pts[i0:], yaws[i0:]
+
+    def _route_validity_forward_from_robot(
+        self, route: RouteInstance
+    ) -> Tuple[Tuple[Tuple[float, float], ...], Tuple[float, ...]]:
+        """Forward slice for active-route validity (Entry 082).
+
+        Unlike FollowPath publish, keep the nearest sample so a barrier the
+        robot is pressed against still fails ``path_is_valid`` / memory gates.
+        Progress-aware nearest is retained (T11 homeward / stem).
+        """
+        pts = route.points
+        yaws = route.yaw_rad
+        if not pts or self._robot_xyyaw is None:
+            return pts, yaws
+        rx, ry = self._robot_xyyaw[0], self._robot_xyyaw[1]
+        best_i = self._nearest_route_index_progress_aware(pts, rx, ry)
+        return pts[best_i:], yaws[best_i:]
 
     def _active_route_valid(
         self, active: PathCandidate, live_grid
@@ -1994,22 +2255,77 @@ class PathBankManager(Node):
         (lethal_at_* on trail walls after switch) — re-enable oriented live
         only with T2/path_bank_nav evidence. Candidate switch precheck and
         home-route validate may still use oriented helpers elsewhere.
+
+        Entry 082: validity uses proximal-inclusive forward samples (not
+        best_i+1), and also horizon-scopes the bank centreline so densify
+        dodge + FOOTPRINT_ESCAPE cannot hide a keepout/lethal corridor hit.
+
+        Entry 083 Phase 1A: active memory ahead uses EARLY_SWITCH_HORIZON_M
+        (dedicated; memory_block_horizon_m stays 5.0 for other gates) so a
+        keepout hit ~6 m ahead invalidates and switches before seating in the
+        mid-corridor locus pocket.
         """
-        pts = active.points
+        pts = list(active.points)
         if self._use_follow_path and self._route_bank is not None:
             route = self._route_bank.by_path_id(active.path_id)
             if route is not None:
-                pts, _yaws = self._route_forward_from_robot(route)
+                pts_t, _yaws = self._route_validity_forward_from_robot(route)
+                pts = list(pts_t)
         ok, reason = path_is_valid(
             list(pts),
             live_grid,
             lethal_threshold=self._cfg.lethal_threshold,
             sample_stride=self._cfg.sample_stride,
         )
+        early_h = float(EARLY_SWITCH_HORIZON_M)
         # Horizon-scoped memory: distant trail-wall ghosts must not kill Path A
         # before the robot reaches the GUI demo gap (gui_stall_fix residual).
-        if ok and self._memory_intersects_path_ahead(list(pts)):
+        # Entry 083: active gate uses dedicated early-switch horizon (8 m).
+        if ok and self._memory_intersects_path_ahead(
+            list(pts), horizon_m=early_h
+        ):
             return False, 'obstacle_memory_mask'
+        # Bank centreline within early horizon (densified route may have dodged).
+        if ok and self._memory_intersects_path_ahead(
+            list(active.points), horizon_m=early_h
+        ):
+            return False, 'obstacle_memory_mask'
+        # Explicit hit-distance gate (Entry 083): nearest memory hit among
+        # forward / near-horizon bank samples within EARLY_SWITCH_HORIZON_M.
+        if ok and self._robot_xyyaw is not None:
+            rx, ry = self._robot_xyyaw[0], self._robot_xyyaw[1]
+            h2 = early_h * early_h
+            hit = self._first_memory_hit_on_path(list(pts))
+            if hit is None and active.points:
+                near_bank_mem = [
+                    (x, y) for (x, y) in active.points
+                    if (x - rx) * (x - rx) + (y - ry) * (y - ry) <= h2
+                ]
+                if near_bank_mem:
+                    hit = self._first_memory_hit_on_path(near_bank_mem)
+            if hit is not None and math.hypot(
+                rx - hit[0], ry - hit[1]
+            ) <= early_h:
+                return False, 'obstacle_memory_mask'
+        # Lethal on bank centreline near robot even if densify samples are free.
+        # Keep memory_block_horizon_m (5.0) — early horizon is for keepout switch.
+        if ok and self._robot_xyyaw is not None and active.points:
+            rx, ry = self._robot_xyyaw[0], self._robot_xyyaw[1]
+            h = float(self._memory_block_horizon_m)
+            h2 = h * h
+            near_bank = [
+                (x, y) for (x, y) in active.points
+                if (x - rx) * (x - rx) + (y - ry) * (y - ry) <= h2
+            ]
+            if near_bank:
+                ok_b, reason_b = path_is_valid(
+                    near_bank,
+                    live_grid,
+                    lethal_threshold=self._cfg.lethal_threshold,
+                    sample_stride=self._cfg.sample_stride,
+                )
+                if not ok_b:
+                    return False, reason_b
         return ok, reason
 
     def _memory_intersects_route_points(
@@ -2249,7 +2565,13 @@ class PathBankManager(Node):
 
     # -- bank construction -------------------------------------------------
 
-    def _build_bank(self, start: Tuple[float, float], goal: Tuple[float, float]) -> None:
+    def _build_bank(
+        self,
+        start: Tuple[float, float],
+        goal: Tuple[float, float],
+        *,
+        prebuilt_bank: Optional[PathBank] = None,
+    ) -> None:
         self._building = True
         self._set_state(MissionNavState.PLANNING)
         try:
@@ -2274,11 +2596,20 @@ class PathBankManager(Node):
                 self.get_logger().warn('No prior_map or costmap yet; bank deferred')
                 return
 
-            bank = build_path_bank(
-                grid, start, goal, self._cfg,
-                footprint_inflate_m=self._footprint_inflate,
-                downsample_factor=4,
-            )
+            bank = prebuilt_bank
+            if bank is None:
+                # Entry 081: FollowPath sync seed uses length-primary so Path 1
+                # is the shortest valid corridor (matches async StartMission worker).
+                seed_cfg = (
+                    length_primary_seed_config(self._cfg)
+                    if self._use_follow_path
+                    else self._cfg
+                )
+                bank = build_path_bank(
+                    grid, start, goal, seed_cfg,
+                    footprint_inflate_m=self._footprint_inflate,
+                    downsample_factor=4,
+                )
             if not bank.candidates:
                 self.get_logger().warn('Path bank generated 0 candidates')
                 self._bank = bank
@@ -2470,23 +2801,31 @@ class PathBankManager(Node):
 
         Reverse-splice / densified straight fallback is intentionally absent.
         C2: increments ``_home_plan_attempt_count`` (max 2 while nav_mode=home).
+        Entry 081: gate on ``_home_plan_readiness_ok`` — do **not** require
+        ``_planning_start`` (mission-seed scratch unrelated to home).
         """
-        if self._compute_path_client is None or self._home_xyyaw is None:
-            return False
-        if self._robot_xyyaw is None:
-            return False
         if self._nav_mode == 'home' and self._home_plan_attempt_count >= 2:
             self.get_logger().warn(
                 'Home plan attempt budget exhausted (max=2); not requesting'
             )
             return False
-        if not self._compute_path_client.wait_for_server(timeout_sec=2.0):
-            # Readiness miss still consumes C2 budget.
-            if self._nav_mode == 'home':
+        ok, why = self._home_plan_readiness_ok()
+        if not ok:
+            # Preserve C2 budget consumption when the ComputePath server is down.
+            if (
+                self._nav_mode == 'home'
+                and why == 'home_plan_unavailable'
+                and self._compute_path_client is not None
+                and not self._compute_path_client.server_is_ready()
+            ):
                 self._home_plan_attempt_count += 1
-            self.get_logger().warn(
-                'compute_path_to_pose not ready for fresh home plan '
-                f'(attempt={self._home_plan_attempt_count}/2)')
+                self.get_logger().warn(
+                    'compute_path_to_pose not ready for fresh home plan '
+                    f'(attempt={self._home_plan_attempt_count}/2)')
+            else:
+                self.get_logger().warn(
+                    f'Home plan readiness failed ({why}); not requesting'
+                )
             return False
         rx, ry, ryaw = self._robot_xyyaw
         hx, hy, hyaw = self._home_xyyaw
@@ -3202,11 +3541,9 @@ class PathBankManager(Node):
         for route in routes:
             if len(route.points) < 2:
                 continue
-            best_i, best_d = 0, float('inf')
-            for i, (x, y) in enumerate(route.points):
-                d = (x - rx) * (x - rx) + (y - ry) * (y - ry)
-                if d < best_d:
-                    best_d, best_i = d, i
+            # Entry 081: progress-aware nearest — mid-B exclusive, not stem.
+            best_i = self._nearest_route_index_progress_aware(
+                route.points, rx, ry)
             if best_i < 1:
                 continue
             # Start→robot prefix, then reverse so travel is robot→start/home.
@@ -3294,6 +3631,27 @@ class PathBankManager(Node):
         )
 
     def _pick_next_valid(self, live_grid) -> Optional[PathCandidate]:
+        self._validate_pending_candidates(live_grid)
+        has_available_alternative = any(
+            c.state == CandidateState.AVAILABLE
+            and c.path_id != self._bank.active_id
+            for c in self._bank.candidates
+        )
+        if (
+            not has_available_alternative
+            and not self._bank.all_blocked()
+            and (
+                self._bank_expansion_pending
+                or any(
+                    c.state in (CandidateState.PENDING, CandidateState.VALIDATING)
+                    for c in self._bank.candidates
+                )
+            )
+        ):
+            self.get_logger().info(
+                'Deferring exhaustion while path-bank expansion/validation is pending'
+            )
+            return None
         # Re-validate remaining AVAILABLE candidates against live costmap AND
         # obstacle_memory mask (Entry 023: same gate as active-path checks).
         remaining = sorted(
@@ -3315,10 +3673,191 @@ class PathBankManager(Node):
             return cand
         return None
 
+    def _validate_pending_candidates(self, live_grid) -> None:
+        """Validate merged candidates before they can influence exhaustion."""
+        if self._bank is None or live_grid is None:
+            return
+        for candidate in self._bank.candidates:
+            if candidate.state != CandidateState.PENDING:
+                continue
+            candidate.state = CandidateState.VALIDATING
+            ok, reason = self._candidate_route_valid(candidate, live_grid)
+            if ok:
+                candidate.state = CandidateState.AVAILABLE
+                candidate.block_reason = ''
+            else:
+                candidate.state = CandidateState.BLOCKED
+                candidate.block_reason = f'validation:{reason}'
+
+    def _enter_safe_hold(self, reason: str) -> None:
+        """Stop navigation while an old controller goal is being resolved."""
+        self._switch_action_token += 1
+        if self._fp_cancel_context is not None:
+            self._fp_cancel_context['switch_token'] = self._switch_action_token
+        self._set_state(MissionNavState.SAFE_HOLD)
+        self._owner.phase = MissionPhase.HOLDING
+        self._owner.command_authority = CommandAuthority.NONE
+        self._owner.detail = reason
+        self._publish_authority_now()
+        self._clear_active_path()
+        self._publish_status()
+        self.get_logger().error(
+            f'SAFE_HOLD reason={reason} authority=NONE active_path=cleared'
+        )
+
+    def _enter_nav2_cancel_failed(self, reason: str) -> None:
+        """Terminalize an unconfirmed controller cancellation safely."""
+        self._fp_cancel_context = None
+        self._set_state(MissionNavState.NAV2_CANCEL_FAILED)
+        self._owner.phase = MissionPhase.STOPPED
+        self._owner.command_authority = CommandAuthority.NONE
+        self._owner.detail = reason
+        self._publish_authority_now()
+        self._clear_active_path()
+        self._publish_status()
+        self.get_logger().error(
+            f'NAV2_CANCEL_FAILED reason={reason} authority=NONE '
+            'return_home=forbidden'
+        )
+
+    @staticmethod
+    def _cancel_response_acknowledged(response) -> bool:
+        """Accept only responses proving the old goal is no longer active."""
+        if response is None:
+            return False
+        code = getattr(response, 'return_code', 0)
+        # action_msgs/CancelGoal: NONE, UNKNOWN_GOAL_ID, GOAL_TERMINATED and
+        # GOAL_CANCELING all mean the requested goal cannot continue running.
+        return int(code) in (0, 2, 3, 4)
+
+    def _begin_follow_path_cancellation(
+        self, live_grid, generation: int, switch_token: int
+    ) -> bool:
+        """Request bounded cancellation while retaining the exact goal handle."""
+        handle = self._fp_goal_handle
+        if handle is None:
+            return False
+        epoch = int(self._fp_goal_epoch)
+        self._fp_cancelled_epochs.add(epoch)
+        self._fp_cancel_context = {
+            'handle': handle,
+            'epoch': epoch,
+            'generation': generation,
+            'switch_token': switch_token,
+            'live_grid': live_grid,
+            'retry': 0,
+        }
+        self._fp_cancel_retry_used = False
+        self._fp_cancel_reason = 'route_switch'
+        self._fp_cancel_started_at = time.monotonic()
+        self._fp_cancel_deadline = (
+            self._fp_cancel_started_at + FOLLOW_PATH_CANCEL_TIMEOUT_S)
+        try:
+            future = handle.cancel_goal_async()
+            self._fp_cancel_context['future'] = future
+            future.add_done_callback(
+                lambda f, e=epoch, t=switch_token:
+                self._on_follow_path_cancel_response(f, e, t)
+            )
+        except Exception as exc:  # noqa: BLE001
+            self.get_logger().error(f'FollowPath cancel request failed: {exc}')
+            self._retry_follow_path_cancellation()
+        self.get_logger().warn(
+            f'FollowPath cancel requested epoch={epoch} '
+            f'deadline={FOLLOW_PATH_CANCEL_TIMEOUT_S:.1f}s'
+        )
+        return True
+
+    def _retry_follow_path_cancellation(self) -> None:
+        context = self._fp_cancel_context
+        if not context or self._fp_cancel_retry_used:
+            return
+        self._fp_cancel_retry_used = True
+        context['retry'] = 1
+        self._fp_cancel_started_at = time.monotonic()
+        self._fp_cancel_deadline = (
+            self._fp_cancel_started_at + NAV2_CANCEL_RETRY_TIMEOUT_S)
+        try:
+            future = context['handle'].cancel_goal_async()
+            context['future'] = future
+            future.add_done_callback(
+                lambda f, e=context['epoch'], t=context['switch_token']:
+                self._on_follow_path_cancel_response(f, e, t)
+            )
+            self.get_logger().warn(
+                f'FollowPath cancellation retry requested exact epoch='
+                f'{context["epoch"]} deadline={NAV2_CANCEL_RETRY_TIMEOUT_S:.1f}s'
+            )
+        except Exception as exc:  # noqa: BLE001
+            self._enter_nav2_cancel_failed(
+                f'cancel_retry_exception:{type(exc).__name__}')
+
+    def _on_follow_path_cancel_response(
+        self, future, epoch: int, switch_token: int
+    ) -> None:
+        context = self._fp_cancel_context
+        if not context or context.get('epoch') != int(epoch):
+            try:
+                future.result()
+            except Exception:
+                pass
+            self.get_logger().info(
+                f'Processed stale FollowPath cancel response epoch={epoch}'
+            )
+            return
+        try:
+            response = future.result()
+        except Exception as exc:  # noqa: BLE001
+            self.get_logger().warn(
+                f'FollowPath cancel response failed epoch={epoch}: {exc}')
+            return
+        if not self._cancel_response_acknowledged(response):
+            self.get_logger().warn(
+                f'FollowPath cancel not acknowledged epoch={epoch} '
+                f'retry={context["retry"]}'
+            )
+            return
+        self._fp_goal_handle = None
+        self._fp_cancel_context = None
+        self._fp_cancel_deadline = 0.0
+        self.get_logger().info(
+            f'FollowPath cancellation acknowledged epoch={epoch} '
+            f'retry={context["retry"]}'
+        )
+        if (
+            context.get('switch_token') != self._switch_action_token
+            or context['generation'] != self._owner.generation
+        ):
+            return
+        if self._owner.has_blocking_inhibit() or self._owner.operator_stop_latch:
+            return
+        if self._state == MissionNavState.SAFE_HOLD:
+            self._owner.phase = MissionPhase.NAVIGATING
+            self._owner.command_authority = CommandAuthority.NAV
+            self._publish_authority_now()
+        self._switch_follow_path(context['live_grid'])
+
+    def _tick_follow_path_cancellation(self) -> None:
+        context = self._fp_cancel_context
+        if not context or time.monotonic() < self._fp_cancel_deadline:
+            return
+        if not self._fp_cancel_retry_used:
+            self._enter_safe_hold('CANCEL_UNCONFIRMED')
+            self._retry_follow_path_cancellation()
+            return
+        self._enter_nav2_cancel_failed(
+            'cancel_unconfirmed_after_retry')
+
     def _switch_follow_path(self, live_grid) -> None:
         """Mark-blocked → cancel FP → clear → validate next → submit (gen fence)."""
         gen = self._owner.generation
-        self._cancel_follow_path()
+        self._switch_action_token += 1
+        switch_token = self._switch_action_token
+        # Remove the old authoritative route before waiting for cancellation.
+        self._clear_active_path()
+        if self._begin_follow_path_cancellation(live_grid, gen, switch_token):
+            self._enter_safe_hold('CANCEL_PENDING')
+            return
         if gen != self._owner.generation:
             self.get_logger().info(
                 'Aborting FollowPath switch — generation changed during cancel'
@@ -3344,6 +3883,25 @@ class PathBankManager(Node):
         self._clear_local_costmap()
         nxt = self._pick_next_valid(live_grid)
         if nxt is None:
+            has_available_alternative = any(
+                c.state == CandidateState.AVAILABLE
+                and c.path_id != self._bank.active_id
+                for c in self._bank.candidates
+            )
+            if (
+                not has_available_alternative
+                and not self._bank.all_blocked()
+                and (
+                    self._bank_expansion_pending
+                    or any(
+                        c.state in (CandidateState.PENDING, CandidateState.VALIDATING)
+                        for c in self._bank.candidates
+                    )
+                )
+            ):
+                self._set_state(MissionNavState.PATH_BLOCKED)
+                self._switch_pending = True
+                return
             self.get_logger().error(
                 'No valid banked path remains'
                 + (' (all_blocked)' if self._bank and self._bank.all_blocked() else '')
@@ -3366,6 +3924,7 @@ class PathBankManager(Node):
         self._abort_resend_used = False  # new route gets one ownership recovery
         self._stuck_recoveries = 0
         self._far_gap_rebuilds = 0
+        self._bridge_exhaust_drive_retries = 0
         self._splice_used = False
         self._splice_pending = False
         self._switch_navfn_retry_used = False
@@ -3379,9 +3938,22 @@ class PathBankManager(Node):
         self._escape_hop_pending_join = False
         self._drive_escape_used = False
         self._drive_escape_pending_join = False
+        # Entry 083 Phase 1A: log standoff vs locus at switch arm.
+        standoff_m = -1.0
+        seat_disk_violation = False
+        locus_arm = self._path_a_repel_xy()
+        if self._robot_xyyaw is not None and locus_arm is not None:
+            standoff_m = math.hypot(
+                self._robot_xyyaw[0] - locus_arm[0],
+                self._robot_xyyaw[1] - locus_arm[1],
+            )
+            seat_disk_violation = standoff_m < float(KEEPOUT_SEAT_DISK_M)
         self.get_logger().info(
             f'Switching to Path {nxt.path_id} via FollowPath '
-            f'(score={nxt.score:.1f}, switch #{self._switch_count})'
+            f'(score={nxt.score:.1f}, switch #{self._switch_count}) '
+            f'switch_standoff_m={standoff_m:.2f} '
+            f'seat_disk_violation={seat_disk_violation} '
+            f'(min={SWITCH_STANDOFF_MIN_M} seat_disk={KEEPOUT_SEAT_DISK_M})'
         )
         self._publish_bank_paths()
         self._nav_mode = 'mission'
@@ -3405,12 +3977,29 @@ class PathBankManager(Node):
         #   2) Path-B-tangent DriveOnHeading with LIDAR cone collision gate
         #      (geometric yaw — costmap free-heading already failed R11).
         #   3) Path-B join NavFn / GOAL. Escape hop budget is 0 this pass.
+        # Entry 081: spawn-stem snap forces the same bridge ladder; bare
+        # FollowPath is forbidden when stem-snap and bridge fails.
         bridged = False
+        stem = False
+        nearest = 0.0
         if self._robot_xyyaw is not None:
             rx, ry, _ = self._robot_xyyaw
             nearest = min(
-                math.hypot(rx - x, ry - y) for x, y in route.points[:: max(1, len(route.points) // 100)]
+                math.hypot(rx - x, ry - y)
+                for x, y in route.points[:: max(1, len(route.points) // 100)]
             )
+            path_a_pts = self._path_a_points_for_stem(nxt.path_id)
+            bank_start = (
+                self._bank.start if self._bank is not None
+                else (float(route.points[0][0]), float(route.points[0][1]))
+            )
+            stem = is_spawn_stem_snap(
+                robot_xy=(rx, ry),
+                bank_start=bank_start,
+                target_points=route.points,
+                path_a_points=path_a_pts,
+            )
+            force_bridge = stem or nearest > 2.0
             repel = self._path_a_repel_xy()
             locus_d = (
                 math.hypot(rx - repel[0], ry - repel[1])
@@ -3418,54 +4007,70 @@ class PathBankManager(Node):
             )
             if should_arm_sealed_start_unseal(nearest, locus_d):
                 self._arm_sealed_start_local_unseal('switch_far_gap')
+            # DriveOnHeading often False mid-corridor; NavFn join/GOAL is
+            # primary stem recovery. Still try Drive when stem or far-gap.
             if (
-                nearest > SEALED_UNSEAL_PATH_GAP_M
+                (stem or nearest > SEALED_UNSEAL_PATH_GAP_M)
                 and not getattr(self, '_drive_escape_used', False)
             ):
                 bridged = self._request_drive_on_heading_escape(
-                    route, generation=gen)
+                    route, generation=gen, action_token=switch_token)
                 if bridged:
                     self.get_logger().info(
                         f'Switch far-gap {nearest:.1f}m → Path-B-tangent '
                         'DriveOnHeading (Entry 073 local unseal)'
+                        + (' [stem-snap]' if stem else '')
                     )
-            if not bridged and nearest > 2.0:
-                bridged = self._request_switch_navfn_bridge(route, generation=gen)
+            if not bridged and force_bridge:
+                bridged = self._request_switch_navfn_bridge(
+                    route, generation=gen)
                 if bridged:
                     self.get_logger().info(
                         f'Switch far-gap {nearest:.1f}m → Path-B join NavFn'
+                        + (' [stem-snap]' if stem else '')
                     )
-                elif nearest > 5.0:
+                # Stem: always try GOAL fallback even when nearest ≤ 5.
+                elif stem or nearest > 5.0:
                     bridged = self._request_switch_navfn_goal_fallback(
                         route, generation=gen)
                     if bridged:
                         self.get_logger().info(
                             f'Switch far-gap {nearest:.1f}m → GOAL NavFn '
                             '(join bridge could not start)'
+                            + (' [stem-snap]' if stem else '')
                         )
         if not bridged:
+            if stem:
+                self.get_logger().warn(
+                    f'STEM_SNAP_BRIDGE_FAILED Path {nxt.path_id} '
+                    f'nearest={nearest:.1f}'
+                )
+                # Entry 084 R1: sole Inc via refuse helper (SYNC_SWITCH_ARM).
+                self._refuse_bare_stem_follow_path(
+                    route,
+                    generation=gen,
+                    context=RefuseContext.SYNC_SWITCH_ARM,
+                )
+                return
             self._send_follow_path(route, expected_generation=gen)
+            self._stem_snap_bridge_fails = 0
+        else:
+            self._stem_snap_bridge_fails = 0
         # Longer grace after far-gap switches so first bridge can settle.
         grace = self._post_switch_grace_s
-        nearest_gap = 0.0
-        if self._robot_xyyaw is not None and route.points:
-            rx, ry, _ = self._robot_xyyaw
-            nearest_gap = min(
-                math.hypot(rx - x, ry - y)
-                for x, y in route.points[:: max(1, len(route.points) // 100)]
-            )
-            if nearest_gap > 5.0:
-                # R3: 16 s grace expired exactly when stuck recovery cancelled a
-                # fresh GOAL NavFn and thrashed join bridges → 10.6 m stall.
-                # Give the far-gap bridge time to leave the barrier pocket.
-                grace = max(grace, 45.0)
+        nearest_gap = nearest
+        if nearest_gap > 5.0 or stem:
+            # R3: 16 s grace expired exactly when stuck recovery cancelled a
+            # fresh GOAL NavFn and thrashed join bridges → 10.6 m stall.
+            # Give the far-gap bridge time to leave the barrier pocket.
+            grace = max(grace, 45.0)
         if grace > 0.0:
             self._switch_grace_until = time.monotonic() + grace
         # Prefer forward motion after route switch. Issue B: bank-owned Spin
         # (inside _send_follow_path yaw gate) is the primary rotate-then-drive;
         # forward_only remains the safety net through reorient + grace.
         fo_hold = max(grace, 8.0)
-        if nearest_gap > 5.0:
+        if nearest_gap > 5.0 or stem:
             fo_hold = max(fo_hold, 45.0)
         self._forward_only_until = time.monotonic() + fo_hold
         self._publish_forward_only()
@@ -3517,6 +4122,28 @@ class PathBankManager(Node):
         ):
             return
         if self._live_costmap is None or self._bank is None:
+            return
+        # Entry 080/081 normative: defer expansion ONLY when there is no
+        # AVAILABLE alternative and the bank is not yet all_blocked. An
+        # AVAILABLE path or all_blocked must complete the queued switch now.
+        has_available_alternative = any(
+            c.state == CandidateState.AVAILABLE
+            and c.path_id != self._bank.active_id
+            for c in self._bank.candidates
+        )
+        if (
+            not has_available_alternative
+            and not self._bank.all_blocked()
+            and (
+                self._bank_expansion_pending
+                or any(
+                    c.state in (CandidateState.PENDING, CandidateState.VALIDATING)
+                    for c in self._bank.candidates
+                )
+            )
+        ):
+            return
+        if self._fp_cancel_context is not None:
             return
         self.get_logger().info(
             'Completing queued FollowPath switch (authority=NAV, live mission)'
@@ -3583,7 +4210,7 @@ class PathBankManager(Node):
             return False
         if self._splice_used or self._splice_pending:
             return False
-        if not self._compute_path_client.wait_for_server(timeout_sec=1.0):
+        if not self._compute_path_client.server_is_ready():
             self.get_logger().warn('compute_path_to_pose not ready for splice')
             return False
         ckpt = self._route_checkpoint_ahead(route, 6.0)
@@ -3734,12 +4361,91 @@ class PathBankManager(Node):
             ):
                 return True
         self.get_logger().warn(
-            'Switch NavFn bridges exhausted after reject; '
-            'stuck recovery will rebuild'
+            'Switch NavFn bridges exhausted after reject; escalate (Entry 082)'
         )
         self._switch_join_queue = None
         self._switch_goal_fallback_used = False
+        gap = None
+        if self._robot_xyyaw is not None:
+            nearest = self._nearest_route_pose(route)
+            if nearest is not None:
+                gap = math.hypot(
+                    self._robot_xyyaw[0] - nearest[0],
+                    self._robot_xyyaw[1] - nearest[1],
+                )
+        stem = self._route_is_spawn_stem_snap(route)
+        if stem:
+            # Entry 084: stem terminal → refuse (Inc) → exhaust stem_snap.
+            self._refuse_bare_stem_follow_path(
+                route,
+                generation=generation,
+                context=RefuseContext.ASYNC_BRIDGE,
+            )
+        else:
+            self._on_switch_bridge_exhausted(
+                route, generation=generation, gap=gap, stem_snap=False)
         return False
+
+    def _on_switch_bridge_exhausted(
+        self,
+        route: RouteInstance,
+        *,
+        generation: int,
+        gap: Optional[float],
+        stem_snap: bool = False,
+    ) -> None:
+        """After join+GOAL NavFn fail: one Drive retry, else honest escalate.
+
+        Entry 082: never leave FOLLOWING_PATH with orphaned_handle while
+        ``active route still live-valid`` rebuilds until outer kill.
+        Entry 084: ``stem_snap=True`` forces far-gap Drive eligibility even
+        when measured gap ≤5 (exclusive-B far / stem vertex near). Live exhaust
+        clears ``_drive_escape_used`` before retry — gate on
+        ``_bridge_exhaust_drive_retries`` only, not the escape-used latch.
+        """
+        if generation != self._owner.generation:
+            return
+        retries = int(getattr(self, '_bridge_exhaust_drive_retries', 0))
+        if (
+            (stem_snap or (gap is not None and gap > 5.0))
+            and retries < 1
+            and not self._splice_pending
+        ):
+            self._bridge_exhaust_drive_retries = retries + 1
+            self._drive_escape_used = False
+            self._switch_join_queue = None
+            self._switch_join_attempt = 0
+            self._switch_goal_fallback_used = False
+            if self._request_drive_on_heading_escape(
+                route, generation=generation
+            ):
+                why = (
+                    f'gap={gap:.1f}m' if gap is not None else 'gap=?'
+                )
+                if stem_snap:
+                    why += ' stem_snap=True effective_far_gap=stem_forced'
+                self.get_logger().warn(
+                    f'Switch bridge exhausted ({why}) → '
+                    'DriveOnHeading retry then re-bridge (Entry 082/084)'
+                )
+                return
+        budget = max(1, int(getattr(self, '_far_gap_rebuild_budget', 3)))
+        self._far_gap_rebuilds = max(
+            int(getattr(self, '_far_gap_rebuilds', 0)), budget)
+        self._stuck_recoveries = max(
+            int(getattr(self, '_stuck_recoveries', 0)),
+            int(self._stuck_budget_n),
+        )
+        self._fp_goal_handle = None
+        self._last_progress_t = time.monotonic() - self._stuck_timeout_s - 0.1
+        self._stuck_recover_until = 0.0
+        self.get_logger().error(
+            'Switch NavFn bridge exhausted'
+            + (f' (gap={gap:.1f}m)' if gap is not None else '')
+            + (' stem_snap=True' if stem_snap else '')
+            + '; escalating stuck → home/NO_SAFE (Entry 082/084)'
+        )
+        self._maybe_owner_stuck_recover()
 
     def _request_footprint_escape_clear(self) -> None:
         """Publish robot pose so obstacle_memory clears LIDAR footprint traps."""
@@ -3778,6 +4484,129 @@ class PathBankManager(Node):
             return (float(self._goal_xyyaw[0]), float(self._goal_xyyaw[1]))
         return None
 
+    def _path_a_points_for_stem(
+        self, target_path_id: int
+    ) -> List[Tuple[float, float]]:
+        """Path-A (or first non-target) polyline for stem-snap comparison."""
+        if self._bank is None:
+            return []
+        # Prefer densified RouteInstance geometry when available.
+        if self._route_bank is not None:
+            for pid in (1,):
+                if pid == target_path_id:
+                    continue
+                route = self._route_bank.by_path_id(pid)
+                if route is not None and route.points:
+                    return [(float(x), float(y)) for x, y in route.points]
+            for route in getattr(self._route_bank, 'routes', []) or []:
+                if int(getattr(route, 'path_id', -1)) == int(target_path_id):
+                    continue
+                pts = getattr(route, 'points', None)
+                if pts:
+                    return [(float(x), float(y)) for x, y in pts]
+        for cand in self._bank.candidates:
+            if cand.path_id == 1 and cand.path_id != target_path_id:
+                return list(cand.points)
+        for cand in self._bank.candidates:
+            if cand.path_id != target_path_id:
+                return list(cand.points)
+        return []
+
+    def _bank_start_xy(
+        self, route: RouteInstance
+    ) -> Tuple[float, float]:
+        if self._bank is not None:
+            return (float(self._bank.start[0]), float(self._bank.start[1]))
+        if route.points:
+            return (float(route.points[0][0]), float(route.points[0][1]))
+        return (0.0, 0.0)
+
+    def _route_is_spawn_stem_snap(self, route: RouteInstance) -> bool:
+        """Entry 084 gate predicate — only ``is_spawn_stem_snap``."""
+        if self._robot_xyyaw is None or not route.points:
+            return False
+        rx, ry, _ = self._robot_xyyaw
+        return is_spawn_stem_snap(
+            robot_xy=(rx, ry),
+            bank_start=self._bank_start_xy(route),
+            target_points=route.points,
+            path_a_points=self._path_a_points_for_stem(route.path_id),
+        )
+
+    def _refuse_bare_stem_follow_path(
+        self,
+        route: RouteInstance,
+        *,
+        generation: int,
+        context: RefuseContext,
+    ) -> None:
+        """Refuse bare FollowPath under spawn-stem snap (Entry 084).
+
+        Sole owner of ``_stem_snap_bridge_fails`` increments. Never leaves
+        FOLLOWING_PATH without an fp handle — ends in PATH_BLOCKED+pending
+        or ``_on_switch_bridge_exhausted`` (no bare FP).
+        """
+        self._stem_snap_bridge_fails = (
+            int(getattr(self, '_stem_snap_bridge_fails', 0)) + 1
+        )
+        fails = int(self._stem_snap_bridge_fails)
+        self.get_logger().warn(
+            f'STEM_SNAP_BARE_FP_REFUSED context={context.value} '
+            f'fails={fails} path_id={route.path_id}'
+        )
+        budget = max(1, int(getattr(self, '_far_gap_rebuild_budget', 3)))
+        if fails >= budget:
+            self._stem_snap_bridge_fails = 0
+            if self._bank is not None:
+                for cand in self._bank.candidates:
+                    if cand.path_id == route.path_id:
+                        self._mark_path_blocked(
+                            cand, 'stem_snap_bridge_exhausted')
+                        break
+            self.get_logger().error(
+                f'Path {route.path_id} stem_snap_bridge_exhausted '
+                f'after {budget} fails'
+            )
+
+        ctx = context
+        if ctx in (
+            RefuseContext.CENTRAL_GATE_STUCK,
+            RefuseContext.CENTRAL_GATE_OTHER,
+        ):
+            bridge_active = (
+                bool(self._splice_pending)
+                or bool(getattr(self, '_switch_join_queue', None))
+                or bool(getattr(self, '_switch_goal_fallback_used', False))
+                or bool(getattr(self, '_switch_bridge_goal_only', False))
+                or bool(getattr(self, '_switch_escape_only', False))
+            )
+            ctx = (
+                RefuseContext.ASYNC_BRIDGE if bridge_active
+                else RefuseContext.SYNC_SWITCH_ARM
+            )
+
+        if ctx == RefuseContext.SYNC_SWITCH_ARM:
+            self._set_state(MissionNavState.PATH_BLOCKED)
+            self._switch_pending = True
+            return
+
+        # ASYNC_BRIDGE / CENTRAL_GATE_POST_DRIVE → far-gap exhaust (stem).
+        self._splice_pending = False
+        gap = None
+        if self._robot_xyyaw is not None:
+            nearest = self._nearest_route_pose(route)
+            if nearest is not None:
+                gap = math.hypot(
+                    self._robot_xyyaw[0] - nearest[0],
+                    self._robot_xyyaw[1] - nearest[1],
+                )
+        self._on_switch_bridge_exhausted(
+            route,
+            generation=generation,
+            gap=gap,
+            stem_snap=True,
+        )
+
     def _path_a_repel_xy(self) -> Optional[Tuple[float, float]]:
         """Path-A block locus for barrier-repel escape (Entry 072)."""
         if not self._block_locus:
@@ -3798,7 +4627,7 @@ class PathBankManager(Node):
         return None
 
     def _request_drive_on_heading_escape(
-        self, route: RouteInstance, *, generation: int
+        self, route: RouteInstance, *, generation: int, action_token: Optional[int] = None
     ) -> bool:
         """Path-B-tangent DriveOnHeading under local unseal (Entry 073).
 
@@ -3823,7 +4652,7 @@ class PathBankManager(Node):
         if repel is not None:
             if math.hypot(rx - repel[0], ry - repel[1]) > SEALED_UNSEAL_LOCUS_ARM_M:
                 return False  # not in the barrier corner pocket
-        if not self._drive_on_heading_client.wait_for_server(timeout_sec=1.0):
+        if not self._drive_on_heading_client.server_is_ready():
             return False
         tgt_yaw = path_b_tangent_yaw((rx, ry), attract)
         # Forward-only relative to current yaw (Issue B — no reverse drive).
@@ -3862,6 +4691,8 @@ class PathBankManager(Node):
         self._drive_escape_pending_join = True
         self._drive_escape_route = route
         self._drive_escape_generation = generation
+        self._drive_escape_token = (
+            self._switch_action_token if action_token is None else action_token)
         self._drive_escape_yaw = float(tgt_yaw)
         self._request_footprint_escape_clear()
         if not getattr(self, '_sealed_unseal_active', False):
@@ -3878,7 +4709,7 @@ class PathBankManager(Node):
                 f'then +{PATH_B_TANGENT_DRIVE_M:.1f}m toward '
                 f'attract=({attract[0]:.1f},{attract[1]:.1f}){locus_s}'
             )
-            if self._spin_client.wait_for_server(timeout_sec=1.0):
+            if self._spin_client.server_is_ready():
                 goal = Spin.Goal()
                 goal.target_yaw = float(yaw_err)
                 goal.time_allowance = Duration(sec=12, nanosec=0)
@@ -3888,6 +4719,8 @@ class PathBankManager(Node):
         return self._dispatch_drive_on_heading_escape()
 
     def _drive_escape_spin_response(self, future) -> None:
+        if getattr(self, '_drive_escape_token', -1) != self._switch_action_token:
+            return
         try:
             handle = future.result()
         except Exception as exc:  # noqa: BLE001
@@ -3902,6 +4735,8 @@ class PathBankManager(Node):
         result_fut.add_done_callback(self._drive_escape_spin_result)
 
     def _drive_escape_spin_result(self, future) -> None:
+        if getattr(self, '_drive_escape_token', -1) != self._switch_action_token:
+            return
         try:
             _ = future.result()
         except Exception as exc:  # noqa: BLE001
@@ -3912,7 +4747,7 @@ class PathBankManager(Node):
         if getattr(self, '_drive_on_heading_client', None) is None:
             self._drive_escape_pending_join = False
             return False
-        if not self._drive_on_heading_client.wait_for_server(timeout_sec=1.0):
+        if not self._drive_on_heading_client.server_is_ready():
             self._drive_escape_pending_join = False
             return False
         goal = DriveOnHeading.Goal()
@@ -3948,6 +4783,12 @@ class PathBankManager(Node):
         return True
 
     def _drive_escape_goal_response(self, future) -> None:
+        if (
+            getattr(self, '_drive_escape_token', -1) != self._switch_action_token
+            or getattr(self, '_drive_escape_generation', -1)
+            != self._owner.generation
+        ):
+            return
         try:
             handle = future.result()
         except Exception as exc:  # noqa: BLE001
@@ -3963,6 +4804,12 @@ class PathBankManager(Node):
         result_fut.add_done_callback(self._drive_escape_goal_result)
 
     def _drive_escape_goal_result(self, future) -> None:
+        if (
+            getattr(self, '_drive_escape_token', -1) != self._switch_action_token
+            or getattr(self, '_drive_escape_generation', -1)
+            != self._owner.generation
+        ):
+            return
         status = GoalStatus.STATUS_UNKNOWN
         try:
             wrapped = future.result()
@@ -3973,6 +4820,13 @@ class PathBankManager(Node):
         self._finish_drive_escape(ok=(status == GoalStatus.STATUS_SUCCEEDED))
 
     def _finish_drive_escape(self, *, ok: bool) -> None:
+        if (
+            getattr(self, '_drive_escape_token', -1) != self._switch_action_token
+            or getattr(self, '_drive_escape_generation', -1)
+            != self._owner.generation
+        ):
+            self._drive_escape_pending_join = False
+            return
         pending = getattr(self, '_drive_escape_pending_join', False)
         self._drive_escape_pending_join = False
         route = getattr(self, '_drive_escape_route', None)
@@ -3992,7 +4846,15 @@ class PathBankManager(Node):
             self._arm_sealed_start_local_unseal('post_drive_escape')
         else:
             self._clear_local_costmap()
-        self._send_follow_path(route, allow_navfn_bridge=True)
+        # Entry 082: clear LIDAR keepout under the post-Drive pose before NavFn
+        # (switch-time clear may be stale after +2.5 m motion). FIRE retained.
+        self._request_footprint_escape_clear()
+        # Entry 084 R12: central stem gate uses POST_DRIVE refuse context.
+        self._send_follow_path(
+            route,
+            allow_navfn_bridge=True,
+            refuse_context=RefuseContext.CENTRAL_GATE_POST_DRIVE,
+        )
 
     def _request_switch_escape_hop(
         self, route: RouteInstance, *, generation: int
@@ -4008,7 +4870,7 @@ class PathBankManager(Node):
             return False
         if self._live_costmap is None:
             return False
-        if not self._compute_path_client.wait_for_server(timeout_sec=1.0):
+        if not self._compute_path_client.server_is_ready():
             return False
         self._request_footprint_escape_clear()
         live = nav2_costmap_to_grid(self._live_costmap)
@@ -4075,6 +4937,180 @@ class PathBankManager(Node):
         )
         return True
 
+    def _maybe_log_entry083_block_diag(self, route: RouteInstance) -> None:
+        """Phase 0: one-shot Switch NavFn seating diagnostic (Entry 083).
+
+        Logs robot pose, distances, global start cost, keepout disk counts,
+        and a cheap free-component note. No behavior change.
+        """
+        if getattr(self, '_entry083_block_diag_logged', False):
+            return
+        if self._robot_xyyaw is None:
+            return
+        self._entry083_block_diag_logged = True
+        rx, ry, _ = self._robot_xyyaw
+        locus = self._path_a_repel_xy()
+        barrier = None
+        if self._demo_obstacle_poses:
+            barrier = min(
+                self._demo_obstacle_poses,
+                key=lambda p: (p[0] - rx) * (p[0] - rx) + (p[1] - ry) * (p[1] - ry),
+            )
+        goal = None
+        if self._goal_xyyaw is not None:
+            goal = (float(self._goal_xyyaw[0]), float(self._goal_xyyaw[1]))
+        path_b = None
+        if route is not None and route.points:
+            path_b = min(
+                route.points[:: max(1, len(route.points) // 80)],
+                key=lambda p: (p[0] - rx) * (p[0] - rx) + (p[1] - ry) * (p[1] - ry),
+            )
+
+        def _dist(xy: Optional[Tuple[float, float]]) -> float:
+            if xy is None:
+                return float('nan')
+            return math.hypot(rx - xy[0], ry - xy[1])
+
+        start_cost = None
+        start_class = 'unknown'
+        free_comp = 'n/a'
+        live = None
+        if self._live_costmap is not None:
+            try:
+                live = nav2_costmap_to_grid(self._live_costmap)
+                idx = live.world_to_grid(rx, ry)
+                if idx is not None:
+                    start_cost = int(live.costs[idx[1], idx[0]])
+                    thr = int(self._cfg.lethal_threshold)
+                    if start_cost >= thr:
+                        start_class = 'lethal'
+                    elif start_cost >= 253:
+                        start_class = 'inscribed'
+                    elif start_cost == 255:
+                        start_class = 'unknown_cell'
+                    else:
+                        start_class = 'free'
+                # Cheap BFS free-component vs Path-B / GOAL (bounded cells).
+                free_comp = self._entry083_free_component_note(
+                    live, (rx, ry), path_b, goal)
+            except Exception as exc:  # noqa: BLE001
+                free_comp = f'error:{exc}'
+
+        keepout = {1.0: 0, 2.5: 0, 4.0: 0}
+        mask = self._memory_mask
+        if mask is not None and mask.data:
+            try:
+                info = mask.info
+                w, h = int(info.width), int(info.height)
+                res = float(info.resolution)
+                ox = float(info.origin.position.x)
+                oy = float(info.origin.position.y)
+                data = mask.data
+                for r in (1.0, 2.5, 4.0):
+                    r2 = r * r
+                    r_cells = max(1, int(math.ceil(r / res)))
+                    cx = int((rx - ox) / res)
+                    cy = int((ry - oy) / res)
+                    n = 0
+                    for dy in range(-r_cells, r_cells + 1):
+                        for dx in range(-r_cells, r_cells + 1):
+                            ix, iy = cx + dx, cy + dy
+                            if not (0 <= ix < w and 0 <= iy < h):
+                                continue
+                            if int(data[iy * w + ix]) < 50:
+                                continue
+                            wx = ox + (ix + 0.5) * res
+                            wy = oy + (iy + 0.5) * res
+                            if (wx - rx) * (wx - rx) + (wy - ry) * (wy - ry) <= r2:
+                                n += 1
+                    keepout[r] = n
+            except Exception:  # noqa: BLE001
+                pass
+
+        lines = [
+            'Entry 083 Phase 0 block diag (first Switch NavFn)',
+            f'robot_xy=({rx:.3f},{ry:.3f})',
+            f'locus={locus} dist_locus={_dist(locus):.3f}',
+            f'barrier={barrier} dist_barrier={_dist(barrier):.3f}',
+            f'goal={goal} dist_goal={_dist(goal):.3f}',
+            f'path_b={path_b} dist_path_b={_dist(path_b):.3f}',
+            f'start_cost={start_cost} start_class={start_class}',
+            f'keepout_counts_1_2p5_4m='
+            f'{keepout[1.0]}/{keepout[2.5]}/{keepout[4.0]}',
+            f'free_component={free_comp}',
+            f'switch_standoff_min_m={SWITCH_STANDOFF_MIN_M} '
+            f'keepout_seat_disk_m={KEEPOUT_SEAT_DISK_M} '
+            f'early_switch_horizon_m={EARLY_SWITCH_HORIZON_M}',
+        ]
+        text = '\n'.join(lines) + '\n'
+        try:
+            os.makedirs(ENTRY083_BLOCK_DIAG_DIR, exist_ok=True)
+            path = os.path.join(
+                ENTRY083_BLOCK_DIAG_DIR, 'first_switch_navfn.txt')
+            with open(path, 'w', encoding='utf-8') as fh:
+                fh.write(text)
+            self.get_logger().info(
+                f'Entry083 Phase0 diag written → {path}\n{text.strip()}'
+            )
+        except Exception as exc:  # noqa: BLE001
+            self.get_logger().warn(
+                f'Entry083 Phase0 diag file failed ({exc}); tee:\n{text.strip()}'
+            )
+
+    def _entry083_free_component_note(
+        self,
+        live,
+        robot_xy: Tuple[float, float],
+        path_b: Optional[Tuple[float, float]],
+        goal: Optional[Tuple[float, float]],
+        *,
+        max_cells: int = 8000,
+    ) -> str:
+        """Bounded BFS: is robot free-connected to Path-B / GOAL?"""
+        thr = int(self._cfg.lethal_threshold)
+        start = live.world_to_grid(robot_xy[0], robot_xy[1])
+        if start is None:
+            return 'robot_off_grid'
+        sx, sy = start
+        if int(live.costs[sy, sx]) >= thr:
+            return 'robot_start_lethal'
+        targets = {}
+        if path_b is not None:
+            tb = live.world_to_grid(path_b[0], path_b[1])
+            if tb is not None:
+                targets['path_b'] = tb
+        if goal is not None:
+            tg = live.world_to_grid(goal[0], goal[1])
+            if tg is not None:
+                targets['goal'] = tg
+        if not targets:
+            return 'no_targets'
+        seen = {(sx, sy)}
+        q = deque([(sx, sy)])
+        found = {k: False for k in targets}
+        cells = 0
+        while q and cells < max_cells:
+            cx, cy = q.popleft()
+            cells += 1
+            for key, (tx, ty) in targets.items():
+                if (cx, cy) == (tx, ty):
+                    found[key] = True
+            if all(found.values()):
+                break
+            for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+                nx, ny = cx + dx, cy + dy
+                if not (0 <= nx < live.width and 0 <= ny < live.height):
+                    continue
+                if (nx, ny) in seen:
+                    continue
+                if int(live.costs[ny, nx]) >= thr:
+                    continue
+                seen.add((nx, ny))
+                q.append((nx, ny))
+        parts = [f'{k}={"yes" if v else "no"}' for k, v in found.items()]
+        truncated = 'truncated' if cells >= max_cells and not all(found.values()) else 'ok'
+        return f'{",".join(parts)} cells={cells} ({truncated})'
+
     def _request_switch_navfn_bridge(
         self, route: RouteInstance, *, generation: int
     ) -> bool:
@@ -4087,8 +5123,12 @@ class PathBankManager(Node):
             return False
         if self._splice_pending:
             return False
-        if not self._compute_path_client.wait_for_server(timeout_sec=1.0):
+        if not self._compute_path_client.server_is_ready():
             return False
+        # Entry 083 Phase 0: capture seating once at first Switch NavFn.
+        self._maybe_log_entry083_block_diag(route)
+        # Entry 082: LIDAR-only start unseal for global KeepoutFilter (FIRE kept).
+        self._request_footprint_escape_clear()
         if not getattr(self, '_switch_join_queue', None):
             self._switch_join_queue = self._join_candidates(route)
             self._switch_join_attempt = 0
@@ -4134,8 +5174,10 @@ class PathBankManager(Node):
             return False
         if self._compute_path_client is None or self._splice_pending:
             return False
-        if not self._compute_path_client.wait_for_server(timeout_sec=1.0):
+        if not self._compute_path_client.server_is_ready():
             return False
+        # Entry 083 Phase 0: still capture once if join never armed.
+        self._maybe_log_entry083_block_diag(route)
         self._switch_goal_fallback_used = True
         self._switch_bridge_goal_only = True
         gx, gy, gyaw = self._goal_xyyaw
@@ -4178,11 +5220,27 @@ class PathBankManager(Node):
         except Exception as exc:  # noqa: BLE001
             self._splice_pending = False
             self.get_logger().warn(f'Switch bridge goal failed: {exc}')
+            # Entry 084 R2: stem → refuse ASYNC_BRIDGE (no bare densify send).
+            if self._route_is_spawn_stem_snap(route):
+                self._refuse_bare_stem_follow_path(
+                    route,
+                    generation=generation,
+                    context=RefuseContext.ASYNC_BRIDGE,
+                )
+                return
             self._send_follow_path(route, expected_generation=generation)
             return
         if handle is None or not handle.accepted:
             self._splice_pending = False
             self.get_logger().warn('Switch bridge ComputePathToPose rejected')
+            # Entry 084 R3: stem → refuse; never densify bare FP.
+            if self._route_is_spawn_stem_snap(route):
+                self._refuse_bare_stem_follow_path(
+                    route,
+                    generation=generation,
+                    context=RefuseContext.ASYNC_BRIDGE,
+                )
+                return
             self._send_follow_path(route, expected_generation=generation)
             return
         result_fut = handle.get_result_async()
@@ -4201,6 +5259,14 @@ class PathBankManager(Node):
             result = wrapped.result
         except Exception as exc:  # noqa: BLE001
             self.get_logger().warn(f'Switch bridge result failed: {exc}')
+            # Entry 084 R4: stem → refuse; no densify.
+            if self._route_is_spawn_stem_snap(route):
+                self._refuse_bare_stem_follow_path(
+                    route,
+                    generation=generation,
+                    context=RefuseContext.ASYNC_BRIDGE,
+                )
+                return
             self._send_follow_path(route, expected_generation=generation)
             return
         if status != GoalStatus.STATUS_SUCCEEDED or result is None:
@@ -4212,16 +5278,20 @@ class PathBankManager(Node):
                         self._robot_xyyaw[0] - nearest[0],
                         self._robot_xyyaw[1] - nearest[1],
                     )
-            # Entry 036: NavFn abort → long densify hard-stalls. Rotate join
-            # candidates; never densify hops >5 m through forest.
-            if gap is not None and gap > 5.0:
+            stem = self._route_is_spawn_stem_snap(route)
+            # Entry 036/082/084: rotate join/GOAL for far-gap OR stem (even
+            # when measured gap ≤5). Stem never falls through to densify.
+            if stem or (gap is not None and gap > 5.0):
                 q = getattr(self, '_switch_join_queue', None) or []
                 attempt = int(getattr(self, '_switch_join_attempt', 0))
                 if attempt < len(q):
                     self.get_logger().warn(
                         f'Switch bridge ComputePathToPose status={status}; '
                         f'trying next join candidate '
-                        f'({attempt + 1}/{len(q)}; gap={gap:.1f}m)'
+                        f'({attempt + 1}/{len(q)}'
+                        + (f'; gap={gap:.1f}m' if gap is not None else '')
+                        + ('; stem-snap' if stem else '')
+                        + ')'
                     )
                     if self._request_switch_navfn_bridge(
                         route, generation=generation
@@ -4234,13 +5304,30 @@ class PathBankManager(Node):
                         return
                 self.get_logger().warn(
                     f'Switch bridge ComputePathToPose status={status}; '
-                    f'join candidates exhausted/skip densify '
-                    f'(gap={gap:.1f}m) — stuck recovery will rebuild queue'
+                    f'join candidates exhausted/skip densify'
+                    + (f' (gap={gap:.1f}m)' if gap is not None else '')
+                    + (' [stem-snap]' if stem else '')
+                    + ' — escalate (Entry 082/084)'
                 )
                 self._switch_join_queue = None
                 # Allow goal-fallback again on the next rebuild cycle.
                 self._switch_goal_fallback_used = False
+                if stem:
+                    # Entry 084 R5/R8: refuse ASYNC_BRIDGE (Inc → exhaust).
+                    self._refuse_bare_stem_follow_path(
+                        route,
+                        generation=generation,
+                        context=RefuseContext.ASYNC_BRIDGE,
+                    )
+                else:
+                    self._on_switch_bridge_exhausted(
+                        route,
+                        generation=generation,
+                        gap=gap,
+                        stem_snap=False,
+                    )
                 return
+            # Entry 084 R7: non-stem gap≤5 densify only.
             self.get_logger().warn(
                 f'Switch bridge ComputePathToPose status={status}; '
                 f'falling back to densify bridge'
@@ -4251,6 +5338,14 @@ class PathBankManager(Node):
             return
         bridge = result.path
         if bridge is None or len(bridge.poses) < 2:
+            # Entry 084 R9/R10: stem → refuse; else densify.
+            if self._route_is_spawn_stem_snap(route):
+                self._refuse_bare_stem_follow_path(
+                    route,
+                    generation=generation,
+                    context=RefuseContext.ASYNC_BRIDGE,
+                )
+                return
             self._send_follow_path(
                 route, expected_generation=generation, allow_navfn_bridge=False)
             return
@@ -4443,6 +5538,7 @@ class PathBankManager(Node):
 
     def _abort_reorient(self, reason: str) -> None:
         """Cancel in-flight Spin / clear reorient state; restore vx_min."""
+        self._spin_action_token += 1
         if self._spin_goal_handle is not None:
             try:
                 self._spin_goal_handle.cancel_goal_async()
@@ -4588,7 +5684,7 @@ class PathBankManager(Node):
     def _dispatch_spin(self, yaw_err: float, *, timeout_s: float) -> bool:
         if self._spin_client is None:
             return False
-        if not self._spin_client.wait_for_server(timeout_sec=1.0):
+        if not self._spin_client.server_is_ready():
             return False
         goal = Spin.Goal()
         goal.target_yaw = float(yaw_err)
@@ -4596,13 +5692,25 @@ class PathBankManager(Node):
         nanosec = int((timeout_s - sec) * 1e9)
         goal.time_allowance = Duration(sec=sec, nanosec=nanosec)
         gen = self._reorient_generation
+        self._spin_action_token += 1
+        spin_token = self._spin_action_token
         fut = self._spin_client.send_goal_async(goal)
         fut.add_done_callback(
-            lambda f, g=gen: self._spin_goal_response(f, g))
+            lambda f, g=gen, t=spin_token: self._spin_goal_response(f, g, t))
         return True
 
-    def _spin_goal_response(self, future, generation: Optional[int]) -> None:
+    def _spin_goal_response(
+        self, future, generation: Optional[int], spin_token: Optional[int] = None
+    ) -> None:
         if not self._reorient_active:
+            return
+        if spin_token is not None and spin_token != self._spin_action_token:
+            try:
+                future.result()
+            except Exception:
+                pass
+            self.get_logger().info(
+                f'Ignoring stale Spin acceptance token={spin_token}')
             return
         if generation is not None and generation != self._owner.generation:
             self._abort_reorient('generation_during_spin_accept')
@@ -4620,10 +5728,21 @@ class PathBankManager(Node):
         self._spin_goal_handle = handle
         result_fut = handle.get_result_async()
         result_fut.add_done_callback(
-            lambda f, g=generation: self._spin_goal_result(f, g))
+            lambda f, g=generation, t=spin_token: self._spin_goal_result(
+                f, g, t))
 
-    def _spin_goal_result(self, future, generation: Optional[int]) -> None:
+    def _spin_goal_result(
+        self, future, generation: Optional[int], spin_token: Optional[int] = None
+    ) -> None:
         if not self._reorient_active:
+            return
+        if spin_token is not None and spin_token != self._spin_action_token:
+            try:
+                future.result()
+            except Exception:
+                pass
+            self.get_logger().info(
+                f'Ignoring stale Spin result token={spin_token}')
             return
         if generation is not None and generation != self._owner.generation:
             self._abort_reorient('generation_during_spin_result')
@@ -4781,7 +5900,7 @@ class PathBankManager(Node):
             return
         if self._fp_client is None:
             return
-        if not self._fp_client.wait_for_server(timeout_sec=2.0):
+        if not self._fp_client.server_is_ready():
             return
         # Issue B: mission yaw gate on bridge/splice submits too.
         if (
@@ -4841,6 +5960,7 @@ class PathBankManager(Node):
         *,
         expected_generation: Optional[int] = None,
         allow_navfn_bridge: bool = True,
+        refuse_context: RefuseContext = RefuseContext.CENTRAL_GATE_OTHER,
     ) -> None:
         """Submit frozen RouteInstance to controller FollowPath action."""
         if self._observation_hold:
@@ -4864,14 +5984,60 @@ class PathBankManager(Node):
         if self._fp_client is None:
             self.get_logger().error('FollowPath client not initialised')
             return
-        if not self._fp_client.wait_for_server(timeout_sec=2.0):
+        if not self._fp_client.server_is_ready():
             self.get_logger().error('follow_path server not available')
+            return
+
+        gen = (
+            expected_generation
+            if expected_generation is not None
+            else self._owner.generation
+        )
+        # Entry 084 stem/SPAWN refuse is a mission switch/replan contract.
+        # Home return (T11) must still submit FollowPath from live pose —
+        # do not treat home RouteInstance as Path-B stem-snap.
+        home_submit = (
+            self._nav_mode == 'home'
+            or self._state in (
+                MissionNavState.RETURNING_TO_START,
+                MissionNavState.RETURNED_TO_START,
+            )
+            or route is getattr(self, '_home_route', None)
+            or int(getattr(route, 'path_id', -1)) == 0
+        )
+        # Entry 084 R11: central stem gate BEFORE densify / SPAWN full-route.
+        # Predicate is ONLY is_spawn_stem_snap (STEM_ROBOT_AWAY inside helper).
+        if (
+            not home_submit
+            and self._robot_xyyaw is not None
+            and route.points
+            and self._route_is_spawn_stem_snap(route)
+        ):
+            self._refuse_bare_stem_follow_path(
+                route, generation=gen, context=refuse_context)
             return
 
         # Submit robot-forward slice only — full route from mission start made
         # RPP collision-lookahead abort before the robot moved.
         pts, yaws = self._route_forward_from_robot(route)
         if len(pts) < 2:
+            # Entry 084: mid-mission SPAWN full-route fallback forbidden when
+            # robot is away from bank start (distance-only; not a 2nd stem gate).
+            if (
+                not home_submit
+                and self._robot_xyyaw is not None
+            ):
+                rx, ry, _ = self._robot_xyyaw
+                sx, sy = self._bank_start_xy(route)
+                if math.hypot(rx - sx, ry - sy) >= STEM_ROBOT_AWAY_M:
+                    self.get_logger().warn(
+                        f'FollowPath refusing SPAWN full-route fallback '
+                        f'(robot {math.hypot(rx - sx, ry - sy):.1f}m from '
+                        f'bank_start; route_uid={route.route_uid})'
+                    )
+                    self._refuse_bare_stem_follow_path(
+                        route, generation=gen, context=refuse_context)
+                    return
             pts, yaws = route.points, route.yaw_rad
         # Path A→B: robot may be >10–20 m from the new corridor. Prefer NavFn
         # over straight densify (Entry 036: stuck recovery densify undid a good
@@ -4893,11 +6059,6 @@ class PathBankManager(Node):
                 and gap > 5.0
                 and not self._splice_pending
             ):
-                gen = (
-                    expected_generation
-                    if expected_generation is not None
-                    else self._owner.generation
-                )
                 # Consume one-shot allow_fp only when we actually submit below;
                 # far-gap NavFn must still yaw-gate the bridged path.
                 if self._request_switch_navfn_bridge(route, generation=gen):
@@ -4970,11 +6131,15 @@ class PathBankManager(Node):
             handle = future.result()
         except Exception as exc:  # noqa: BLE001
             self.get_logger().error(f'FollowPath send failed: {exc}')
+            self._handle_follow_path_dispatch_failure(
+                generation, epoch, f'send_exception:{type(exc).__name__}')
             return
         if not handle.accepted:
             self.get_logger().warn(
                 f'FollowPath goal rejected (route_uid={route_uid})'
             )
+            self._handle_follow_path_dispatch_failure(
+                generation, epoch, 'goal_rejected')
             return
         self._fp_goal_handle = handle
         # Entry 063 A1: publish exact accepted FollowPath Goal.path (epoch fence).
@@ -4988,6 +6153,52 @@ class PathBankManager(Node):
             lambda f, g=generation, e=epoch, uid=route_uid: self._fp_goal_result(
                 f, g, e, uid)
         )
+
+    def _handle_follow_path_dispatch_failure(
+        self, generation: int, epoch: int, reason: str
+    ) -> None:
+        """Recover a rejected/failed FollowPath without a silent zero-velocity hang."""
+        if int(epoch) != int(self._fp_goal_epoch):
+            return
+        self._fp_goal_handle = None
+        self._clear_active_path()
+        if generation != self._owner.generation:
+            return
+        if self._owner.has_blocking_inhibit() or self._owner.operator_stop_latch:
+            return
+        active = self._bank.active() if self._bank is not None else None
+        live = (
+            nav2_costmap_to_grid(self._live_costmap)
+            if self._live_costmap is not None else None
+        )
+        if (
+            active is not None
+            and live is not None
+            and self._state in (
+                MissionNavState.FOLLOWING_PATH,
+                MissionNavState.SWITCHING_PATH,
+            )
+        ):
+            ok, live_reason = self._active_route_valid(active, live)
+            if not ok and self._auto_switch:
+                self._mark_path_blocked(
+                    active, f'follow_path_dispatch_{reason}:{live_reason}')
+                self._set_state(MissionNavState.SWITCHING_PATH)
+                self._switch_follow_path(live)
+                return
+            self._set_state(MissionNavState.FOLLOWING_PATH)
+            self._last_progress_t = (
+                time.monotonic() - self._stuck_timeout_s - 0.1)
+            self._stuck_recover_until = 0.0
+            self.get_logger().warn(
+                f'FollowPath dispatch failure ({reason}); invoking bounded '
+                'owner recovery while live route remains valid'
+            )
+            self._maybe_owner_stuck_recover()
+            return
+        self._set_state(MissionNavState.FAILED)
+        self._owner.detail = f'FOLLOW_PATH_DISPATCH_FAILED:{reason}'
+        self._publish_status()
 
     def _home_success_fence_ok(
         self, generation: int, epoch: int, route_uid: str
@@ -5345,6 +6556,9 @@ class PathBankManager(Node):
 
     def _cancel_follow_path(self) -> None:
         """Cancel active FollowPath; ignore that submit's terminal result only."""
+        self._fp_cancel_context = None
+        self._fp_cancel_deadline = 0.0
+        self._switch_action_token += 1
         if self._fp_goal_handle is None:
             return
         try:
@@ -5491,7 +6705,17 @@ class PathBankManager(Node):
             ):
                 live = nav2_costmap_to_grid(self._live_costmap)
                 live_ok, _ = self._active_route_valid(self._bank.active(), live)
-            if live_ok and self._far_gap_rebuilds < self._far_gap_rebuild_budget:
+            # Entry 082: if NavFn join+GOAL already exhausted, do not rebuild
+            # the same failing queue while claiming live-valid — go home.
+            bridge_exhausted = (
+                int(getattr(self, '_far_gap_rebuilds', 0))
+                >= max(1, int(getattr(self, '_far_gap_rebuild_budget', 3)))
+            )
+            if (
+                live_ok
+                and not bridge_exhausted
+                and self._far_gap_rebuilds < self._far_gap_rebuild_budget
+            ):
                 self._far_gap_rebuilds += 1
                 self.get_logger().warn(
                     f'Mission stuck N={self._stuck_budget_n} exhausted but '
@@ -5511,11 +6735,17 @@ class PathBankManager(Node):
                     self._last_progress_xy = (
                         self._robot_xyyaw[0], self._robot_xyyaw[1])
                 self._clear_local_costmap()
-                self._send_follow_path(route, allow_navfn_bridge=True)
+                self._send_follow_path(
+                    route,
+                    allow_navfn_bridge=True,
+                    refuse_context=RefuseContext.CENTRAL_GATE_STUCK,
+                )
                 return
             self.get_logger().error(
                 f'Mission stuck budget N={self._stuck_budget_n} exhausted '
-                f'({reason}); attempting fresh home once'
+                f'({reason}'
+                + ('; bridge_exhausted' if bridge_exhausted else '')
+                + '); attempting fresh home once'
             )
             self._home_attempted_from_stuck = True
             self._begin_return_to_start()
@@ -5568,7 +6798,12 @@ class PathBankManager(Node):
         # Far from corridor: NavFn bridge with persistent join queue; else densify.
         # Entry 047: do NOT wipe `_switch_join_queue` on every stuck tick.
         self._clear_local_costmap()
-        self._request_footprint_escape_clear()
+        # Entry 082: FOOTPRINT_ESCAPE only for far-gap / sealed-start escape.
+        # Same-path densify stuck (T2 barrier under nose) must NOT clear the
+        # LIDAR keepout that should trigger ROUTE_MARKED_BLOCKED + switch.
+        # FIRE retained always (obstacle_memory clear_lidar_disk).
+        if far_gap or getattr(self, '_sealed_unseal_active', False):
+            self._request_footprint_escape_clear()
         allow_navfn = far_gap
         if allow_navfn and not getattr(self, '_switch_join_queue', None):
             self._switch_join_queue = None  # force rebuild in bridge helper
@@ -5624,7 +6859,11 @@ class PathBankManager(Node):
                     f'Stuck {why} → early NavFn GOAL fallback'
                 )
                 return
-        self._send_follow_path(route, allow_navfn_bridge=allow_navfn)
+        self._send_follow_path(
+            route,
+            allow_navfn_bridge=allow_navfn,
+            refuse_context=RefuseContext.CENTRAL_GATE_STUCK,
+        )
 
     def _send_goal(self, x: float, y: float, yaw: float) -> None:
         if self._use_follow_path:
@@ -5641,7 +6880,7 @@ class PathBankManager(Node):
                 f'auth={self._owner.command_authority.value})'
             )
             return
-        if not self._nav_client.wait_for_server(timeout_sec=2.0):
+        if not self._nav_client.server_is_ready():
             self.get_logger().error('navigate_to_pose server not available')
             return
         goal = NavigateToPose.Goal()
@@ -6507,6 +7746,14 @@ class PathBankManager(Node):
         lines.append(f'home_attempted={int(bool(self._home_attempted))}')
         lines.append(f'home_plan_pending={int(bool(self._home_plan_pending))}')
         lines.append(f'home_plan_attempt={self._home_plan_attempt_count}')
+        if self._fp_cancel_context is not None:
+            lines.append(
+                f'follow_path_cancel_pending=1 '
+                f'epoch={self._fp_cancel_context["epoch"]} '
+                f'retry={self._fp_cancel_context["retry"]}'
+            )
+        else:
+            lines.append('follow_path_cancel_pending=0')
         # H6: always emit so harnesses can assert empty vs concrete token.
         lines.append(f'last_no_safe_detail={self._last_no_safe_detail or ""}')
         if self._last_home_footprint_reason:
@@ -6638,12 +7885,16 @@ class PathBankManager(Node):
             return
         if now - self._pending_fire_since < self._pending_failsafe_s:
             return
-        self._owner.active_inhibits.discard(SafetyInhibit.THERMAL_FIRE_PENDING)
+        self._set_state(MissionNavState.FIRE_UNLOCALIZED_HOLD)
         self._owner.raise_inhibit(SafetyInhibit.PENDING_FIRE_UNRESOLVED)
         self._cancel_nav()
+        self._owner.command_authority = CommandAuthority.NONE
+        self._owner.detail = (
+            f'FIRE_UNLOCALIZED_HOLD:{self._pending_failsafe_s:.0f}s')
         self._publish_authority_now()
         self.get_logger().error(
-            f'PENDING_FIRE_UNRESOLVED after {self._pending_failsafe_s:.0f}s fail-safe'
+            f'FIRE_UNLOCALIZED_HOLD after '
+            f'{self._pending_failsafe_s:.0f}s; operator intervention required'
         )
 
     def raise_blocking_inhibit(self, code: SafetyInhibit) -> None:
@@ -6702,6 +7953,12 @@ class PathBankManager(Node):
             response.reject_code = self._owner.inhibit_codes()[0]
             return response
         self._owner.accept_normal_start()
+        self._planning_token += 1
+        self._switch_action_token += 1
+        self._bank_expansion_pending = False
+        if self._planning_future is not None:
+            self._planning_future.cancel()
+            self._planning_future = None
         self._goal_xyyaw = (float(request.goal_x), float(request.goal_y), float(request.goal_yaw))
         self._set_state(MissionNavState.PLANNING)
         self._bank = None
@@ -6738,6 +7995,9 @@ class PathBankManager(Node):
         self._home_via_leg1_pts = []
         self._dist_home_at_return_arm = -1.0
         self._far_gap_rebuilds = 0
+        self._stem_snap_bridge_fails = 0
+        self._bridge_exhaust_drive_retries = 0
+        self._entry083_block_diag_logged = False
         self._splice_used = False
         self._splice_pending = False
         self._last_progress_xy = None
@@ -6749,7 +8009,7 @@ class PathBankManager(Node):
             # Always accept asynchronously — bank Dijkstra is ~60 s and must
             # not block the StartMission service (15 s client waits caused K1b
             # / Issue B harness false rejects while the mission still seeded).
-            # Timer path (_on_timer → _try_seed_follow_path_bank) builds when
+            # Timer path (_on_timer → _try_start_follow_path_bank) builds when
             # pose+map/costmap are ready (T_seed hang bound still applies).
             self._pending_follow_seed = True
             self._pending_follow_seed_since = time.monotonic()
@@ -6773,25 +8033,185 @@ class PathBankManager(Node):
         response.reject_code = ''
         return response
 
-    def _try_seed_follow_path_bank(self) -> bool:
-        """Build bank + FollowPath from pose + prior_map or live costmap."""
+    def _try_start_follow_path_bank(self) -> bool:
+        """Start one fenced worker for bank construction."""
         if not self._use_follow_path or self._goal_xyyaw is None:
             return False
         if self._robot_xyyaw is None:
             return False
         if self._prior_map is None and self._live_costmap is None:
             return False
+        if self._planning_future is not None and not self._planning_future.done():
+            return False
+        if self._robot_xyyaw is None:
+            self.get_logger().warn(
+                f'Discarding planning result token={token}: pose unavailable')
+            return False
         start = (self._robot_xyyaw[0], self._robot_xyyaw[1])
         goal = (self._goal_xyyaw[0], self._goal_xyyaw[1])
-        self._build_bank(start, goal)
-        ok = self._bank is not None and bool(self._bank.candidates)
-        if ok:
+        if self._prior_map is not None:
+            grid = occupancy_msg_to_grid(self._prior_map)
+        else:
+            grid = nav2_costmap_to_grid(self._live_costmap)
+        grid.costs = grid.costs.copy()
+        token = self._planning_token = self._planning_token + 1
+        self._planning_mission_id = self._owner.mission_id
+        self._planning_started_at = time.monotonic()
+        self._owner.detail = 'PLANNING_WORKER'
+        self._planning_grid = grid
+        self._planning_start = start
+        self._planning_goal = goal
+        self._planning_stage = 'initial'
+        self._bank_expansion_pending = True
+        # Keep a validated alternative ready before motion starts.  A bank
+        # containing only the active route cannot make a bounded handoff when
+        # that route is later invalidated.
+        # Entry 081: length-primary seed so Path 1 is geometrically shortest.
+        initial_cfg = replace(
+            length_primary_seed_config(self._cfg),
+            max_candidates=min(2, self._cfg.max_candidates),
+        )
+        self._planning_future = self._planning_executor.submit(
+            build_path_bank,
+            grid,
+            start,
+            goal,
+            initial_cfg,
+            footprint_inflate_m=self._footprint_inflate,
+            downsample_factor=6,
+        )
+        self.get_logger().info(
+            f'Planning worker started token={token} '
+            f'mission={self._planning_mission_id}'
+        )
+        return False
+
+    def _try_complete_follow_path_bank(self) -> bool:
+        """Apply only the current worker result on the ROS executor thread."""
+        future = self._planning_future
+        if future is None or not future.done():
+            return False
+        self._planning_future = None
+        token = self._planning_token
+        if (
+            self._owner.mission_id != self._planning_mission_id
+            or self._owner.operator_stop_latch
+            or self._owner.command_authority != CommandAuthority.NAV
+        ):
+            self.get_logger().info(
+                f'Discarding stale planning result token={token}')
+            return False
+        try:
+            bank = future.result()
+        except Exception as exc:
+            self.get_logger().error(f'Path-bank worker failed: {exc}')
+            self._raise_no_safe_route('planning_worker_failed')
+            return False
+        if token != self._planning_token or self._goal_xyyaw is None:
+            self.get_logger().info(
+                f'Discarding superseded planning result token={token}')
+            return False
+        start = self._planning_start
+        goal = self._planning_goal or (self._goal_xyyaw[0], self._goal_xyyaw[1])
+        if self._planning_stage == 'initial':
+            self._build_bank(start, goal, prebuilt_bank=bank)
+            ok = self._bank is not None and bool(self._bank.candidates)
+            if not ok:
+                return False
             self._pending_follow_seed = False
-        return ok
+            latency = time.monotonic() - self._planning_started_at
+            self.get_logger().info(
+                f'Planning worker completed token={token} '
+                f'stage=initial wall_time={latency:.3f}s')
+            self._planning_stage = 'expansion'
+            # The first blocked-route handoff only needs one validated
+            # alternative.  Building the entire four-route bank here can
+            # take minutes on the 1200x1200 live prior map, leaving the
+            # cancelled mission with no active route.  Expand to two routes
+            # first so Path B becomes selectable; the configured bank capacity
+            # remains available for later explicit expansion.
+            # Entry 081: first expansion also length-primary (Path 1 shortest).
+            expansion_cfg = replace(
+                length_primary_seed_config(self._cfg),
+                max_candidates=min(2, self._cfg.max_candidates),
+            )
+            self._planning_future = self._planning_executor.submit(
+                build_path_bank,
+                self._planning_grid,
+                start,
+                goal,
+                expansion_cfg,
+                footprint_inflate_m=self._footprint_inflate,
+                downsample_factor=4,
+            )
+            return True
+        self._merge_expanded_bank(bank)
+        self._planning_stage = ''
+        self._bank_expansion_pending = False
+        self.get_logger().info(
+            f'Planning worker completed token={token} stage=expansion '
+            f'candidates={len(bank.candidates)}')
+        return True
+
+    def _merge_expanded_bank(self, expanded: PathBank) -> None:
+        """Add background alternatives without preempting the active route."""
+        if self._bank is None or self._route_bank is None:
+            return
+        existing = {c.path_id for c in self._bank.candidates}
+        active_id = self._bank.active_id
+        for candidate in expanded.candidates:
+            if candidate.path_id in existing:
+                continue
+            candidate.state = CandidateState.PENDING
+            self._bank.candidates.append(candidate)
+            pts = list(candidate.points)
+            nudge_grid = self._planning_grid
+            if nudge_grid is not None:
+                pts = nudge_polyline_away_from_lethal(
+                    pts,
+                    nudge_grid,
+                    target_clearance_m=self._mission_nudge_target_m(),
+                    max_offset_m=max(1.0, self._mission_nudge_target_m() + 0.35),
+                )
+            self._route_bank.routes.append(make_route_instance(
+                candidate.path_id,
+                pts,
+                label=f'path_{candidate.path_id}',
+                mission_salt=self._route_bank.mission_salt,
+            ))
+        live_grid = (
+            nav2_costmap_to_grid(self._live_costmap)
+            if self._live_costmap is not None else None
+        )
+        for candidate in self._bank.candidates:
+            if candidate.state != CandidateState.PENDING:
+                continue
+            if live_grid is None:
+                continue
+            candidate.state = CandidateState.VALIDATING
+            ok, reason = self._candidate_route_valid(candidate, live_grid)
+            if ok:
+                candidate.state = CandidateState.AVAILABLE
+            else:
+                candidate.state = CandidateState.BLOCKED
+                candidate.block_reason = f'merge_validation:{reason}'
+        # Entry 081: only force ACTIVE for active_id. Do NOT override
+        # merge-validation BLOCKED → AVAILABLE for new candidates.
+        self._bank.active_id = active_id
+        for candidate in self._bank.candidates:
+            if candidate.path_id == active_id:
+                candidate.state = CandidateState.ACTIVE
+        self._publish_bank_paths()
 
     def _srv_stop_mission(self, _request, response):
         was_manual = self._owner.phase == MissionPhase.MANUAL_NAV
         self._owner.begin_operator_stop()
+        self._planning_token += 1
+        self._switch_action_token += 1
+        self._bank_expansion_pending = False
+        if self._planning_future is not None:
+            self._planning_future.cancel()
+            self._planning_future = None
         self._publish_authority_now()
         self._cancel_nav()
         self._pending_follow_seed = False
@@ -6922,6 +8342,14 @@ class PathBankManager(Node):
         response.message = 'DisableTeleop accepted'
         response.reject_code = ''
         return response
+
+    def destroy_node(self):
+        """Stop the planner worker before releasing ROS resources."""
+        self._planning_token += 1
+        if self._planning_future is not None:
+            self._planning_future.cancel()
+        self._planning_executor.shutdown(wait=False, cancel_futures=True)
+        return super().destroy_node()
 
 
 def _yaw_from_quat(q) -> float:

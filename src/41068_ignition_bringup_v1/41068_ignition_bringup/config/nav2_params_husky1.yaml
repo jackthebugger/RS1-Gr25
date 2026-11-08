@@ -170,7 +170,8 @@ controller_server:
       # Do not raise vx_max here — GUI Fast lockstep owns staged speed eval.
       wz_std: 0.25
       vx_max: 0.5
-      vx_min: -0.35
+      # Navigation is forward-only; reorientation uses Spin before FollowPath.
+      vx_min: 0.0
       vy_max: 0.0
       wz_max: 1.2
       iteration_count: 1
@@ -501,7 +502,7 @@ velocity_smoother:
     - 0.0
     - 1.2
     min_velocity:
-    - -0.5
+    - 0.0
     - 0.0
     - -1.2
     max_accel:

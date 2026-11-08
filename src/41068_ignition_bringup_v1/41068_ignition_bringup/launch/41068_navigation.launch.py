@@ -235,9 +235,14 @@ class ConfiguredNav2Params(Substitution):
                 1.2,
             )
             _set_yaml_path(
+                data,
+                'controller_server.ros__parameters.FollowPath.vx_min',
+                0.0,
+            )
+            _set_yaml_path(
                 data, 'velocity_smoother.ros__parameters.max_velocity.0', 0.5)
             _set_yaml_path(
-                data, 'velocity_smoother.ros__parameters.min_velocity.0', -0.5)
+                data, 'velocity_smoother.ros__parameters.min_velocity.0', 0.0)
         out = tempfile.NamedTemporaryFile(
             mode='w', delete=False, suffix='.yaml', encoding='utf-8')
         yaml.dump(data, out)

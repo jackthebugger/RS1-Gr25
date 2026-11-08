@@ -34,6 +34,7 @@ from rs1_nav.path_bank import (  # noqa: E402
     build_path_bank,
     exclude_corridor,
     inflate_lethal,
+    length_primary_seed_config,
     occupancy_mask_intersects_path,
     path_is_valid,
     plan_dijkstra,
@@ -523,6 +524,55 @@ def main() -> int:
         failures.append('neg_nudge_only profile must disable bilat + soft-DT')
     else:
         print('PASS  A1/A2 production defaults vs neg_nudge_only profile')
+
+    # Entry 081: length-primary seed → Path 1 is shortest valid corridor.
+    seed = length_primary_seed_config(PathBankConfig(max_candidates=2))
+    if (
+        abs(seed.length_weight - 1.0) > 1e-12
+        or abs(seed.clearance_weight) > 1e-12
+        or abs(seed.cost_weight) > 1e-12
+        or abs(seed.smoothness_weight) > 1e-12
+        or abs(seed.bilateral_weight) > 1e-12
+    ):
+        failures.append(
+            f'length_primary_seed_config weights expected (1,0,0,0,0); got '
+            f'{seed.length_weight}/{seed.clearance_weight}/{seed.cost_weight}/'
+            f'{seed.smoothness_weight}/{seed.bilateral_weight}'
+        )
+    elif abs(prod.length_weight - 0.35) > 1e-12:
+        failures.append('length_primary must not mutate production defaults')
+    else:
+        # Prefer bush_trail under length-primary (already loaded); Path1=shortest.
+        seed_bt = length_primary_seed_config(
+            PathBankConfig(max_candidates=2, min_path_separation_m=1.5))
+        seed_bank = build_path_bank(
+            grid, start, goal, seed_bt, downsample_factor=4)
+        if len(seed_bank.candidates) < 2:
+            failures.append(
+                'length_primary seed expected >=2 candidates for Path1=shortest'
+            )
+        else:
+            c0 = seed_bank.candidates[0]
+            lengths = [c.length_m for c in seed_bank.candidates]
+            if c0.path_id != 1:
+                failures.append(
+                    f'length_primary Path1 id expected 1; got {c0.path_id}')
+            elif abs(c0.length_m - min(lengths)) > 1e-6:
+                failures.append(
+                    f'length_primary Path1 len={c0.length_m:.2f} not min '
+                    f'{min(lengths):.2f}')
+            elif not (c0.length_m < seed_bank.candidates[1].length_m):
+                failures.append(
+                    'length_primary Path1 must be shorter than Path2 when '
+                    f'two exist ({c0.length_m:.2f} vs '
+                    f'{seed_bank.candidates[1].length_m:.2f})'
+                )
+            else:
+                print(
+                    f'PASS  length_primary seed Path1 shortest '
+                    f'({c0.length_m:.2f}m < '
+                    f'{seed_bank.candidates[1].length_m:.2f}m)'
+                )
 
     # Soft costs must stay at/below inscribed (253).
     free_mask = inflated.costs < LETHAL

@@ -25,7 +25,7 @@ from __future__ import annotations
 
 import heapq
 import math
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from enum import Enum
 from typing import List, Optional, Sequence, Tuple
 
@@ -43,7 +43,9 @@ NO_INFO = 255
 
 
 class CandidateState(str, Enum):
+    PENDING = 'pending'
     AVAILABLE = 'available'
+    VALIDATING = 'validating'
     ACTIVE = 'active'
     BLOCKED = 'blocked'
     REJECTED = 'rejected'
@@ -84,6 +86,24 @@ class PathBankConfig:
     # cost ≈ soft_dt_max_cost * exp(−d / soft_dt_decay_m); must stay < lethal.
     soft_dt_max_cost: float = 80.0
     soft_dt_decay_m: float = 0.40
+
+
+def length_primary_seed_config(
+    base: Optional[PathBankConfig] = None,
+) -> PathBankConfig:
+    """Seed/first-expansion scoring: shortest valid corridor wins Path 1.
+
+    Production ``PathBankConfig`` defaults are unchanged; this helper is only
+    for mission seed / first-expansion / FollowPath sync ``_build_bank``.
+    """
+    return replace(
+        base or PathBankConfig(),
+        length_weight=1.0,
+        clearance_weight=0.0,
+        cost_weight=0.0,
+        smoothness_weight=0.0,
+        bilateral_weight=0.0,
+    )
 
 
 @dataclass
@@ -246,15 +266,21 @@ def inflate_lethal(grid: OccupancyGrid2D, radius_m: float) -> OccupancyGrid2D:
     cells = max(1, int(math.ceil(radius_m / grid.resolution)))
     lethal = grid.costs >= LETHAL
     out = grid.costs.copy()
-    ys, xs = np.where(lethal)
-    for iy, ix in zip(ys.tolist(), xs.tolist()):
-        y0, y1 = max(0, iy - cells), min(grid.height, iy + cells + 1)
-        x0, x1 = max(0, ix - cells), min(grid.width, ix + cells + 1)
-        # Circular mask
-        yy, xx = np.ogrid[y0:y1, x0:x1]
-        mask = (yy - iy) ** 2 + (xx - ix) ** 2 <= cells * cells
-        region = out[y0:y1, x0:x1]
-        region[mask] = np.maximum(region[mask], LETHAL)
+    try:
+        from scipy.ndimage import binary_dilation
+        yy, xx = np.ogrid[-cells:cells + 1, -cells:cells + 1]
+        footprint = (yy * yy + xx * xx) <= cells * cells
+        inflated = binary_dilation(lethal, structure=footprint)
+        out[inflated] = np.maximum(out[inflated], LETHAL)
+    except ImportError:
+        ys, xs = np.where(lethal)
+        for iy, ix in zip(ys.tolist(), xs.tolist()):
+            y0, y1 = max(0, iy - cells), min(grid.height, iy + cells + 1)
+            x0, x1 = max(0, ix - cells), min(grid.width, ix + cells + 1)
+            yy, xx = np.ogrid[y0:y1, x0:x1]
+            mask = (yy - iy) ** 2 + (xx - ix) ** 2 <= cells * cells
+            region = out[y0:y1, x0:x1]
+            region[mask] = np.maximum(region[mask], LETHAL)
     return OccupancyGrid2D(
         grid.origin_x, grid.origin_y, grid.resolution,
         grid.width, grid.height, out,
@@ -349,7 +375,12 @@ def plan_dijkstra(
     *,
     allow_unknown: bool = True,
 ) -> Optional[List[Point]]:
-    """8-connected Dijkstra on the cost grid. Returns world-frame polyline."""
+    """8-connected A* search with Dijkstra-compatible cost semantics.
+
+    The heuristic is the admissible Euclidean lower bound for the minimum
+    traversal cost (1.0), so the selected route remains cost-optimal while
+    avoiding expansion of the entire grid before reaching the goal.
+    """
     s = grid.world_to_grid(*start)
     g = grid.world_to_grid(*goal)
     if s is None or g is None:
@@ -360,12 +391,76 @@ def plan_dijkstra(
         return None
 
     w, h = grid.width, grid.height
-    dist = np.full((h, w), np.inf, dtype=np.float64)
-    parent = np.full((h, w, 2), -1, dtype=np.int32)
     sx, sy = s
     gx, gy = g
+    try:
+        # scipy's compiled sparse Dijkstra removes the Python heap/grid
+        # bottleneck while retaining the exact 8-connected edge costs.
+        from scipy.sparse import csr_matrix
+        from scipy.sparse.csgraph import dijkstra as sparse_dijkstra
+        traversable = (grid.costs < LETHAL) | (
+            (grid.costs == NO_INFO) & allow_unknown)
+        rows: List[np.ndarray] = []
+        cols: List[np.ndarray] = []
+        weights: List[np.ndarray] = []
+        yy, xx = np.indices((h, w))
+        for dx, dy, step in (
+            (-1, 0, 1.0), (1, 0, 1.0), (0, -1, 1.0), (0, 1, 1.0),
+            (-1, -1, math.sqrt(2)), (-1, 1, math.sqrt(2)),
+            (1, -1, math.sqrt(2)), (1, 1, math.sqrt(2)),
+        ):
+            sx0, sx1 = max(0, -dx), min(w, w - dx)
+            sy0, sy1 = max(0, -dy), min(h, h - dy)
+            src_ok = traversable[sy0:sy1, sx0:sx1]
+            dst_ok = traversable[sy0 + dy:sy1 + dy, sx0 + dx:sx1 + dx]
+            mask = src_ok & dst_ok
+            src = (yy[sy0:sy1, sx0:sx1][mask] * w
+                   + xx[sy0:sy1, sx0:sx1][mask])
+            dst_y = yy[sy0 + dy:sy1 + dy, sx0 + dx:sx1 + dx][mask]
+            dst_x = xx[sy0 + dy:sy1 + dy, sx0 + dx:sx1 + dx][mask]
+            dst = dst_y * w + dst_x
+            cost = grid.costs[sy0 + dy:sy1 + dy, sx0 + dx:sx1 + dx][mask]
+            edge_cost = np.where(
+                cost == NO_INFO, 1.5,
+                1.0 + (cost.astype(np.float64) / 253.0) * 4.0,
+            ) * step
+            rows.append(src.astype(np.int32))
+            cols.append(dst.astype(np.int32))
+            weights.append(edge_cost)
+        graph = csr_matrix(
+            (np.concatenate(weights),
+             (np.concatenate(rows), np.concatenate(cols))),
+            shape=(w * h, w * h),
+        )
+        source_id = sy * w + sx
+        goal_id = gy * w + gx
+        distances, predecessors = sparse_dijkstra(
+            graph, directed=True, indices=source_id,
+            return_predecessors=True,
+        )
+        if not np.isfinite(distances[goal_id]):
+            return None
+        cell_ids = [goal_id]
+        current = goal_id
+        while current != source_id:
+            current = int(predecessors[current])
+            if current < 0:
+                return None
+            cell_ids.append(current)
+        cell_ids.reverse()
+        return [
+            grid.grid_to_world(int(cell_id % w), int(cell_id // w))
+            for cell_id in cell_ids
+        ]
+    except ImportError:
+        pass
+
+    dist = np.full((h, w), np.inf, dtype=np.float64)
+    parent = np.full((h, w, 2), -1, dtype=np.int32)
     dist[sy, sx] = 0.0
-    heap: List[Tuple[float, int, int]] = [(0.0, sx, sy)]
+    heuristic = lambda x, y: math.hypot(gx - x, gy - y)
+    heap: List[Tuple[float, int, int]] = [
+        (heuristic(sx, sy), sx, sy)]
     neigh = [
         (-1, 0, 1.0), (1, 0, 1.0), (0, -1, 1.0), (0, 1, 1.0),
         (-1, -1, math.sqrt(2)), (-1, 1, math.sqrt(2)),
@@ -373,8 +468,9 @@ def plan_dijkstra(
     ]
     found = False
     while heap:
-        d, x, y = heapq.heappop(heap)
-        if d > dist[y, x]:
+        priority, x, y = heapq.heappop(heap)
+        d = float(dist[y, x])
+        if priority > d + heuristic(x, y) + 1e-9:
             continue
         if x == gx and y == gy:
             found = True
@@ -390,7 +486,7 @@ def plan_dijkstra(
             if nd < dist[ny, nx]:
                 dist[ny, nx] = nd
                 parent[ny, nx] = (x, y)
-                heapq.heappush(heap, (nd, nx, ny))
+                heapq.heappush(heap, (nd + heuristic(nx, ny), nx, ny))
 
     if not found or not np.isfinite(dist[gy, gx]):
         return None
@@ -498,12 +594,23 @@ def _min_clearance(path: Sequence[Point], grid: OccupancyGrid2D) -> float:
     lethal = grid.costs >= LETHAL
     if not lethal.any() or not path:
         return 10.0
-    ys, xs = np.where(lethal)
-    obs = np.column_stack([
-        grid.origin_x + (xs + 0.5) * grid.resolution,
-        grid.origin_y + (ys + 0.5) * grid.resolution,
-    ])
-    best = float('inf')
+    try:
+        from scipy.ndimage import distance_transform_edt
+        clearance = distance_transform_edt(~lethal) * float(grid.resolution)
+        best = float('inf')
+        stride = max(1, len(path) // 80)
+        for x, y in path[::stride]:
+            idx = grid.world_to_grid(x, y)
+            if idx is not None:
+                best = min(best, float(clearance[idx[1], idx[0]]))
+        return best if best < float('inf') else 10.0
+    except ImportError:
+        ys, xs = np.where(lethal)
+        obs = np.column_stack([
+            grid.origin_x + (xs + 0.5) * grid.resolution,
+            grid.origin_y + (ys + 0.5) * grid.resolution,
+        ])
+        best = float('inf')
     stride = max(1, len(path) // 80)
     for x, y in path[::stride]:
         d = np.min(np.hypot(obs[:, 0] - x, obs[:, 1] - y))

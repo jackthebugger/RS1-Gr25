@@ -181,9 +181,10 @@ def speed_param_writes(speed: str) -> dict:
     wz = float(SPEED_ANGULAR_MAX)
     return {
         'FollowPath.vx_max': vx,
+        'FollowPath.vx_min': 0.0,
         'FollowPath.wz_max': wz,
         'max_velocity': [vx, 0.0, wz],
-        'min_velocity': [-vx, 0.0, -wz],
+        'min_velocity': [0.0, 0.0, -wz],
     }
 
 
@@ -1577,7 +1578,8 @@ class RobotStatusNode(Node):
 
         Entry 063: stop writing obsolete RPP ``desired_linear_vel`` as primary.
         Lockstep: MPPI ``FollowPath.vx_max`` == smoother ``max_velocity[0]``
-        == GUI preset; ``wz_max`` / angular max = 1.2; ``min_velocity[0]=-vx``.
+        == GUI preset; ``wz_max`` / angular max = 1.2; NAV reverse limits are
+        zero so route switching cannot drive backwards.
         """
         if speed not in self.speed_limits:
             return
@@ -1606,6 +1608,10 @@ class RobotStatusNode(Node):
                     Parameter(
                         'FollowPath.vx_max', Parameter.Type.DOUBLE,
                         linear_limit,
+                    ),
+                    Parameter(
+                        'FollowPath.vx_min', Parameter.Type.DOUBLE,
+                        float(writes['FollowPath.vx_min']),
                     ),
                     Parameter(
                         'FollowPath.wz_max', Parameter.Type.DOUBLE,

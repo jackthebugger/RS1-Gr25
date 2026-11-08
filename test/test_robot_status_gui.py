@@ -433,9 +433,10 @@ def test_entry063_speed_presets_honest_maximum():
     assert gui.SPEED_ANGULAR_MAX == 1.2
     writes = gui.speed_param_writes('fast')
     assert writes['FollowPath.vx_max'] == 0.50
+    assert writes['FollowPath.vx_min'] == 0.0
     assert writes['FollowPath.wz_max'] == 1.2
     assert writes['max_velocity'] == [0.50, 0.0, 1.2]
-    assert writes['min_velocity'] == [-0.50, 0.0, -1.2]
+    assert writes['min_velocity'] == [0.0, 0.0, -1.2]
     assert 'desired_linear_vel' not in writes
     slow = gui.speed_param_writes('slow')
     assert slow['FollowPath.vx_max'] == 0.15
